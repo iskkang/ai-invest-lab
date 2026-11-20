@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { serverSupabase } from "../../../lib/server-supabase";
+import { serverSupabase } from "../../../../lib/server-supabase";
 
 // Private, non-mutating connectivity probe. Protected by web/proxy.ts Basic auth.
 // Never return database credentials, query results, or user data.

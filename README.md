@@ -46,11 +46,12 @@ DEMO는 화면 상단 주황색 띠, `[DEMO]` 표시, 별도 실험(`mode='demo'
 ## 실제 운영 (live)
 
 1. Supabase 프로젝트 생성 → `supabase db push` (또는 SQL 편집기에 `supabase/migrations/*.sql` 순서대로 실행)
-2. GitHub Secrets: `DATABASE_URL`, `OPENROUTER_API_KEY`, `NHPLUG_APP_KEY`, `NHPLUG_APP_SECRET`
-   GitHub Variables: `AIL_EXPERIMENT`, `AIL_START_SESSION`, `AIL_MONTHLY_BUDGET_USD`, `AIL_MODEL_*`
-3. 먼저 수동 점검: Actions → daily-engine → Run workflow → `verify` (연결만 확인)
-4. 자동 실행: 평일 cron 이 깨우고, 엔진이 NYSE 거래일·08:00–09:15 ET 창을 직접 판정합니다. 휴장·창 밖이면 `skipped`.
-5. 웹: Vercel 배포 → [docs/DEPLOY.md](docs/DEPLOY.md)
+2. GitHub Actions의 `Secrets and variables`에 비밀값을 직접 등록합니다. Secrets: `DATABASE_URL`, `OPENROUTER_API_KEY`, `NHPLUG_APP_KEY`, `NHPLUG_APP_SECRET` (키를 GitHub 코드, 채팅, Vercel 웹 프로젝트에 넣지 마세요).
+   `DATABASE_URL`은 Supabase 대시보드 Connect > **Session pooler (5432)** 연결 문자열을 사용합니다. GitHub-hosted runner는 IPv4 전용입니다. DB 비밀번호가 URL 특수문자를 포함하면 URL 인코딩합니다.
+3. 먼저 **읽기 전용 점검**: Actions → `provider-preflight` → Run workflow. DB `SELECT`, AAPL 과거 일봉 1회 조회, OpenRouter `/key`·`/models` 호출만 수행합니다. **실제 AI 판단·매매·DB 수정·자동 실행을 하지 않습니다.**
+4. 모든 점검이 통과해도 `AIL_ENGINE_ENABLED`는 `false` 또는 미설정으로 유지합니다. `daily-engine`의 실제 실행 활성화는 별도 운영 검증 후에만 진행합니다.
+5. 이후 4개 AI 모델의 실호출·실험/데이터 초기화·장중 판단 시간 검증·비용 한도를 마친 뒤에만 LIVE 모의투자를 시작합니다.
+6. 웹: Vercel 배포 → [docs/DEPLOY.md](docs/DEPLOY.md) (`DATA_MODE=demo` 유지).
 
 ### 매일 흐름
 

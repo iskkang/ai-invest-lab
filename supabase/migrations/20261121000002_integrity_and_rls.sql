@@ -95,28 +95,12 @@ begin
   end loop;
 end $$;
 
--- 공개 조회 테이블: SELECT 만 허용
-do $$
-declare t text;
-begin
-  foreach t in array array[
-    'ai_models','model_versions','experiments','stock_universe','market_sessions','stock_prices',
-    'corporate_actions','experiment_rounds','portfolio_accounts','holdings','orders','trades',
-    'portfolio_snapshots','benchmark_snapshots','performance_stats']
-  loop
-    execute format('grant select on %I to anon, authenticated', t);
-    execute format('create policy %I on %I for select to anon, authenticated using (true)', t || '_public_read', t);
-  end loop;
-end $$;
-
--- ai_decisions: 공개는 파싱된 판단·상태·비용 메타만. 요청 원본(request_payload)·응답 원본(raw_response)은 관리자 전용.
-grant select (id, round_id, ai_model_id, model_version_id, requested_model, returned_model,
-              prompt_hash, market_hash, parsed, status, error, created_at, completed_at)
-  on ai_decisions to anon, authenticated;
-create policy ai_decisions_public_read on ai_decisions for select to anon, authenticated
-  using (status <> 'pending');
-
--- market_snapshots, ledger_entries, api_usage, job_runs, audit_logs: 정책 없음 → 공개 접근 불가
+-- Security hardening for private AI Invest Lab experiments.
+-- An HTTP Basic gate on Vercel is NOT an authorization boundary for Supabase Data API.
+-- Until a server-only, scoped read layer is implemented, no anon/authenticated
+-- role may SELECT ledger, decisions, holdings, prices, or other experiment data.
+-- RLS and revoked grants are intentionally enforced on all experiment tables.
+-- Public read policies are deliberately NOT created here.
 
 -- 서버 엔진 역할(Supabase 의 service_role)은 RLS 우회. 소유자 연결도 FORCE RLS 대상이므로 엔진 전용 정책 부여.
 do $$

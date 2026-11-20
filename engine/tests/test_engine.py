@@ -325,9 +325,12 @@ def test_13_public_cannot_modify_and_records_are_immutable(db, settings, source)
     day(db, settings, source, ScriptedProvider({"gpt": lambda p: orders_json(p, [("AAPL", "BUY", 3)])}), START)
     tid = db.execute("select id from trades limit 1").fetchone()["id"]
     for role in ("anon", "authenticated"):
-        with db.transaction():
-            db.execute(f"set local role {role}")
-            assert db.execute("select count(*) as n from trades").fetchone()["n"] >= 1      # 조회 가능
+        # A private web login does not protect Supabase's public Data API.
+        # Neither anon nor authenticated may read experimental trading records.
+        with pytest.raises(psycopg.errors.InsufficientPrivilege):
+            with db.transaction():
+                db.execute(f"set local role {role}")
+                db.execute("select count(*) as n from trades")
         for sql in ("update trades set price=1 where id=%s" % tid,
                     "delete from trades where id=%s" % tid,
                     "insert into audit_logs(actor,action,entity) values ('x','x','x')",

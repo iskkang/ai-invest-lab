@@ -24,13 +24,13 @@ jobs:
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
       NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
       NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
-      AIL_EXPERIMENT: ${{ vars.AIL_EXPERIMENT }}
+      AIL_EXPERIMENT: ${{ vars.AIL_EXPERIMENT || 'season-1' }}
       AIL_START_SESSION: ${{ vars.AIL_START_SESSION }}
-      AIL_MONTHLY_BUDGET_USD: ${{ vars.AIL_MONTHLY_BUDGET_USD }}
-      AIL_MODEL_GPT: ${{ vars.AIL_MODEL_GPT }}
-      AIL_MODEL_CLAUDE: ${{ vars.AIL_MODEL_CLAUDE }}
-      AIL_MODEL_GEMINI: ${{ vars.AIL_MODEL_GEMINI }}
-      AIL_MODEL_DEEPSEEK: ${{ vars.AIL_MODEL_DEEPSEEK }}
+      AIL_MONTHLY_BUDGET_USD: ${{ vars.AIL_MONTHLY_BUDGET_USD || '10' }}
+      AIL_MODEL_GPT: ${{ vars.AIL_MODEL_GPT || 'openai/gpt-4.1-mini' }}
+      AIL_MODEL_CLAUDE: ${{ vars.AIL_MODEL_CLAUDE || 'anthropic/claude-sonnet-5.5' }}
+      AIL_MODEL_GEMINI: ${{ vars.AIL_MODEL_GEMINI || 'google/gemini-3.8-flash' }}
+      AIL_MODEL_DEEPSEEK: ${{ vars.AIL_MODEL_DEEPSEEK || 'deepseek/deepseek-v3.2' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

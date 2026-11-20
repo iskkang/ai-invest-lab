@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import os
 import sys
+from urllib.parse import urlsplit
 
 import httpx
 import psycopg
@@ -27,24 +28,77 @@ REQUIRED_SECRETS = (
 )
 
 
-def _db_check() -> bool:
+def _db_dsn_hint(dsn: str) -> str:
+    """Classify only the connection URI shape, never print the URI or its parts."""
+    if not dsn.startswith(("postgresql://", "postgres://")):
+        return (
+            "DATABASE_URL is not a PostgreSQL URI. Use Supabase Connect > "
+            "Session pooler (port 5432), not the HTTPS Project URL."
+        )
     try:
-        with psycopg.connect(os.environ["DATABASE_URL"], connect_timeout=15) as conn:
-            row = conn.execute(
-                "select count(*) from information_schema.tables "
-                "where table_schema='public' and table_name in "
-                "('ai_models','experiments','stock_prices','trades')"
-            ).fetchone()
-            if row is None or row[0] != 4:
-                print("FAIL Supabase: expected AI Invest Lab schema not found")
+        uri = urlsplit(dsn)
+        if not uri.hostname or not uri.username or not uri.password:
+            return (
+                "DATABASE_URL is missing host, username or password; "
+                "copy the complete Session pooler URI and substitute the DB password."
+            )
+        if uri.port not in (5432, 6543):
+            return "DATABASE_URL has an unexpected port; choose Session pooler port 5432."
+        from psycopg.conninfo import conninfo_to_dict
+        conninfo_to_dict(dsn)
+    except (ValueError, psycopg.ProgrammingError):
+        return (
+            "DATABASE_URL URI is malformed; copy the Session pooler URI again. "
+            "Percent-encode special characters in the database password."
+        )
+    return (
+        "DATABASE_URL looks like a PostgreSQL URI, but libpq rejected it. "
+        "Copy Supabase Connect > Session pooler port 5432, remove any quotes "
+        "or DATABASE_URL= prefix, and URL-encode password special characters."
+    )
+
+
+def _db_check() -> bool:
+    # Validate DSN separately from connecting/querying, without printing its value.
+    dsn = os.environ["DATABASE_URL"]
+    try:
+        from psycopg.conninfo import conninfo_to_dict
+        conninfo_to_dict(dsn)
+    except psycopg.ProgrammingError:
+        print("FAIL Supabase: invalid PostgreSQL connection URI (ProgrammingError)")
+        print("HINT Supabase: " + _db_dsn_hint(dsn))
+        return False
+
+    try:
+        with psycopg.connect(dsn, connect_timeout=15) as conn:
+            try:
+                row = conn.execute(
+                    "select count(*) from information_schema.tables "
+                    "where table_schema='public' and table_name in "
+                    "('ai_models','experiments','stock_prices','trades')"
+                ).fetchone()
+                if row is None or row[0] != 4:
+                    print("FAIL Supabase: connected, but AI Invest Lab tables not found")
+                    return False
+            except psycopg.Error as exc:
+                print(f"FAIL Supabase: connected, SQL error ({type(exc).__name__}, SQLSTATE={exc.sqlstate or 'N/A'})")
                 return False
         print("PASS Supabase: read-only query, project schema confirmed")
         return True
-    except Exception as exc:
-        # psycopg error strings can include connection strings; don't print them.
-        print(f"FAIL Supabase: connection/query failed ({type(exc).__name__})")
+    except psycopg.ProgrammingError:
+        print("FAIL Supabase: malformed PostgreSQL connection settings (ProgrammingError)")
+        print("HINT Supabase: " + _db_dsn_hint(dsn))
         return False
-
+    except psycopg.OperationalError:
+        print("FAIL Supabase: connection refused/unreachable/authentication failed (OperationalError)")
+        print("HINT Supabase: verify Session pooler host, database password, port 5432, and network access.")
+        return False
+    except psycopg.Error as exc:
+        print(f"FAIL Supabase: connection failed ({type(exc).__name__}, SQLSTATE={exc.sqlstate or 'N/A'})")
+        return False
+    except Exception as exc:
+        print(f"FAIL Supabase: unexpected connection error ({type(exc).__name__})")
+        return False
 
 def _nh_check() -> bool:
     try:

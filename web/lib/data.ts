@@ -8,8 +8,9 @@ import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adju
 /**
  * 데이터 공급원
  *  - DATA_MODE=demo (기본): engine 이 만든 data/demo.json (합성 데이터 — 실제 성과 아님)
- *  - DATA_MODE=live: Supabase 공개 테이블을 anon 키 + RLS 로 조회 (서버에서만, 키는 브라우저로 나가지 않음)
- *    NOTE: This remains publicly accessible at the database API layer; P1 should restrict RLS.
+ *  - DATA_MODE=live: server-only Supabase secret key, behind SITE_ACCESS=private.
+ *    The anon/authenticated API roles have NO read privileges on experiment data.
+ *    Never pass a secret key to a browser or NEXT_PUBLIC_ environment variable.
  * 사용자 방문은 AI API 를 절대 호출하지 않는다. 저장된 결과만 읽는다.
  */
 type Raw = Record<string, any>;
@@ -28,11 +29,8 @@ async function loadDemo(): Promise<Raw> {
 }
 
 async function loadSupabase(): Promise<Raw> {
-  const url = process.env.SUPABASE_URL;
-  const key = process.env.SUPABASE_ANON_KEY;
-  if (!url || !key) throw new Error("DATA_MODE=live requires SUPABASE_URL and SUPABASE_ANON_KEY (server env)");
-  const { createClient } = await import("@supabase/supabase-js");
-  const sb = createClient(url, key, { auth: { persistSession: false } });
+  const { serverSupabase } = await import("./server-supabase");
+  const sb = serverSupabase();
   const name = process.env.AIL_EXPERIMENT ?? "season-1";
 
   async function all<T = Raw>(table: string, select: string, apply?: (q: any) => any): Promise<T[]> {

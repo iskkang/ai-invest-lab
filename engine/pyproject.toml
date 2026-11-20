@@ -1,0 +1,30 @@
+[project]
+name = "ai-invest-lab-engine"
+version = "0.1.0"
+description = "AI Invest Lab — paper-trading engine (quote-only NH PLUG + OpenRouter)"
+requires-python = ">=3.11"
+dependencies = [
+  "nhplug>=0.4.2",
+  "httpx>=0.27",
+  "psycopg[binary]>=3.2",
+  "exchange_calendars>=4.5",
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "jsonschema>=4.21",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.scripts]
+ail = "ail.cli:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["ail*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

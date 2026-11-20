@@ -1,0 +1,45 @@
+# 미국 거래일 자동 실행. 실제 판단 시각 판정(휴장일·서머타임·08:00~09:15 ET 창)은 엔진이 한다.
+# GitHub cron 은 UTC 이고 지연될 수 있으므로 EDT/EST 양쪽을 덮도록 여러 번 깨우고, 중복은 DB 가 막는다.
+name: daily-engine
+on:
+  schedule:
+    - cron: "35 12 * * 1-5"   # 08:35 EDT / 07:35 EST(창 밖 → skipped)
+    - cron: "35 13 * * 1-5"   # 09:35 EDT(개장 후 → skipped) / 08:35 EST
+    - cron: "5 13 * * 1-5"    # 09:05 EDT / 08:05 EST (지연 대비 재시도)
+    - cron: "30 22 * * 1-5"   # 폐장 후 정산 (18:30 EDT / 17:30 EST)
+  workflow_dispatch:
+    inputs:
+      job: { description: "run-daily | run-settle | verify | costs", required: true, default: "verify" }
+concurrency: { group: ail-engine, cancel-in-progress: false }
+permissions: { contents: read }
+jobs:
+  engine:
+    if: ${{ vars.AIL_ENGINE_ENABLED == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      AIL_MODE: live
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
+      NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
+      AIL_EXPERIMENT: ${{ vars.AIL_EXPERIMENT }}
+      AIL_START_SESSION: ${{ vars.AIL_START_SESSION }}
+      AIL_MONTHLY_BUDGET_USD: ${{ vars.AIL_MONTHLY_BUDGET_USD }}
+      AIL_MODEL_GPT: ${{ vars.AIL_MODEL_GPT }}
+      AIL_MODEL_CLAUDE: ${{ vars.AIL_MODEL_CLAUDE }}
+      AIL_MODEL_GEMINI: ${{ vars.AIL_MODEL_GEMINI }}
+      AIL_MODEL_DEEPSEEK: ${{ vars.AIL_MODEL_DEEPSEEK }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install ./engine
+      - name: choose job
+        id: pick
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "job=${{ inputs.job }}" >> $GITHUB_OUTPUT;
+          elif [ "${{ github.event.schedule }}" = "30 22 * * 1-5" ]; then echo "job=run-settle" >> $GITHUB_OUTPUT;
+          else echo "job=run-daily" >> $GITHUB_OUTPUT; fi
+      - run: ail ${{ steps.pick.outputs.job }}

@@ -1,0 +1,94 @@
+import Link from "next/link";
+import { ReturnChart } from "@/components/charts";
+import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
+import { UniverseRail } from "@/components/universe-rail";
+import { Badge } from "@/components/ui/badge";
+import { aiAccounts, benchmarkAccounts, getData, lastSessionDate } from "@/lib/data";
+import { returnLines } from "@/lib/series";
+import { cn, fmtPct, toneClass } from "@/lib/utils";
+
+export const revalidate = 300;
+
+export default async function Dashboard({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
+  const { sort } = await searchParams;
+  const sortKey = sort === "sharpe" ? "sharpe" : "cum_return";
+  const d = await getData();
+  const last = lastSessionDate(d);
+  const todays = d.trades.filter((t) => t.tradeDate === last && d.accounts.find((a) => a.id === t.accountId)?.kind === "ai");
+  const lastRound = d.rounds[0];
+  const latestDecisions = lastRound ? d.decisions.filter((x) => x.roundId === lastRound.id) : [];
+  const buys = todays.filter((t) => t.side === "BUY").length;
+  const sells = todays.length - buys;
+
+  return (
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+    <div className="min-w-0 space-y-4">
+      <div className="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">AI 투자 리더보드</h1>
+          <p className="mt-1 text-sm text-muted">
+            같은 시장 데이터, 같은 규칙, 각자 ${d.experiment.initialCash.toLocaleString()}로 시작 · 시작일 {d.experiment.startSession}
+          </p>
+        </div>
+        <div className="flex gap-1 rounded-lg border border-line p-0.5 text-xs" role="tablist" aria-label="정렬 기준">
+          <Link href="/?sort=return" className={cn("rounded-md px-2.5 py-1.5", sortKey === "cum_return" ? "bg-panel-2 text-fg" : "text-muted")}>누적 수익률</Link>
+          <Link href="/?sort=sharpe" className={cn("rounded-md px-2.5 py-1.5", sortKey === "sharpe" ? "bg-panel-2 text-fg" : "text-muted")}>위험조정(샤프)</Link>
+        </div>
+      </div>
+
+      <AiCards d={d} sortKey={sortKey} />
+
+      <Section title="순위 상세" className="hidden md:block">
+        <Leaderboard d={d} sortKey={sortKey} />
+      </Section>
+
+      <Section title="누적 수익률 추이" action={<span className="text-[11px] text-muted">점선 = 벤치마크</span>}>
+        <div><ReturnChart lines={returnLines(d, { benchmarks: true })} /></div>
+        <Legend d={d} />
+      </Section>
+
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Section title={`최근 거래일 매매 (${last})`} action={<span className="text-xs text-muted tabular"><span className="text-up">매수 {buys}</span> · <span className="text-down">매도 {sells}</span></span>}>
+          <TradeList d={d} trades={todays.slice(0, 12)} compact />
+          {todays.length > 12 && <Link href="/trades" className="mt-2 block text-center text-xs text-accent">전체 보기</Link>}
+        </Section>
+        <Section title="벤치마크 비교">
+          <ul className="divide-y divide-line">
+            {[...benchmarkAccounts(d), ...aiAccounts(d)].map((a) => {
+              const s = d.stats[a.id];
+              return (
+                <li key={a.id} className="flex items-center gap-2 py-2 text-sm">
+                  <Dot color={a.color} /><span className="flex-1">{a.name}</span>
+                  {a.kind === "benchmark" && <Badge variant="outline">기준</Badge>}
+                  <span className={cn("w-20 text-right font-semibold tabular", toneClass(s?.cum_return))}>{fmtPct(s?.cum_return)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        </Section>
+      </div>
+
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold">최근 투자 판단과 이유</h2>
+          {lastRound && <RoundBadge status={lastRound.status} reason={lastRound.abortReason} />}
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {latestDecisions.map((dec) => <DecisionCard key={dec.id} d={d} dec={dec} />)}
+        </div>
+      </div>
+    </div>
+    <div className="hidden xl:block"><div className="sticky top-20"><UniverseRail d={d} /></div></div>
+    </div>
+  );
+}
+
+function Legend({ d }: { d: Awaited<ReturnType<typeof getData>> }) {
+  return (
+    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+      {d.accounts.map((a) => (
+        <span key={a.id} className="flex items-center gap-1.5"><Dot color={a.color} />{a.name}</span>
+      ))}
+    </div>
+  );
+}

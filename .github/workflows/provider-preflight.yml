@@ -1,0 +1,33 @@
+# Manual, read-only integration test. It does NOT use an AI model or execute orders.
+# GitHub Actions secrets must be configured by the repository owner.
+name: provider-preflight
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ail-provider-preflight
+  cancel-in-progress: false
+jobs:
+  check:
+    if: github.repository == 'iskkang/ai-invest-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
+      NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      NHPLUG_TOKEN_CACHE: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install quote-only Python engine
+        run: pip install ./engine
+      - name: Validate database and API connections without any trades
+        run: python engine/scripts/provider_preflight.py

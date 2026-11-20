@@ -3,7 +3,7 @@ import { cache } from "react";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Dataset, Stats } from "./types";
-import { makeAdjustedPriceMap } from "./price-adjust";
+import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adjust";
 
 /**
  * 데이터 공급원
@@ -84,10 +84,10 @@ async function loadSupabase(): Promise<Raw> {
   const through = coveredDates.sort().at(-1) ?? new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
   // Multiple price sources may contain identical ticker/date pairs: filter at DB level.
-  const prices = await all("stock_prices", "symbol,trade_date,open,high,low,close,volume", (q) =>
+  const prices = await all<PriceRow>("stock_prices", "symbol,trade_date,open,high,low,close,volume", (q) =>
     q.in("symbol", symbols).eq("source", "nh_plug").gte("trade_date", since)
      .lte("trade_date", through).order("trade_date").order("symbol"));
-  const actions = await all("corporate_actions", "symbol,kind,ex_date,ratio", (q) =>
+  const actions = await all<SplitRow>("corporate_actions", "symbol,kind,ex_date,ratio", (q) =>
     q.in("symbol", symbols).eq("price_source", "nh_plug").eq("kind", "split")
      .lte("ex_date", through).lte("created_at", now).order("ex_date").order("symbol"));
   const priceMap = makeAdjustedPriceMap(prices, actions, through);

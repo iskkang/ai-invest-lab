@@ -19,6 +19,10 @@ jobs:
       NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
       NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
       OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      AIL_MODEL_GPT: ${{ vars.AIL_MODEL_GPT || 'openai/gpt-4.1-mini' }}
+      AIL_MODEL_CLAUDE: ${{ vars.AIL_MODEL_CLAUDE || 'anthropic/claude-sonnet-5.5' }}
+      AIL_MODEL_GEMINI: ${{ vars.AIL_MODEL_GEMINI || 'google/gemini-3.8-flash' }}
+      AIL_MODEL_DEEPSEEK: ${{ vars.AIL_MODEL_DEEPSEEK || 'deepseek/deepseek-v3.2' }}
       NHPLUG_TOKEN_CACHE: "0"
     steps:
       - uses: actions/checkout@v4

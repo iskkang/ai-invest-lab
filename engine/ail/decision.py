@@ -69,13 +69,13 @@ TRADING RULES
 
 OUTPUT
 Return ONLY a JSON object (no markdown) with exactly these keys:
-{"participant_id": <echo>, "decision_at": <echo>, "data_as_of": <echo>, "summary": <overall view, Korean>,
+{"participant_id": <echo>, "decision_at": <echo>, "data_as_of": <echo>, "summary": <overall view, English>,
  "actions": [{"symbol": "AAPL", "action": "BUY|SELL|HOLD", "quantity": <integer; 0 for HOLD>,
-   "reason": <Korean>, "risks": [<Korean, max 5>], "indicators_used": ["rsi14", "sma50", ...],
+   "reason": <English>, "risks": [<English, max 5>], "indicators_used": ["rsi14", "sma50", ...],
    "expected_return_pct": <number or null — a rough opinion, not a measured probability>,
    "confidence": "low|medium|high|null — qualitative only"}]}
 List BUY/SELL actions for every trade you want. HOLD entries are optional.
-Write summary, reason and risks in Korean, concisely. Give public reasoning, not hidden chain-of-thought."""
+Write summary, reason and risks in English, concisely. Do not translate them into other languages. Give public reasoning, not hidden chain-of-thought."""
 
 PROMPT_HASH = sha256({"system": SYSTEM_PROMPT, "schema": DECISION_SCHEMA})
 

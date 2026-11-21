@@ -57,7 +57,7 @@ def _bool(name: str, default: bool = False) -> bool:
 
 @dataclass
 class Settings:
-    mode: str = field(default_factory=lambda: os.environ.get("AIL_MODE", "demo"))
+    mode: str = field(default_factory=lambda: os.environ.get("AIL_MODE", "live"))
     database_url: str = field(default_factory=lambda: os.environ.get("DATABASE_URL", ""))
     experiment_name: str = field(default_factory=lambda: os.environ.get("AIL_EXPERIMENT", "season-1"))
     start_session: str = field(default_factory=lambda: os.environ.get("AIL_START_SESSION", ""))

@@ -3,15 +3,14 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { unstable_cache } from "next/cache";
 import { isLocale, type Locale } from "./public-content";
-import { readFile } from "node:fs/promises";
-import path from "node:path";
 import type { Dataset, Stats } from "./types";
 import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adjust";
 
 /**
  * 데이터 공급원
- *  - DATA_MODE=demo (기본): engine 이 만든 data/demo.json (합성 데이터 — 실제 성과 아님)
- *  - DATA_MODE=live: server-only Supabase secret key, behind SITE_ACCESS=private.
+ *  - LIVE ONLY: verified NH PLUG prices and real AI decisions from Supabase.
+ *  - Missing database data must fail visibly; never serve synthetic results.
+ *  - Supabase secret key is server-only and raw quotes remain access-restricted.
  *    The anon/authenticated API roles have NO read privileges on experiment data.
  *    Never pass a secret key to a browser or NEXT_PUBLIC_ environment variable.
  * 사용자 방문은 AI API 를 절대 호출하지 않는다. 저장된 결과만 읽는다.
@@ -25,14 +24,13 @@ export const getData = cache(async (): Promise<Dataset> => {
   const headerLocale = req.get("x-ail-locale") ?? "ko";
   const locale: Locale = isLocale(headerLocale) ? headerLocale : "ko";
   const publicPage = req.get("x-ail-public") === "1";
-  const mode = process.env.DATA_MODE === "live" ? "live" : "demo";
-  const raw = mode === "live" ? await (publicPage ? loadCachedPublicRaw() : loadSupabase(false)) : await loadDemo();
-  const dataset = { ...normalize(raw, mode), locale, publicQuotesRedacted: publicPage && mode === "live" };
+  const raw = await (publicPage ? loadCachedPublicRaw() : loadSupabase(false));
+  const dataset = { ...normalize(raw), locale, publicQuotesRedacted: publicPage };
   // Do not redistribute the licensed NH PLUG per-ticker OHLCV bars or fill
   // prices on anonymous public pages. Keep only model-generated results,
   // simulated account-level returns, and portfolio composition at this stage.
   // The private back office continues to have its full data internally.
-  if (publicPage && mode === "live") {
+  if (publicPage) {
     return {
       ...dataset,
       prices: {},
@@ -49,11 +47,6 @@ export const getData = cache(async (): Promise<Dataset> => {
   }
   return dataset;
 });
-
-async function loadDemo(): Promise<Raw> {
-  const file = path.join(process.cwd(), "data", "demo.json");
-  return JSON.parse(await readFile(file, "utf8"));
-}
 
 // Public pages share the same 5-minute server-side read cache across languages.
 // The cached projection is quote-free and never contains API credentials.
@@ -160,7 +153,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
   };
 }
 
-function normalize(raw: Raw, mode: "live" | "demo"): Omit<Dataset, "locale" | "publicQuotesRedacted"> {
+function normalize(raw: Raw): Omit<Dataset, "locale" | "publicQuotesRedacted"> {
   const e = raw.experiment;
   const colorFallback: Record<string, string> = {
     SPY_BUY_HOLD: "#a3a3a3", EQUAL_WEIGHT: "#eab308", CASH: "#525252",
@@ -173,7 +166,7 @@ function normalize(raw: Raw, mode: "live" | "demo"): Omit<Dataset, "locale" | "p
       marketValue: n(x.market_value), unrealizedPnl: n(x.unrealized_pnl),
     }));
   return {
-    mode: (e?.mode === "demo" ? "demo" : mode) as Dataset["mode"],
+    mode: "live",
     experiment: {
       name: e.name, startSession: e.start_session, initialCash: n(e.initial_cash),
       maxPositionWeight: n(e.max_position_weight), feeBps: n(e.fee_bps), slippageBps: n(e.slippage_bps), status: e.status,

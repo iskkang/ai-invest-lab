@@ -7,7 +7,7 @@ const port=32284;
 const base=`http://127.0.0.1:${port}`;
 const server=spawn("node",["./node_modules/next/dist/bin/next","start","-p",String(port)],{
   cwd:root,
-  env:{...process.env,DATA_MODE:"demo",SITE_ACCESS:"private",SITE_USER:"ci",SITE_PASSWORD:"integration-test"},
+  env:{...process.env,DATA_MODE:"live",SITE_ACCESS:"private",SITE_USER:"ci",SITE_PASSWORD:"integration-test",SUPABASE_URL:"",SUPABASE_SECRET_KEY:""},
   stdio:["ignore","pipe","pipe"],
 });
 let output="";
@@ -42,13 +42,9 @@ try{
     assert.ok([301,302,303,307,308].includes(res.status),`expected redirect ${path}`);
     assert.equal(new URL(res.headers.get("location"),base).pathname,"/ko");
   }
-  await visible("/ko","AI 투자 리더보드");
-  await visible("/en","AI investment leaderboard");
-  await visible("/zh","AI 投资排行榜");
-  await visible("/ja","AI投資ランキング");
-  await visible("/en/portfolio","Portfolio");
-  await visible("/zh/trades","交易记录");
-  await visible("/ja/performance","パフォーマンス比較");
+  for (const locale of ["ko","en","zh","ja"]) {
+    await visible(`/${locale}`,"투자 데이터 화면을 불러오지 못했습니다.");
+  }
   await visible("/ko/about","AI는 실제로 주식투자를 잘할까?");
   await visible("/en/methodology","Comparable information");
   await visible("/ko/faq","실제 주식을 사거나");
@@ -62,7 +58,8 @@ try{
   const probe = await deploymentStatus.json();
   assert.equal(probe.service,"AI Invest Lab");
   assert.equal(probe.component,"web");
-  assert.equal(probe.dataMode,"demo");
+  assert.equal(probe.dataMode,"live");
+  assert.equal(probe.demoEnabled,false);
   assert.equal(deploymentStatus.headers.get("cache-control"),"no-store");
   const map=await req("/sitemap.xml");
   assert.equal(map.status,200);
@@ -77,7 +74,7 @@ try{
     assert.equal(res.status,401,`private path unexpectedly accessible: ${path}`);
     assert.match(res.headers.get("x-robots-tag")||"",/noindex/);
   }
-  console.log("PASS: original multilingual public dashboard, SEO and private API paths.");
+  console.log("PASS: live-only site, no synthetic dataset, SEO and protected APIs.");
 }finally{
   server.kill("SIGTERM");
   await sleep(500);

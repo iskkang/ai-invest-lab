@@ -8,7 +8,7 @@ This is a private prototype with 21 RLS-protected tables. The Supabase anon role
 | --- | --- |
 | SUPABASE_URL | https://ykhewuumkymjgpvqfpuo.supabase.co |
 | SUPABASE_SECRET_KEY | Supabase Dashboard > Project Settings > API Keys > sb_secret_... key |
-| DATA_MODE | live (after creating the real `season-1` experiment; otherwise demo) |
+| DATA_MODE | live (mandatory; synthetic demo is removed) |
 | SITE_ACCESS | private |
 | SITE_USER | lab (or existing username) |
 | SITE_PASSWORD | Existing private password; configure this yourself |
@@ -18,7 +18,7 @@ The secret key MUST be a Vercel server-only, preferably Sensitive, environment v
 
 Do not put DATABASE_URL, NH PLUG, or OpenRouter credentials into the Vercel web project. They belong in the separate server-side engine environment.
 
-After saving Production env vars, redeploy in Vercel and open /api/health/db after the private site login. Success returns connected:true, schemaReady:true, dataMode:demo. This non-mutating check doesn't reveal secrets.
+After saving Production env vars, redeploy in Vercel and open /api/health/db after the private site login. Success returns connected:true, schemaReady:true, dataMode:live. This non-mutating check doesn't reveal secrets.
 
 ## Live simulation prerequisites
 

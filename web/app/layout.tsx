@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { headers } from "next/headers";
 import { isLocale, type Locale } from "@/lib/public-content";
-import { BottomNav, DemoBanner, Footer, Sidebar, TopBar } from "@/components/shell";
+import { BottomNav, Footer, Sidebar, TopBar } from "@/components/shell";
 import { getData, lastSessionDate } from "@/lib/data";
 import { themeScript } from "@/lib/theme";
 
@@ -38,13 +38,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     console.error("[ail/web] market dataset unavailable; no fallback investment data was used");
   }
   const locale = d?.locale ?? fallbackLocale;
-  const mode = d?.mode ?? (process.env.DATA_MODE === "live" ? "live" : "demo");
   const symbols = d?.universe.filter((u) => u.role === "investable").map((u) => ({ symbol: u.symbol, name: u.name })) ?? [];
   return (
     <html lang={locale === "zh" ? "zh-CN" : locale} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body className="min-h-dvh">
-        <DemoBanner mode={mode} locale={locale} />
         <div className="flex">
           <Sidebar locale={locale} />
           <div className="min-w-0 flex-1">

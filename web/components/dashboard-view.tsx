@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import { isLocale, type Locale } from "@/lib/public-content";
 import { ReturnChart } from "@/components/charts";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
+import { InsightTeasers } from "@/components/insight-panels";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
 import { Badge } from "@/components/ui/badge";
@@ -70,6 +71,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </Section>
       )}
       <AiCards d={d} sortKey={sortKey} />
+
+      <InsightTeasers d={d} />
 
       <Section title={t(d.locale,"순위 상세")} className="hidden md:block">
         <Leaderboard d={d} sortKey={sortKey} />

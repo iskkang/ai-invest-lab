@@ -87,6 +87,26 @@ try{
     }
   }
   await visible("/ko/about","AI는 실제로 주식투자를 잘할까?");
+  // Four-language insight routes must be public even with no DB credentials.
+  for (const [locale,heading] of Object.entries({
+    ko:"AI가 시장을 보는 서로 다른 시각",
+    en:"See how AI models interpret the same market",
+    zh:"比较不同 AI 对同一市场的判断",
+    ja:"同じ市場に対するAIの見方を比較",
+  })) {
+    for (const suffix of ["consensus","weekly","accuracy"]) {
+      await visible("/"+locale+"/"+suffix,heading);
+    }
+  }
+  const unpublished=await req("/ko/weekly/2026-W48");
+  assert.ok([200,404].includes(unpublished.status),"Unexpected unpublished report status");
+  if(unpublished.status===200) {
+    const body=await unpublished.text();
+    assert.ok(body.includes("투자 데이터를 가져오지 못했습니다."),
+      "Data-outage response must explicitly disclose missing real data");
+    assert.ok(!body.includes("해당 주간 계좌 수익률"),
+      "No invented weekly return can be rendered without real data");
+  }
   await visible("/en/methodology","Comparable information");
   await visible("/ko/faq","실제 주식을 사거나");
   await visible("/zh/privacy","数据处理");
@@ -97,12 +117,12 @@ try{
   const aiHtml = await aiUnavailable.text();
   assert.ok(!aiHtml.includes("DEMO —"),"unavailable AI page must never show demo data");
   await visible("/robots.txt","/sitemap.xml");
-  await visible("/llms.txt","# MarketTrials");
+  await visible("/llms.txt","# MarketSights");
   await visible("/ads.txt","No advertising sellers");
   const deploymentStatus = await req("/status");
   assert.equal(deploymentStatus.status,200,"public build probe unavailable");
   const probe = await deploymentStatus.json();
-  assert.equal(probe.service,"MarketTrials");
+  assert.equal(probe.service,"MarketSights");
   assert.equal(probe.component,"web");
   assert.equal(probe.dataMode,"live");
   assert.equal(probe.demoEnabled,false);
@@ -111,7 +131,7 @@ try{
   assert.equal(map.status,200);
   const sitemap=await map.text();
   for(const locale of ["en","zh","ko","ja"]){
-    for(const suffix of ["portfolio","trades","performance","ai/gpt"]){
+    for(const suffix of ["portfolio","trades","performance","consensus","weekly","accuracy","ai/gpt"]){
       assert.ok(sitemap.includes(`/${locale}/${suffix}`),`sitemap missing ${locale}/${suffix}`);
     }
   }

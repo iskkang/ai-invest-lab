@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import "./globals.css";
 import { BottomNav, DemoBanner, Footer, Sidebar, TopBar } from "@/components/shell";
 import { getData, lastSessionDate } from "@/lib/data";
@@ -17,6 +18,18 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const requestHeaders = await headers();
+  // Editorial pages never query private investment data. Their locale metadata
+  // overrides the private app's default noindex robots metadata.
+  if (requestHeaders.get("x-ail-public") === "1") {
+    const publicLocale = requestHeaders.get("x-ail-locale") || "en";
+    return (
+      <html lang={publicLocale === "zh" ? "zh-CN" : publicLocale} suppressHydrationWarning>
+        <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
+        <body className="min-h-dvh">{children}</body>
+      </html>
+    );
+  }
   const d = await getData();
   const symbols = d.universe.filter((u) => u.role === "investable").map((u) => ({ symbol: u.symbol, name: u.name }));
   return (

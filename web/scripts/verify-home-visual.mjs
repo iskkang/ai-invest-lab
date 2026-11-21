@@ -113,7 +113,7 @@ try{
     assert.equal(await prelaunchSection.locator("time[datetime='2026-11-23']").count(),1,"actual start date shown once");
     const prelaunchText=await prelaunch.innerText();
     assert.equal((prelaunchText.match(/2026-11-23/g)||[]).length,1,"start date must not be repeated");
-    assert.ok(prelaunchText.includes("동일한 미국 주식 1종목의 시장 데이터"),"actual universe size from dataset, not an invented number");
+    assert.ok(prelaunchText.includes("같은 미국 주식 1종목의 시장 데이터"),"actual universe size from dataset, not an invented number");
     assert.ok(prelaunchText.includes("$100,000"),"experiment capital must come from real configuration");
     const tierDisclosure=prelaunch.locator('[data-model-disclosure="true"]');
     assert.equal(await tierDisclosure.count(),1,"home methodology must disclose unequal models");

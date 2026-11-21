@@ -99,7 +99,14 @@ try{
     }
   }
   const unpublished=await req("/ko/weekly/2026-W48");
-  assert.ok([404,500].includes(unpublished.status),"No empty or fabricated published report");
+  assert.ok([200,404].includes(unpublished.status),"Unexpected unpublished report status");
+  if(unpublished.status===200) {
+    const body=await unpublished.text();
+    assert.ok(body.includes("투자 데이터를 가져오지 못했습니다."),
+      "Data-outage response must explicitly disclose missing real data");
+    assert.ok(!body.includes("해당 주간 계좌 수익률"),
+      "No invented weekly return can be rendered without real data");
+  }
   await visible("/en/methodology","Comparable information");
   await visible("/ko/faq","실제 주식을 사거나");
   await visible("/zh/privacy","数据处理");

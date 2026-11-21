@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getData } from "@/lib/data";
-import { isLocale } from "@/lib/public-content";
+import { isLocale, LOCALES } from "@/lib/public-content";
 import { dashboardMetadata } from "@/lib/seo";
 import { isPatternId, PATTERNS } from "@/lib/pattern-lab";
 import { patternDetail } from "@/lib/pattern-copy";
@@ -16,7 +16,7 @@ export async function generateMetadata({params}:Props):Promise<Metadata>{
   return dashboardMetadata(locale,"/patterns/"+id,patternDetail(locale,id).name);
 }
 export async function generateStaticParams(){
-  return ["ko","en","zh","ja"].flatMap(locale=>
+  return LOCALES.flatMap(locale=>
     PATTERNS.map(p=>({locale,id:p.id})));
 }
 export default async function PatternDetailPage({params}:Props){

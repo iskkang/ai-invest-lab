@@ -22,7 +22,7 @@ export default function HomeRenderFixture() {
     {id:5,kind:"benchmark",aiId:null,benchmarkCode:"SPY_BUY_HOLD",name:"SPY",color:"#6b7280",model:null,initialCash:100000},
   ];
   const base={
-    locale:"ko" as const,publicQuotesRedacted:true,accounts,
+    locale:"en" as const,publicQuotesRedacted:true,accounts,
     universe:[{symbol:"AAPL",name:"Apple",sector:"IT",role:"investable"}],
     prices:{AAPL:[]},snapshots:[],rounds:[],decisions:[],
     experiment:{startSession:"2026-11-23",initialCash:100000},
@@ -40,7 +40,7 @@ export default function HomeRenderFixture() {
     <section data-prelaunch-fixture="true"><FirstRoundHome d={empty}/></section>
     <DashboardHero d={empty}/>
     <section aria-label="AI chart legend test">
-      <ChartLegend locale="ko" lines={accounts.map(a=>({name:a.name,color:a.color,dashed:a.kind==="benchmark"}))}/>
+      <ChartLegend locale="en" lines={accounts.map(a=>({name:a.name,color:a.color,dashed:a.kind==="benchmark"}))}/>
     </section>
     <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
       <section data-universe-state="empty"><UniverseRail d={empty}/></section>

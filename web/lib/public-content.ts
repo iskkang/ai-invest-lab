@@ -1,7 +1,10 @@
 /** Public-facing localized editorial content. This never includes private NH prices. */
-export const LOCALES = ["ko", "en", "zh", "ja"] as const;
-export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE: Locale = "ko";
+// Keep archived translations available for a future multilingual relaunch.
+// Only ACTIVE_LOCALES participate in routing, prerendering and SEO.
+export const SUPPORTED_LOCALES = ["ko", "en", "zh", "ja"] as const;
+export type Locale = (typeof SUPPORTED_LOCALES)[number];
+export const LOCALES = ["en"] as const;
+export const DEFAULT_LOCALE: Locale = "en";
 export const PUBLIC_SECTIONS = ["methodology", "faq", "privacy"] as const;
 export type PublicSection = (typeof PUBLIC_SECTIONS)[number];
 
@@ -13,7 +16,7 @@ export const LANG_LABELS: Record<Locale, string> = {
 };
 
 export function isLocale(value: string): value is Locale {
-  return LOCALES.includes(value as Locale);
+  return LOCALES.includes(value as "en");
 }
 export function isPublicSection(value: string): value is PublicSection {
   return PUBLIC_SECTIONS.includes(value as PublicSection);
@@ -27,10 +30,7 @@ export function localeUrl(locale: Locale, section?: PublicSection) {
 export function languageAlternates(section?: PublicSection) {
   return {
     en: localeUrl("en", section),
-    "zh-CN": localeUrl("zh", section),
-    ko: localeUrl("ko", section),
-    ja: localeUrl("ja", section),
-    "x-default": localeUrl("ko", section),
+    "x-default": localeUrl("en", section),
   };
 }
 

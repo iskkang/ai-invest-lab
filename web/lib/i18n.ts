@@ -223,7 +223,7 @@ export function t(locale: Locale | string, korean: string): string {
 export function localizedHref(locale: Locale | string, href: string): string {
   if (!href.startsWith("/") || href.startsWith("/api/")) return href;
   const normalized = href === "/lab" ? "/" : href;
-  return `/${locale || "ko"}${normalized === "/" ? "" : normalized}`;
+  return `/en${normalized === "/" ? "" : normalized}`;
 }
 
 /** The investment AI emits Korean rationales. Never misrepresent an unverified translation. */

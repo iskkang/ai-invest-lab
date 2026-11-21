@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
 import AiPage from "@/app/ai/[id]/page";
-import { isLocale } from "@/lib/public-content";
+import { isLocale, LOCALES } from "@/lib/public-content";
 import { dashboardMetadata } from "@/lib/seo";
 
 const IDS=["gpt","claude","gemini","deepseek"] as const;
 export const revalidate=300;
 export function generateStaticParams() {
-  return ["en","zh","ko","ja"].flatMap(locale=>IDS.map(id=>({locale,id})));
+  return LOCALES.flatMap(locale=>IDS.map(id=>({locale,id})));
 }
 export async function generateMetadata({params}:{params:Promise<{locale:string;id:string}>}) {
   const {locale,id}=await params;

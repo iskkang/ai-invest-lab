@@ -29,7 +29,7 @@ try {
   const status = await req("/status");
   assert.equal(status.status, 200);
   assert.equal((await status.json()).dataMode, "live");
-  for (const path of ["/ko/methodology", "/en/faq", "/ja/privacy"]) {
+  for (const path of ["/en/methodology", "/en/faq", "/en/privacy"]) {
     const response = await req(path);
     assert.equal(response.status, 200, "editorial must remain available: " + path);
     const html = await response.text();
@@ -37,9 +37,9 @@ try {
   }
   const privateApi = await req("/api/health/db");
   assert.equal(privateApi.status, 401, "private health endpoint unexpectedly public");
-  const publicDashboard = await req("/ko");
+  const publicDashboard = await req("/en");
   const html = await publicDashboard.text();
-  assert.ok(html.includes("투자 데이터 화면을 불러오지 못했습니다."), "must show explicit data-unavailable state");
+  assert.ok(html.includes("Unable to load investment data."), "must show explicit data-unavailable state");
   assert.ok(!html.includes("DEMO —"), "must not fall back to demo while live");
   console.log("PASS: LIVE outage leaves editorial/status available; dashboard shows no fabricated returns.");
 } finally {

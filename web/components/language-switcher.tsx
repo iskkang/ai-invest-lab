@@ -19,7 +19,7 @@ export function LanguageSwitcher({ locale }: { locale: Locale }) {
     : "";
 
   const switchTo = (next: string) => {
-    if (!LOCALES.includes(next as Locale) || next === activeLocale) return;
+    if (!LOCALES.includes(next as "en") || next === activeLocale) return;
     const target = `/${next}${suffix}${window.location.search}${window.location.hash}`;
     // Completely refresh root layout, its data cache, HTML language and menus.
     window.location.assign(target);

@@ -13,10 +13,7 @@ export function localizedRoute(locale: Locale, suffix: string = "") {
 export function alternateRoutes(suffix: string = "") {
   return {
     en: localizedRoute("en", suffix),
-    "zh-CN": localizedRoute("zh", suffix),
-    ko: localizedRoute("ko", suffix),
-    ja: localizedRoute("ja", suffix),
-    "x-default": localizedRoute("ko", suffix),
+    "x-default": localizedRoute("en", suffix),
   };
 }
 export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean }): Metadata {

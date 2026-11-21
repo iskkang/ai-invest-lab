@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import { headers } from "next/headers";
-import { isLocale, type Locale } from "@/lib/public-content";
+import type { Locale } from "@/lib/public-content";
 import { AppShell } from "@/components/app-shell";
 import { getData, lastSessionDate } from "@/lib/data";
 import { themeScript } from "@/lib/theme";
@@ -28,19 +27,16 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Keep independent research pages available when the private dataset is offline.
   // Never silently switch LIVE investment results to synthetic DEMO performance.
-  const req = await headers();
-  const candidate = req.get("x-ail-locale");
-  const fallbackLocale: Locale = isLocale(candidate ?? "") ? (candidate as Locale) : "ko";
+  const locale: Locale = "en";
   let d: Awaited<ReturnType<typeof getData>> | null = null;
   try {
     d = await getData();
   } catch {
     console.error("[ail/web] market dataset unavailable; no fallback investment data was used");
   }
-  const locale = d?.locale ?? fallbackLocale;
   const symbols = d?.universe.filter((u) => u.role === "investable").map((u) => ({ symbol: u.symbol, name: u.name })) ?? [];
   return (
-    <html lang={locale === "zh" ? "zh-CN" : locale} suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body className="min-h-dvh">
         {/* The root App Router layout is preserved during client navigation.

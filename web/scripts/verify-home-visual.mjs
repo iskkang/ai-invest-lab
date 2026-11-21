@@ -63,7 +63,7 @@ try{
       assert.equal(await primary.locator('[data-submenu="compare"] a').count(),4);
       assert.deepEqual(await primary.locator('[data-submenu="compare"] a')
         .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/ko/consensus","/ko/performance","/ko/portfolio","/ko/trades",
+          "/en/consensus","/en/performance","/en/portfolio","/en/trades",
         ]);
       await page.keyboard.press("Escape");
       assert.equal(await primary.locator('[data-submenu="compare"]').count(),0);
@@ -71,14 +71,14 @@ try{
       await research.click();
       assert.deepEqual(await primary.locator('[data-submenu="research"] a')
         .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/ko/patterns","/ko/historical","/ko/accuracy","/ko/weekly",
+          "/en/patterns","/en/historical","/en/accuracy","/en/weekly",
         ]);
       await page.keyboard.press("Escape");
       const journal=primary.locator('[data-nav-trigger="journal"]');
       await journal.hover();
       assert.deepEqual(await primary.locator('[data-submenu="journal"] a')
         .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/ko/daily","/ko/journal","/ko/outcomes",
+          "/en/daily","/en/journal","/en/outcomes",
         ]);
       await page.keyboard.press("Escape");
     }else{
@@ -94,7 +94,7 @@ try{
       assert.equal(await compare.getAttribute("aria-expanded"),"true");
       assert.deepEqual(await overlay.locator('[data-mobile-submenu="compare"] a')
         .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/ko/consensus","/ko/performance","/ko/portfolio","/ko/trades",
+          "/en/consensus","/en/performance","/en/portfolio","/en/trades",
         ]);
       await overlay.locator('[data-mobile-nav-group="research"] button').click();
       assert.equal(await overlay.locator('[data-mobile-submenu="compare"]').count(),0,
@@ -113,7 +113,7 @@ try{
     assert.equal(await prelaunchSection.locator("time[datetime='2026-11-23']").count(),1,"actual start date shown once");
     const prelaunchText=await prelaunch.innerText();
     assert.equal((prelaunchText.match(/2026-11-23/g)||[]).length,1,"start date must not be repeated");
-    assert.ok(prelaunchText.includes("같은 미국 주식 1종목의 시장 데이터"),"actual universe size from dataset, not an invented number");
+    assert.ok(prelaunchText.includes("market data for 1 US stocks"),"actual universe size from dataset, not an invented number");
     assert.ok(prelaunchText.includes("$100,000"),"experiment capital must come from real configuration");
     const tierDisclosure=prelaunch.locator('[data-model-disclosure="true"]');
     assert.equal(await tierDisclosure.count(),1,"home methodology must disclose unequal models");
@@ -129,19 +129,19 @@ try{
     assert.equal(await prelaunch.locator('a[href$="/methodology"]').count(),1);
     assert.equal(await prelaunch.locator('a[href$="/historical"]').count(),1);
     assert.equal(await prelaunch.locator('a[href$="/patterns"]').count(),1);
-    for(const emptyTitle of ["AI 투자 리더보드","누적 수익률 추이","최근 거래일 매매","AI 의견 충돌","판단 결과 추적","실험 일지","최근 투자 판단과 이유"]){
+    for(const emptyTitle of ["AI investment leaderboard","Cumulative return chart","Latest session trades","Top conflicts","Decision follow-ups","Experiment journal","Recent AI decisions & rationale"]){
       assert.ok(!prelaunchText.includes(emptyTitle),"empty live section must be omitted: "+emptyTitle);
     }
     const status=page.locator('[data-home-data-status="true"]:visible');
     assert.equal(await status.count(),1,"exactly one visible as-of status at "+width);
-    assert.match(await status.innerText(),/첫 회차 전/,"missing pre-first-round state");
+    assert.match(await status.innerText(),/Before first round/,"missing pre-first-round state");
     assert.doesNotMatch(await status.innerText(),/—/,"empty as-of date must not use dash");
     const logos=page.locator('a[aria-label="MarketSights home"]:visible');
     assert.equal(await logos.count(),width<1024?1:1);
     const text=await logos.first().textContent();
-    assert.ok(text.includes("· AI 투자 연구소"),"brand/section must contain explicit separator");
+    assert.ok(text.includes("· INTELLIGENCE LAB"),"brand/section must contain explicit separator");
     const headline=await page.locator("h1.hero-title").textContent();
-    assert.equal(headline.replace(/\s+/g," ").trim(),"하나의 시장, 네 가지 AI의 시선.",
+    assert.equal(headline.replace(/\s+/g," ").trim(),"One market. Four AI perspectives.",
       "hero title must include natural sentence spacing at "+width);
     const legend=page.locator('[data-chart-legend="true"] > li');
     assert.equal(await legend.count(),5);
@@ -169,19 +169,16 @@ try{
     const holderRect=await holder.first().boundingBox();
     assert.ok(holderRect&&holderRect.width>=8&&holderRect.height>=8,"holder dot invisible");
 
-    const lang=page.locator('label[aria-label="Display language"]');
-    const langBox=rect(await lang.boundingBox());
+    assert.equal(await page.locator('label[aria-label="Display language"]').count(),0,
+      "Language selector must be absent");
     const statusBox=rect(await status.boundingBox());
-    if(width>=640){
-      assert.ok(langBox.left-statusBox.right>=18,"date and language overlap on desktop");
-    }else{
-      assert.ok(statusBox.top>=langBox.bottom-1,"mobile status must be on separate row");
+    if(width<640){
       const logoBox=rect(await logos.first().boundingBox());
-      assert.ok(langBox.left-logoBox.right>=7,"mobile logo and language overlap");
+      assert.ok(statusBox.top>=logoBox.bottom-1,"mobile data date must use a separate row");
     }
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
     assert.ok(overflow<=1,"horizontal scrolling at "+width+"px: "+overflow);
-    console.log("PASS responsive home UI",width+"px",": separated date/language, explicit brand separator, 5 spaced colored legend chips, conditional holder dots, no overflow");
+    console.log("PASS responsive home UI",width+"px",": English-only header, 5 spaced colored legend chips, conditional holder dots, no overflow");
     await context.close();
   }
 }finally{

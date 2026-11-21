@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { unstable_cache } from "next/cache";
-import { isLocale, type Locale } from "./public-content";
+import type { Locale } from "./public-content";
 import { t } from "./i18n";
 import type { Dataset, Stats } from "./types";
 import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adjust";
@@ -22,8 +22,7 @@ const nn = (v: unknown) => (v === null || v === undefined || v === "" ? null : N
 
 export const getData = cache(async (): Promise<Dataset> => {
   const req = await headers();
-  const headerLocale = req.get("x-ail-locale") ?? "ko";
-  const locale: Locale = isLocale(headerLocale) ? headerLocale : "ko";
+  const locale: Locale = "en";
   const publicPage = req.get("x-ail-public") === "1";
   const raw = await (publicPage ? loadCachedPublicRaw() : loadSupabase(false));
   const dataset = { ...normalize(raw, locale), locale, publicQuotesRedacted: publicPage };

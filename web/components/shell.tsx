@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { HeaderNav, MobileMenu, StockSearch, MobileSearch } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
-import { LanguageSwitcher } from "./language-switcher";
 import { localizedHref, t } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
 import { sectionLabel } from "@/lib/section-labels";
@@ -53,7 +52,6 @@ export function TopBar({asOf,symbols,locale}:{
           <div className="hidden items-center gap-3 sm:mr-2 sm:flex">
             <DataAsOfStatus asOf={asOf} locale={locale}/>
           </div>
-          <LanguageSwitcher locale={locale}/>
           <span className="hidden lg:inline-flex"><ThemeToggle locale={locale}/></span>
           <div className="lg:hidden"><MobileMenu locale={locale}/></div>
         </div>

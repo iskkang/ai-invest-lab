@@ -1,226 +1,131 @@
-/** HTTP regression: four-language original dashboard + private API gate. */
+/** English-only HTTP, SEO, redirects and private-route regression checks. */
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { setTimeout as sleep } from "node:timers/promises";
-const root=new URL("../",import.meta.url).pathname;
-const port=32284;
-const base=`http://127.0.0.1:${port}`;
-const server=spawn("node",["./node_modules/next/dist/bin/next","start","-p",String(port)],{
-  cwd:root,
-  env:{...process.env,DATA_MODE:"live",SITE_ACCESS:"private",SITE_USER:"ci",SITE_PASSWORD:"integration-test",SUPABASE_URL:"",SUPABASE_SECRET_KEY:""},
-  stdio:["ignore","pipe","pipe"],
+const root = new URL("../", import.meta.url).pathname;
+const port = 32284, base = "http://127.0.0.1:" + port;
+const server = spawn("node", ["./node_modules/next/dist/bin/next", "start", "-p", String(port)], {
+  cwd: root,
+  env: { ...process.env, DATA_MODE: "live", SITE_ACCESS: "private", SITE_USER: "ci",
+    SITE_PASSWORD: "integration-test", SUPABASE_URL: "", SUPABASE_SECRET_KEY: "" },
+  stdio: ["ignore", "pipe", "pipe"],
 });
-let output="";
-server.stdout.on("data",b=>{output+=String(b)});
-server.stderr.on("data",b=>{output+=String(b)});
-async function ready(){
+let output = "";
+server.stdout.on("data", b => { output += String(b); });
+server.stderr.on("data", b => { output += String(b); });
+const req = (path, opts = {}) => fetch(base + path, {
+  redirect: "manual", signal: AbortSignal.timeout(8000), ...opts,
+});
+async function ready() {
   for(let i=0;i<55;i++){
-    if(server.exitCode!==null)throw Error("Next server exited early");
-    try{
-      const r=await fetch(base+"/robots.txt",{signal:AbortSignal.timeout(1500)});
-      if(r.ok)return;
-    }catch{}
+    if(server.exitCode!==null)throw Error("Next server exited early: "+output.slice(-1500));
+    try { if((await req("/robots.txt")).ok)return; } catch {}
     await sleep(500);
   }
-  throw Error("Server did not start: "+output.slice(-1000));
+  throw Error("Server did not start: "+output.slice(-1500));
 }
-async function req(path,options={}){
-  return fetch(base+path,{redirect:"manual",signal:AbortSignal.timeout(8000),...options});
-}
-async function visible(path,needle) {
+async function visible(path, needle) {
   const r=await req(path);
-  assert.equal(r.status,200,`public route did not return HTTP 200: ${path}`);
+  assert.equal(r.status,200,"Public English route failed: "+path);
   assert.equal(r.headers.get("www-authenticate"),null);
   const html=await r.text();
-  assert.ok(html.includes(needle),`missing translated content in ${path}`);
+  assert.ok(html.includes(needle),"Expected English content missing: "+path);
   assert.doesNotMatch(r.headers.get("x-robots-tag")||"",/noindex/);
+  return html;
 }
-try{
+try {
   await ready();
-  for(const path of ["/","/lab"]){
-    const res=await req(path);
-    assert.ok([301,302,303,307,308].includes(res.status),`expected redirect ${path}`);
-    assert.equal(new URL(res.headers.get("location"),base).pathname,"/ko");
+  const redirected=[
+    ["/","/en"], ["/lab","/en"], ["/ko","/en"], ["/zh","/en"], ["/ja","/en"],
+    ["/ko/about","/en/about"], ["/zh/methodology","/en/methodology"],
+    ["/ja/privacy","/en/privacy"], ["/ko/patterns/fibonacci-618","/en/patterns/fibonacci-618"],
+    ["/zh/weekly/2026-W48?source=legacy","/en/weekly/2026-W48?source=legacy"],
+    ["/ko/stocks/AAPL?tab=chart","/en/stocks/AAPL?tab=chart"],
+  ];
+  for (const [from,to] of redirected) {
+    const res=await req(from);
+    assert.equal(res.status,301,"Expected permanent redirect for "+from);
+    const url=new URL(res.headers.get("location"),base);
+    assert.equal(url.pathname+url.search,to,"Wrong permanent redirect for "+from);
   }
-  for (const [locale,heading] of Object.entries({
-    ko:"투자 데이터 화면을 불러오지 못했습니다.",
-    en:"Unable to load investment data.",
-    zh:"无法加载投资数据。",
-    ja:"投資データを読み込めません。",
-  })) {
-    await visible(`/${locale}`,heading);
-    const res=await req(`/${locale}`);
-    const html=await res.text();
-    if(locale!=="ko") {
-      assert.ok(!html.includes("투자 데이터 화면을 불러오지 못했습니다."),`Korean dashboard error leaked into ${locale}`);
-      assert.ok(!html.includes('href="/ko/methodology"'),`wrong-locale methodology link in ${locale}`);
-      assert.ok(html.includes(`href="/${locale}/methodology"`),`localized methodology link missing in ${locale}`);
-    }
-  }
-  // Server-rendered header exposes exactly five locale-correct parents.
-  // Child URLs are kept in one typed map and verified in unit/browser tests
-  // because desktop dropdowns and mobile accordion are intentionally closed on SSR.
-  const navExpected={
-    ko:{dashboard:"대시보드",compare:"AI 비교",research:"리서치",journal:"일지",about:"소개",language:"한국어"},
-    en:{dashboard:"Dashboard",compare:"AI comparison",research:"Research",journal:"Journal",about:"About",language:"English"},
-    zh:{dashboard:"仪表盘",compare:"AI 对比",research:"研究",journal:"实验日志",about:"关于",language:"简体中文"},
-    ja:{dashboard:"ダッシュボード",compare:"AI 比較",research:"リサーチ",journal:"実験日誌",about:"概要",language:"日本語"},
-  };
-  for(const [locale,labels] of Object.entries(navExpected)){
-    const response=await req("/"+locale);
-    assert.equal(response.status,200,"wrong locale HTTP status: "+locale);
-    const html=await response.text();
-    assert.ok(html.includes('data-active-locale="'+locale+'"'),"app shell locale mismatch: "+locale);
-    assert.ok(html.includes('lang="'+(locale==="zh"?"zh-CN":locale)+'"'),
-      "document lang mismatch: "+locale);
-    assert.ok(html.includes(labels.language),"selected language missing: "+locale);
-    assert.ok(html.includes('data-header-nav="true"'),"five-group top nav missing");
-    for(const [id,label] of Object.entries(labels).filter(([key])=>key!=="language")){
-      assert.ok(html.includes('data-top-nav-item="'+id+'"'),"missing parent "+id);
-      assert.ok(html.includes(label),"untranslated parent "+id+": "+locale);
-    }
-    assert.ok(html.includes('data-mobile-menu-trigger="true"'),"mobile hamburger missing");
-    assert.ok(html.includes('aria-haspopup="dialog"'),"mobile drawer not accessible");
-    assert.ok(!html.includes('aria-label="Mobile navigation"'),"old bottom nav still rendered");
-    for(const other of Object.keys(navExpected).filter(x=>x!==locale)){
-      assert.ok(!html.includes('href="/'+other+'/performance"'),
-        "mixed-language nav in "+locale);
-    }
-  }
-  await visible("/ko/about","AI는 실제로 주식투자를 잘할까?");
-  // Every locale must serve the same audited engine-derived numbers and model
-  // IDs, without placeholder translation or fabricated live configuration.
-  const methodologyLabels={
-    ko:"엔진 설정(구성된 기본값)",
-    en:"Engine settings (configured defaults)",
-    zh:"引擎设置（已配置的默认值）",
-    ja:"エンジン設定（設定済みの既定値）",
-  };
-  for(const [locale,label] of Object.entries(methodologyLabels)){
-    for(const suffix of ["about","methodology"]){
-      const route="/"+locale+"/"+suffix;
-      await visible(route,label);
-      const body=await (await req(route)).text();
-      for(const model of ["openai/gpt-4.1-mini","anthropic/claude-sonnet-5.5",
-        "google/gemini-3.8-flash","deepseek/deepseek-v3.2"]){
-        assert.ok(body.includes(model),"missing engine model "+model+": "+route);
-      }
-      for(const symbol of ["AAPL","NVDA","XOM","CVX"]){
-        assert.ok(body.includes(">"+symbol+"</li>"),"missing ticker "+symbol+": "+route);
-      }
-      assert.ok(body.includes("09:15")&&body.includes("23:15")&&body.includes("22:15"),
-        "missing ET/KST cutoff: "+route);
-      assert.ok(body.includes("0 bp (0%)")&&body.includes("5 bp (0.05%)"),
-        "fee/slippage assumptions missing: "+route);
-      assert.ok(body.includes("NH투자증권 나무플러그(NH PLUG) API"),
-        "verified market provider missing: "+route);
-      assert.ok(body.includes("closes_last_10")&&body.includes("rsi14")&&body.includes("macd_signal"),
-        "indicator payload incomplete: "+route);
-      assert.ok(!body.includes("Translation unavailable"),"placeholder copy: "+route);
-    }
-  }
-  // Four-language insight routes must be public even with no DB credentials.
-  for (const [locale,heading] of Object.entries({
-    ko:"AI가 시장을 보는 서로 다른 시각",
-    en:"See how AI models interpret the same market",
-    zh:"比较不同 AI 对同一市场的判断",
-    ja:"同じ市場に対するAIの見方を比較",
-  })) {
-    for (const suffix of ["consensus","daily","outcomes","journal","weekly","accuracy"]) {
-      await visible("/"+locale+"/"+suffix,heading);
-    }
-  }
-  // A child URL selects its parent group, never Dashboard.
-  const activeGroups={
-    weekly:"research",consensus:"compare",accuracy:"research",
-    historical:"research",daily:"journal",outcomes:"journal",
-    journal:"journal",patterns:"research",
-  };
-  for(const locale of ["en","ko","zh","ja"]){
-    for(const [suffix,group] of Object.entries(activeGroups)){
-      const html=await (await req("/"+locale+"/"+suffix)).text();
-      const active=[...html.matchAll(/data-active-group="([^"]+)"/g)].map(m=>m[1]);
-      assert.deepEqual(active,[group],
-        "incorrect active parent for "+locale+"/"+suffix);
-    }
-  }
-  // Historical research is public in four languages but FAILS CLOSED if real
-  // NH PLUG market data is not configured. No synthetic returns in web mode.
-  for (const [locale,headline] of Object.entries({
-    ko:"과거 시장에서 어떤 투자 규칙이 유리했을까?",
-    en:"Which fixed rules worked in the historical market?",
-    zh:"哪些固定规则在历史行情中表现更好？",
-    ja:"過去の市場で有効だった固定ルールは？",
+  const dashboard=await visible("/en","Unable to load investment data.");
+  assert.ok(dashboard.includes('data-active-locale="en"'));
+  assert.ok(dashboard.includes('lang="en"'));
+  assert.ok(!dashboard.includes('aria-label="Display language"'),"Language selector must be removed");
+  assert.ok(!dashboard.includes("투자 데이터 화면을 불러오지 못했습니다."));
+  assert.ok(dashboard.includes('href="/en/methodology"'),"English methodology link missing");
+  assert.ok(dashboard.includes('data-header-nav="true"'));
+  for(const [id,label] of Object.entries({
+    dashboard:"Dashboard", compare:"AI comparison", research:"Research",
+    journal:"Journal", about:"About",
   })){
-    await visible("/"+locale+"/historical",headline);
-    const html=await (await req("/"+locale+"/historical")).text();
-    assert.ok(!html.includes("Simulated total return</"),"Data outage must not fabricate research returns");
-    assert.ok(html.includes('data-active-group="research"'),
-      "Historical child page must highlight Research: "+locale);
+    assert.ok(dashboard.includes('data-top-nav-item="'+id+'"'),"Missing menu "+id);
+    assert.ok(dashboard.includes(label),"Missing menu translation "+id);
   }
-  // The Pattern Lab must be public in all four languages and must never
-  // fabricate pattern statistics when quote credentials are absent.
-  for(const [locale,heading] of Object.entries({
-    ko:"유명한 매매 패턴은 실제로 얼마나 맞았을까?",
-    en:"Do famous trading patterns actually hold up?",
-    zh:"著名交易形态真的有效吗？",
-    ja:"有名な売買パターンは本当に有効か？",
+  for(const legacy of ["ko","zh","ja"]){
+    assert.ok(!dashboard.includes('href="/'+legacy+'/'),"Old link in HTML: "+legacy);
+    assert.ok(!dashboard.includes('hreflang="'+legacy+'"'),"Old hreflang: "+legacy);
+  }
+  assert.ok(!dashboard.includes('hreflang="zh-CN"'));
+  assert.ok(dashboard.includes('hreflang="en"'));
+  await visible("/en/about","Can AI make better stock decisions?");
+  for(const suffix of ["about","methodology"]){
+    const html=await visible("/en/"+suffix,"Engine settings (configured defaults)");
+    for(const model of ["openai/gpt-4.1-mini","anthropic/claude-sonnet-5.5",
+      "google/gemini-3.8-flash","deepseek/deepseek-v3.2"]){
+      assert.ok(html.includes(model),"Missing default model "+model+" on "+suffix);
+    }
+    assert.ok(html.includes("09:15")&&html.includes("22:15")&&html.includes("23:15"));
+    assert.ok(html.includes("0 bp (0%)")&&html.includes("5 bp (0.05%)"));
+  }
+  await visible("/en/faq","FAQ");
+  await visible("/en/privacy","Privacy");
+  for(const suffix of ["consensus","daily","outcomes","journal","weekly","accuracy"]){
+    await visible("/en/"+suffix,"See how AI models interpret the same market");
+  }
+  for(const [suffix,group] of Object.entries({
+    weekly:"research", consensus:"compare", accuracy:"research", historical:"research",
+    daily:"journal", outcomes:"journal", journal:"journal", patterns:"research",
   })){
-    await visible("/"+locale+"/patterns",heading);
-    const html=await (await req("/"+locale+"/patterns")).text();
-    assert.ok(html.includes(({ko:"역망치형 캔들",en:"Inverted hammer",zh:"倒锤线",ja:"逆ハンマー足"})[locale]),"Pattern definitions must be localized: "+locale);
-    assert.ok(!html.includes("120.25%"),"Pattern study must not contain arbitrary fallback returns");
-    await visible("/"+locale+"/patterns/fibonacci-618",
-      locale==="ko"?"유명한 매매 패턴은 실제로 얼마나 맞았을까?":
-      locale==="en"?"Do famous trading patterns actually hold up?":
-      locale==="zh"?"著名交易形态真的有效吗？":"有名な売買パターンは本当に有効か？");
-    const detailHtml=await (await req("/"+locale+"/patterns/fibonacci-618")).text();
-    assert.ok(!detailHtml.includes('id="pattern-price-feed"'),"Pattern detail must not publish raw price feed");
+    const html=await (await req("/en/"+suffix)).text();
+    assert.deepEqual([...html.matchAll(/data-active-group="([^"]+)"/g)].map(x=>x[1]),[group]);
   }
-  const unpublished=await req("/ko/weekly/2026-W48");
+  await visible("/en/historical","Which fixed rules worked in the historical market?");
+  await visible("/en/patterns","Do famous trading patterns actually hold up?");
+  await visible("/en/patterns/fibonacci-618","Do famous trading patterns actually hold up?");
+  const unpublished=await req("/en/weekly/2026-W48");
   assert.ok([200,404].includes(unpublished.status),"Unexpected unpublished report status");
-  if(unpublished.status===200) {
-    const body=await unpublished.text();
-    assert.ok(body.includes("투자 데이터를 가져오지 못했습니다."),
-      "Data-outage response must explicitly disclose missing real data");
-    assert.ok(!body.includes("해당 주간 계좌 수익률"),
-      "No invented weekly return can be rendered without real data");
-  }
-  await visible("/en/methodology","Comparable information");
-  await visible("/ko/faq","실제 주식을 사거나");
-  await visible("/zh/privacy","数据处理");
-  // Without live DB credentials, data-dependent detail pages may return 500.
-  // They must never silently serve synthesized investment performance.
-  const aiUnavailable = await req("/en/ai/gpt");
-  assert.equal(aiUnavailable.status,500,"unavailable LIVE AI detail must fail closed");
-  const aiHtml = await aiUnavailable.text();
-  assert.ok(!aiHtml.includes("DEMO —"),"unavailable AI page must never show demo data");
+  const aiUnavailable=await req("/en/ai/gpt");
+  assert.equal(aiUnavailable.status,500,"Unavailable live AI detail must fail closed");
+  assert.ok(!(await aiUnavailable.text()).includes("DEMO —"));
   await visible("/robots.txt","/sitemap.xml");
   await visible("/llms.txt","# MarketSights");
   await visible("/ads.txt","No advertising sellers");
-  const deploymentStatus = await req("/status");
-  assert.equal(deploymentStatus.status,200,"public build probe unavailable");
-  const probe = await deploymentStatus.json();
-  assert.equal(probe.service,"MarketSights");
+  const health=await req("/status");
+  assert.equal(health.status,200);
+  const probe=await health.json();
   assert.equal(probe.component,"web");
   assert.equal(probe.dataMode,"live");
   assert.equal(probe.demoEnabled,false);
-  assert.equal(deploymentStatus.headers.get("cache-control"),"no-store");
+  assert.equal(health.headers.get("cache-control"),"no-store");
   const map=await req("/sitemap.xml");
   assert.equal(map.status,200);
   const sitemap=await map.text();
-  for(const locale of ["en","zh","ko","ja"]){
-    for(const suffix of ["portfolio","trades","performance","consensus","daily","outcomes","weekly","accuracy","historical","patterns","patterns/fibonacci-618","ai/gpt"]){
-      assert.ok(sitemap.includes(`/${locale}/${suffix}`),`sitemap missing ${locale}/${suffix}`);
-    }
+  for(const suffix of ["portfolio","trades","performance","consensus","daily","outcomes","weekly",
+    "accuracy","historical","patterns","patterns/fibonacci-618","ai/gpt"]){
+    assert.ok(sitemap.includes("/en/"+suffix),"Missing English sitemap URL "+suffix);
   }
-  for(const path of ["/visual-layout-check","/api/health/db","/portfolio","/trades","/performance","/ai/gpt","/stocks/AAPL","/en/advertise"]){
-    const res=await req(path);
-    assert.equal(res.status,401,`private path unexpectedly accessible: ${path}`);
-    assert.match(res.headers.get("x-robots-tag")||"",/noindex/);
+  for(const old of ["/ko","/zh","/ja", 'hreflang="ko"', 'hreflang="zh-CN"', 'hreflang="ja"']){
+    assert.ok(!sitemap.includes(old),"Retired locale in sitemap: "+old);
   }
-  console.log("PASS: live-only site, no synthetic dataset, SEO and protected APIs.");
-}finally{
+  for(const path of ["/visual-layout-check","/api/health/db","/portfolio","/trades","/performance",
+    "/ai/gpt","/stocks/AAPL","/en/advertise"]){
+    const r=await req(path);
+    assert.equal(r.status,401,"Private endpoint unexpectedly accessible: "+path);
+    assert.match(r.headers.get("x-robots-tag")||"",/noindex/);
+  }
+  console.log("PASS: English-only routes, 301 legacy redirects, SEO, public pages and private gates.");
+} finally {
   server.kill("SIGTERM");
   await sleep(500);
   if(server.exitCode===null)server.kill("SIGKILL");

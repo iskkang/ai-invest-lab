@@ -19,6 +19,7 @@ import { returnLines } from "@/lib/series";
 import { cn, fmtPct, toneClass } from "@/lib/utils";
 import { localizedHref, t } from "@/lib/i18n";
 import { sectionLabel } from "@/lib/section-labels";
+import { experimentIntroText } from "@/lib/experiment-intro";
 
 export const revalidate = 300;
 
@@ -58,14 +59,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const latestDecisions = lastRound ? verifiedDecisions(d).filter(x => x.roundId === lastRound.id) : [];
   const buys = todays.filter((t) => t.side === "BUY").length;
   const sells = todays.length - buys;
-  const initialCash = "$" + d.experiment.initialCash.toLocaleString("en-US");
-  const startDate = d.experiment.startSession;
-  const experimentIntro = ({
-    ko: `AI 4개 모두 같은 시장 데이터와 투자 규칙을 사용하며, 각각 ${initialCash}로 시작합니다. 첫 거래일은 ${startDate}입니다.`,
-    en: `All four AIs use the same market data and rules, each starting with ${initialCash}. First session: ${startDate}.`,
-    zh: `四个 AI 使用相同的市场数据与规则，每个初始资金为 ${initialCash}。首个交易日：${startDate}。`,
-    ja: `4つのAIが同じ市場情報とルールを使い、それぞれ ${initialCash} から開始します。初回取引日：${startDate}。`,
-  } as const)[d.locale];
+  const experimentIntro = experimentIntroText(d.locale,d.experiment.initialCash,d.experiment.startSession);
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">

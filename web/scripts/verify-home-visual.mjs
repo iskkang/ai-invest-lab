@@ -55,7 +55,10 @@ try{
     const logos=page.locator('a[aria-label="MarketSights home"]:visible');
     assert.equal(await logos.count(),width<1024?1:1);
     const text=await logos.first().textContent();
-    assert.ok(text.includes("· INTELLIGENCE LAB"),"brand/section must contain explicit separator");
+    assert.ok(text.includes("· AI 투자 연구소"),"brand/section must contain explicit separator");
+    const headline=await page.locator("h1.hero-title").textContent();
+    assert.equal(headline.replace(/\s+/g," ").trim(),"하나의 시장, 네 가지 AI의 시선.",
+      "hero title must include natural sentence spacing at "+width);
     const legend=page.locator('[data-chart-legend="true"] > li');
     assert.equal(await legend.count(),5);
     assert.deepEqual(await legend.allTextContents(),["GPT","Claude","Gemini","DeepSeek","SPY"]);

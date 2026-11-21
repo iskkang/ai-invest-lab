@@ -93,7 +93,7 @@ try{
   // Every locale must serve the same audited engine-derived numbers and model
   // IDs, without placeholder translation or fabricated live configuration.
   const methodologyLabels={
-    ko:"엔진 실제 설정과 검증 기준",
+    ko:"실제 엔진 설정과 검증 기준",
     en:"Verified engine settings and methodology",
     zh:"已核验的引擎设置与研究方法",
     ja:"確認済みエンジン設定と研究方法",

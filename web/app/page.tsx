@@ -18,6 +18,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   if (d.mode === "live" && d.snapshots.length === 0) {
     const round = d.rounds[0];
     const roundDecisions = round ? d.decisions.filter((x) => x.roundId === round.id) : [];
+    const loadedSymbols = Object.values(d.prices).filter((bars) => bars.length > 0).length;
     return (
       <div className="space-y-5">
         <div>
@@ -38,6 +39,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               투자 대상 {d.universe.filter((u) => u.role === "investable").length}종목 ·
               시작일 {d.experiment.startSession} (NYSE)
             </p>
+            <p className="text-muted">실제 과거 주가 준비: {loadedSymbols} / {d.universe.length}종목 · 아직 첫 평가 전입니다.</p>
             <p className="text-muted">실제 돈의 주문은 실행하지 않습니다. 첫 평가 전에는 수익률과 순위를 표시하지 않습니다.</p>
             {round && <RoundBadge status={round.status} reason={round.abortReason} />}
           </div>

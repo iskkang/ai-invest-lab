@@ -121,6 +121,7 @@ export type Bar = [string, number, number, number, number, number]; // date,o,h,
 
 export interface Dataset {
   locale: "en" | "zh" | "ko" | "ja";
+  publicQuotesRedacted: boolean;
   mode: Mode;
   experiment: {
     name: string;

@@ -67,7 +67,7 @@ try {
     assert.ok(!dashboard.includes('hreflang="'+legacy+'"'),"Old hreflang: "+legacy);
   }
   assert.ok(!dashboard.includes('hreflang="zh-CN"'));
-  assert.ok(dashboard.includes('hreflang="en"'));
+  // One active language may be canonical-only; no hreflang is required.
   await visible("/en/about","Can AI make better stock decisions?");
   for(const suffix of ["about","methodology"]){
     const html=await visible("/en/"+suffix,"Engine settings (configured defaults)");

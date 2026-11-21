@@ -2,22 +2,21 @@ import type { MetadataRoute } from "next";
 import { publicOrigin } from "@/lib/public-content";
 
 /**
- * Search engines and AI search crawlers can index only public educational
- * translations. Private application and API URLs remain excluded.
- * robots.txt does not replace the separate HTTP authentication gate.
+ * Public multilingual pages, sitemap and static assets are crawlable.
+ * Internal portfolio / raw licensed data pages require authentication and
+ * are explicitly disallowed for search bots.
  */
 export default function robots(): MetadataRoute.Robots {
-  const publicPaths = [
-    "/en", "/zh", "/ko", "/ja",
-    "/sitemap.xml", "/robots.txt", "/llms.txt", "/ads.txt",
-    "/_next/static/", "/_next/image/", "/icon.svg",
+  const blockedPrivate = [
+    "/lab", "/api/", "/ai/", "/stocks/", "/portfolio",
+    "/trades", "/performance", "/about",
   ];
   return {
     rules: [
-      { userAgent: "*", allow: publicPaths, disallow: "/" },
-      // Search inclusion is separate from model-training crawling.
-      { userAgent: "OAI-SearchBot", allow: publicPaths, disallow: "/" },
-      { userAgent: "Claude-SearchBot", allow: publicPaths, disallow: "/" },
+      { userAgent: "*", allow: ["/", "/_next/static/", "/_next/image/"], disallow: blockedPrivate },
+      { userAgent: "OAI-SearchBot", allow: ["/", "/_next/static/", "/_next/image/"], disallow: blockedPrivate },
+      { userAgent: "Claude-SearchBot", allow: ["/", "/_next/static/", "/_next/image/"], disallow: blockedPrivate },
+      // Training crawlers are distinct from public search indexing bots.
       { userAgent: "GPTBot", disallow: "/" },
       { userAgent: "ClaudeBot", disallow: "/" },
     ],

@@ -3,156 +3,204 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, History, Search, ShieldCheck, X, Ellipsis, CalendarDays, Target, CalendarClock, ChartNoAxesCombined } from "lucide-react";
+import { createPortal } from "react-dom";
+import { ChevronDown, Menu, Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { isNavActive } from "@/lib/nav-active";
+import { NAV_GROUPS, activeNavGroup, type NavGroupId } from "@/lib/nav-groups";
 import { t, localizedHref } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
 
-export const NAV = [
-  { href: "/", key: "대시보드", icon: LayoutDashboard },
-  { href: "/daily", key: "매일 브리핑", icon: CalendarDays },
-  { href: "/journal", key: "실험 일지", icon: CalendarClock },
-  { href: "/consensus", key: "AI 비교", icon: GitCompareArrows },
-  { href: "/outcomes", key: "판단 추적", icon: Target },
-  { href: "/patterns", key: "패턴 연구", icon: ChartNoAxesCombined },
-  { href: "/historical", key: "과거 전략 연구", icon: History },
-  { href: "/weekly", key: "주간 리포트", icon: Newspaper },
-  { href: "/accuracy", key: "판단 검증", icon: ShieldCheck },
-  { href: "/performance", key: "성과", icon: BarChart3 },
-  { href: "/portfolio", key: "포트폴리오", icon: BriefcaseBusiness },
-  { href: "/trades", key: "거래내역", icon: ListOrdered },
-  { href: "/about", key: "소개", icon: Info },
-] as const;
-// Four high-frequency destinations stay one tap away. Less frequent
-// research/portfolio pages remain accessible through a real mobile sheet.
-const MOBILE_NAV = NAV.filter(item =>
-  ["/","/daily","/consensus","/outcomes"].includes(item.href));
-const MORE_NAV = NAV.filter(item=>!MOBILE_NAV.includes(item));
-const MORE_LABEL={
-  ko:{more:"더보기",all:"전체 메뉴",close:"메뉴 닫기"},
-  en:{more:"More",all:"All pages",close:"Close menu"},
-  zh:{more:"更多",all:"全部页面",close:"关闭菜单"},
-  ja:{more:"その他",all:"すべてのメニュー",close:"メニューを閉じる"},
+const MENU_COPY={
+  ko:{open:"전체 메뉴 열기",close:"전체 메뉴 닫기",navigation:"주 메뉴",sub:"하위 메뉴",theme:"화면 테마"},
+  en:{open:"Open navigation",close:"Close navigation",navigation:"Main navigation",sub:"Submenu",theme:"Appearance"},
+  zh:{open:"打开全部菜单",close:"关闭全部菜单",navigation:"主导航",sub:"子菜单",theme:"外观主题"},
+  ja:{open:"メニューを開く",close:"メニューを閉じる",navigation:"メインメニュー",sub:"サブメニュー",theme:"画面テーマ"},
 } as const;
 
-
-const active = (path: string, target: string) => isNavActive(path, target);
-
-export function SideNav({ locale }: { locale: Locale }) {
-  const path = usePathname();
-  return (
-    <nav className="space-y-1" aria-label="Main navigation">
-      {NAV.map((item) => {
-        const href = localizedHref(locale, item.href);
-        return (
-          <Link key={item.key} href={href}
-            aria-current={active(path, href) ? "page" : undefined}
-            className={cn("group flex items-center gap-3 rounded-xl px-3 py-3 text-[13px] transition-colors [&_svg]:shrink-0",
-              active(path, href) ? "bg-white/10 font-bold text-[#d3fb91] ring-1 ring-inset ring-white/10" : "text-[#c4d1e8] hover:bg-white/[.07] hover:text-white")}>
-            <item.icon size={19} strokeWidth={1.8} aria-hidden />{t(locale, item.key)}
-          </Link>
+/** The five desktop items and all their dropdown destinations share one data source. */
+export function HeaderNav({locale}:{locale:Locale}) {
+  const path=usePathname()??"";
+  const [openId,setOpenId]=useState<NavGroupId|null>(null);
+  const navRef=useRef<HTMLElement>(null);
+  const selected=activeNavGroup(path,locale);
+  useEffect(()=>setOpenId(null),[path,locale]);
+  useEffect(()=>{
+    function dismiss(event:PointerEvent){
+      if(event.target instanceof Node&&!navRef.current?.contains(event.target))setOpenId(null);
+    }
+    function escape(event:KeyboardEvent){
+      if(event.key==="Escape"&&openId){
+        setOpenId(null);
+        navRef.current?.querySelector<HTMLButtonElement>('[data-nav-trigger="'+openId+'"]')?.focus();
+      }
+    }
+    document.addEventListener("pointerdown",dismiss);
+    document.addEventListener("keydown",escape);
+    return ()=>{
+      document.removeEventListener("pointerdown",dismiss);
+      document.removeEventListener("keydown",escape);
+    };
+  },[openId]);
+  return <nav ref={navRef} aria-label={MENU_COPY[locale].navigation}
+    data-header-nav="true" className="mx-auto max-w-[1640px] px-3 sm:px-4 lg:px-8">
+    <ul className="flex items-center justify-center gap-2 py-2 xl:gap-4">
+      {NAV_GROUPS.map(group=>{
+        const chosen=selected===group.id,expanded=openId===group.id;
+        const base=cn(
+          "inline-flex min-h-10 items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-semibold transition-colors",
+          chosen?"bg-accent/10 text-accent":"text-fg hover:bg-panel-2 hover:text-accent",
         );
+        return <li key={group.id} className="relative"
+          data-top-nav-item={group.id} data-active-group={chosen?group.id:undefined}
+          onMouseEnter={()=>{if(group.children.length)setOpenId(group.id);else setOpenId(null);}}
+          onMouseLeave={()=>setOpenId(id=>id===group.id?null:id)}>
+          {group.children.length===0?
+            <Link href={localizedHref(locale,group.href)}
+              aria-current={chosen?"page":undefined} className={base}>{group.names[locale]}</Link>
+            :<>
+              <button type="button" className={base} data-nav-trigger={group.id}
+                aria-expanded={expanded} aria-controls={"top-nav-"+group.id}
+                onClick={()=>setOpenId(group.id)}
+                onKeyDown={e=>{
+                  if(e.key==="ArrowDown"){
+                    e.preventDefault();setOpenId(group.id);
+                    requestAnimationFrame(()=>{
+                      navRef.current?.querySelector<HTMLAnchorElement>('#top-nav-'+group.id+' a')?.focus();
+                    });
+                  }
+                }}>
+                {group.names[locale]}
+                <ChevronDown size={15} aria-hidden className={cn("transition-transform",expanded&&"rotate-180")}/>
+              </button>
+              {expanded&&<ul id={"top-nav-"+group.id} aria-label={group.names[locale]+" · "+MENU_COPY[locale].sub}
+                className="absolute left-1/2 top-full z-50 mt-2 w-[220px] -translate-x-1/2 space-y-1 rounded-2xl border border-line bg-panel p-2 shadow-xl"
+                data-submenu={group.id}>
+                {group.children.map(child=>{
+                  const href=localizedHref(locale,child.href);
+                  const childActive=isNavActive(path,href);
+                  return <li key={child.href}><Link href={href}
+                    onClick={()=>setOpenId(null)} aria-current={childActive?"page":undefined}
+                    className={cn("block rounded-lg px-3 py-3 text-[13px] font-semibold transition-colors",
+                      childActive?"bg-accent/10 text-accent":"text-fg hover:bg-panel-2")}>
+                    {child.names[locale]}
+                  </Link></li>;
+                })}
+              </ul>}
+            </>}
+        </li>;
       })}
-    </nav>
-  );
+    </ul>
+  </nav>;
 }
 
-export function BottomNav({ locale }: { locale: Locale }) {
-  const path = usePathname();
-  const [moreOpen,setMoreOpen] = useState(false);
-  const sheetRef=useRef<HTMLDivElement>(null);
-  const moreButtonRef=useRef<HTMLButtonElement>(null);
-  const activeMore=MORE_NAV.some(item=>isNavActive(path,localizedHref(locale,item.href)));
-  const copy=MORE_LABEL[locale];
-  useEffect(()=>setMoreOpen(false),[path]);
+/** Mobile hamburger, with the same 5 groups and accessible accordion submenus.
+ * A portal keeps the drawer outside the sticky header's backdrop-filter context.
+ */
+export function MobileMenu({locale}:{locale:Locale}) {
+  const path=usePathname()??"";
+  const current=activeNavGroup(path,locale);
+  const [isOpen,setIsOpen]=useState(false);
+  const [expanded,setExpanded]=useState<NavGroupId|null>(null);
+  const triggerRef=useRef<HTMLButtonElement>(null);
+  const closeRef=useRef<HTMLButtonElement>(null);
+  const sheetRef=useRef<HTMLElement>(null);
+  const copy=MENU_COPY[locale];
+  const dismiss=()=>setIsOpen(false);
+  useEffect(()=>{setIsOpen(false);setExpanded(null);},[path,locale]);
   useEffect(()=>{
-    if(!moreOpen)return;
-    const originalOverflow=document.body.style.overflow;
+    if(!isOpen)return;
+    const original=document.body.style.overflow;
     document.body.style.overflow="hidden";
-    const first=sheetRef.current?.querySelector<HTMLAnchorElement>("a");
-    first?.focus();
+    setExpanded(current);
+    closeRef.current?.focus();
     function onKey(e:KeyboardEvent){
-      if(e.key==="Escape"){e.preventDefault();setMoreOpen(false);return;}
+      if(e.key==="Escape"){e.preventDefault();dismiss();return;}
       if(e.key!=="Tab")return;
-      const focusables=sheetRef.current?.querySelectorAll<HTMLElement>("a,button:not([disabled])");
-      if(!focusables?.length)return;
-      const first=focusables[0],last=focusables[focusables.length-1];
-      if(e.shiftKey && document.activeElement===first){e.preventDefault();last.focus();}
-      else if(!e.shiftKey && document.activeElement===last){e.preventDefault();first.focus();}
+      const focusable=sheetRef.current?.querySelectorAll<HTMLElement>(
+        'a[href],button:not([disabled]),select:not([disabled])',
+      );
+      if(!focusable?.length)return;
+      const first=focusable[0],last=focusable[focusable.length-1];
+      if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}
+      else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
     }
     document.addEventListener("keydown",onKey);
     return ()=>{
-      document.body.style.overflow=originalOverflow;
+      document.body.style.overflow=original;
       document.removeEventListener("keydown",onKey);
-      moreButtonRef.current?.focus();
+      triggerRef.current?.focus();
     };
-  },[moreOpen]);
+  },[isOpen,current]);
   return <>
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-panel/95 shadow-[0_-10px_35px_rgba(16,26,55,.08)] backdrop-blur-xl lg:hidden"
-      style={{paddingBottom:"env(safe-area-inset-bottom)"}} aria-label="Mobile navigation">
-      <ul className="grid grid-cols-5 px-1">
-        {MOBILE_NAV.map(item=>{
-          const href=localizedHref(locale,item.href);
-          return <li key={item.key}>
-            <Link href={href} aria-current={isNavActive(path,href)?"page":undefined}
-              className={cn("relative flex min-h-[61px] flex-col items-center justify-center gap-1 px-0.5 text-center text-[10px] leading-tight tracking-tight transition-colors",
-                isNavActive(path,href)?"font-bold text-accent before:absolute before:inset-x-3 before:top-0 before:h-[3px] before:rounded-b-full before:bg-accent":"text-muted hover:text-fg")}>
-              <item.icon size={20} strokeWidth={1.8} aria-hidden/>{t(locale,item.key)}
-            </Link>
-          </li>;
-        })}
-        <li>
-          <button type="button" ref={moreButtonRef}
-            aria-expanded={moreOpen} aria-haspopup="dialog"
-            aria-controls={moreOpen?"marketsights-mobile-more-menu":undefined}
-            onClick={()=>setMoreOpen(value=>!value)}
-            className={cn("relative flex min-h-[61px] w-full flex-col items-center justify-center gap-1 px-0.5 text-center text-[10px] leading-tight tracking-tight",
-              (activeMore||moreOpen)?"font-bold text-accent before:absolute before:inset-x-3 before:top-0 before:h-[3px] before:rounded-b-full before:bg-accent":"text-muted")}>
-            <Ellipsis size={20} strokeWidth={1.8} aria-hidden/>
-            {copy.more}
-          </button>
-        </li>
-      </ul>
-    </nav>
-    {moreOpen&&<div className="fixed inset-0 z-40 lg:hidden">
-      <button type="button" aria-label={copy.close}
-        className="absolute inset-0 h-full w-full bg-[#081328]/60"
-        onClick={()=>setMoreOpen(false)}/>
-      <div ref={sheetRef} role="dialog" aria-modal="true" aria-label={copy.all}
-        id="marketsights-mobile-more-menu"
-        className="absolute inset-x-3 bottom-[calc(78px+env(safe-area-inset-bottom))] max-h-[min(66vh,480px)] overflow-y-auto rounded-2xl border border-line bg-panel p-4 shadow-2xl">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-base font-bold">{copy.all}</h2>
-          <button type="button" aria-label={copy.close}
-            className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-panel-2 text-fg"
-            onClick={()=>setMoreOpen(false)}>
-            <X size={19} aria-hidden/>
-          </button>
-        </div>
-        <ul className="grid grid-cols-2 gap-2">
-          {MORE_NAV.map(item=>{
-            const href=localizedHref(locale,item.href);
-            return <li key={item.key}>
-              <Link href={href} onClick={()=>setMoreOpen(false)}
-                aria-current={isNavActive(path,href)?"page":undefined}
-                className={cn("flex min-h-[62px] items-center gap-2 rounded-xl border px-3 py-2 text-xs font-semibold",
-                  isNavActive(path,href)?"border-accent/50 bg-accent/10 text-accent":"border-line bg-panel-2 text-fg")}>
-                <item.icon size={18} className="shrink-0" aria-hidden/>
-                <span>{t(locale,item.key)}</span>
-              </Link>
-            </li>;
-          })}
-        </ul>
-        <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-line bg-panel-2 px-3 py-2">
-          <span className="text-xs font-semibold">
-            {({ko:"화면 테마",en:"Appearance",zh:"外观主题",ja:"画面テーマ"} as Record<Locale,string>)[locale]}
-          </span>
-          <ThemeToggle locale={locale}/>
-        </div>
-      </div>
-    </div>}
+    <button type="button" ref={triggerRef} onClick={()=>setIsOpen(true)}
+      aria-label={copy.open} aria-expanded={isOpen} aria-haspopup="dialog"
+      aria-controls={isOpen?"marketsights-mobile-navigation":undefined}
+      data-mobile-menu-trigger="true"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-panel-2 text-fg hover:text-accent">
+      <Menu size={20} strokeWidth={1.9} aria-hidden/>
+    </button>
+    {isOpen&&createPortal(
+      <div className="fixed inset-0 z-[100] lg:hidden" data-mobile-nav-overlay="true">
+        <button type="button" className="absolute inset-0 w-full bg-[#081328]/65"
+          tabIndex={-1} aria-label={copy.close} onClick={dismiss}/>
+        <section ref={sheetRef} role="dialog" aria-modal="true" aria-label={copy.navigation}
+          id="marketsights-mobile-navigation"
+          className="absolute inset-y-0 right-0 flex w-[min(89vw,370px)] flex-col overflow-hidden border-l border-line bg-panel shadow-2xl">
+          <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-4">
+            <h2 className="text-lg font-extrabold">{copy.navigation}</h2>
+            <button ref={closeRef} type="button" aria-label={copy.close} onClick={dismiss}
+              className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-panel-2 text-fg">
+              <X size={20} aria-hidden/>
+            </button>
+          </div>
+          <nav className="min-h-0 flex-1 overflow-y-auto px-3 py-4" aria-label={copy.navigation}>
+            <ul className="space-y-1.5" data-mobile-nav-groups="true">
+              {NAV_GROUPS.map(group=>{
+                const chosen=current===group.id;
+                const isExpanded=expanded===group.id;
+                return <li key={group.id} data-mobile-nav-group={group.id}>
+                  {group.children.length===0?
+                    <Link href={localizedHref(locale,group.href)}
+                      onClick={dismiss} aria-current={chosen?"page":undefined}
+                      className={cn("flex min-h-12 items-center rounded-xl px-3 text-sm font-bold",
+                        chosen?"bg-accent/10 text-accent":"text-fg hover:bg-panel-2")}>
+                      {group.names[locale]}
+                    </Link>
+                    :<>
+                      <button type="button" aria-expanded={isExpanded}
+                        aria-controls={"mobile-nav-"+group.id}
+                        onClick={()=>setExpanded(g=>g===group.id?null:group.id)}
+                        className={cn("flex min-h-12 w-full items-center justify-between rounded-xl px-3 text-sm font-bold",
+                          chosen?"bg-accent/10 text-accent":"text-fg hover:bg-panel-2")}>
+                        {group.names[locale]}
+                        <ChevronDown size={17} aria-hidden className={cn("transition-transform",isExpanded&&"rotate-180")}/>
+                      </button>
+                      {isExpanded&&<ul id={"mobile-nav-"+group.id}
+                        className="mt-1 space-y-1 border-l-2 border-line py-1 pl-3"
+                        data-mobile-submenu={group.id}>
+                        {group.children.map(child=>{
+                          const href=localizedHref(locale,child.href),selected=isNavActive(path,href);
+                          return <li key={child.href}><Link href={href} onClick={dismiss}
+                            aria-current={selected?"page":undefined}
+                            className={cn("flex min-h-11 items-center rounded-lg px-3 text-[13px]",
+                              selected?"bg-accent/10 font-bold text-accent":"text-fg hover:bg-panel-2")}>
+                            {child.names[locale]}
+                          </Link></li>;
+                        })}
+                      </ul>}
+                    </>}
+                </li>;
+              })}
+            </ul>
+            <div className="mt-6 flex items-center justify-between rounded-xl border border-line bg-panel-2 px-3 py-2">
+              <span className="text-xs font-semibold">{copy.theme}</span>
+              <ThemeToggle locale={locale}/>
+            </div>
+          </nav>
+        </section>
+      </div>,document.body)}
   </>;
 }
 

@@ -1,14 +1,11 @@
 import Link from "next/link";
-import { Activity } from "lucide-react";
-import { BottomNav, SideNav, StockSearch, MobileSearch } from "./nav";
+import { HeaderNav, MobileMenu, StockSearch, MobileSearch } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 import { localizedHref, t } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
 import { sectionLabel } from "@/lib/section-labels";
 import { dataAsOfLabel } from "@/lib/home-display";
-
-export { BottomNav };
 
 export function Logo({locale="ko"}:{locale?:Locale}) {
   return (
@@ -32,31 +29,6 @@ export function Logo({locale="ko"}:{locale?:Locale}) {
   );
 }
 
-export function Sidebar({locale}:{locale:Locale}) {
-  return (
-    <aside className="hidden w-[250px] shrink-0 border-r border-white/10 bg-[#101a35] text-[#f3f6ff] lg:block">
-      <div className="sticky top-0 flex h-dvh flex-col px-4 py-6">
-        <div className="mb-10 px-2 [&_.text-accent]:!text-[#c9f58a] [&_.text-muted]:!text-[#a6b9db]">
-          <Logo locale={locale}/>
-        </div>
-        <p className="mb-3 px-3 text-[10px] font-bold tracking-[.19em] text-[#8299c4]">{sectionLabel(locale,"researchDesk")}</p>
-        <SideNav locale={locale}/>
-        <div className="mt-auto rounded-2xl border border-white/10 bg-white/[.055] px-3 py-3">
-          <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold tracking-[.12em] text-[#d0f9a0]">
-            <Activity size={14} aria-hidden/> MARKET RESEARCH
-          </div>
-          <p className="text-[11px] leading-relaxed text-[#b4c2dd]">
-          {({ko:"교육·연구용 모의투자 실험입니다. 실제 주문·투자 권유 없음.",
-          en:"Educational paper trading only. No real orders or investment advice.",
-          zh:"仅供教育研究的模拟投资，无真实订单或投资建议。",
-          ja:"教育・研究用の模擬投資であり、実際の注文・投資助言ではありません。" } as Record<Locale,string>)[locale]}
-          </p>
-        </div>
-      </div>
-    </aside>
-  );
-}
-
 function DataAsOfStatus({ asOf, locale }: { asOf: string; locale: Locale }) {
   const status = dataAsOfLabel(asOf, locale);
   return (
@@ -74,7 +46,7 @@ export function TopBar({asOf,symbols,locale}:{
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-panel/92 backdrop-blur-xl">
       <div className="mx-auto flex min-h-[56px] max-w-[1640px] items-center gap-2 px-3 sm:min-h-[62px] sm:gap-4 sm:px-4 lg:min-h-[70px] lg:px-8">
-        <div className="min-w-0 shrink-0 lg:hidden"><Logo locale={locale}/></div>
+        <div className="min-w-0 shrink-0"><Logo locale={locale}/></div>
         <div className="hidden w-full max-w-md min-w-0 flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="lg:hidden"><MobileSearch symbols={symbols} locale={locale}/></div>
@@ -84,8 +56,10 @@ export function TopBar({asOf,symbols,locale}:{
           </div>
           <LanguageSwitcher locale={locale}/>
           <span className="hidden lg:inline-flex"><ThemeToggle locale={locale}/></span>
+          <div className="lg:hidden"><MobileMenu locale={locale}/></div>
         </div>
       </div>
+      <div className="hidden border-t border-line/70 lg:block"><HeaderNav locale={locale}/></div>
       <div className="border-t border-line/70 px-3 py-1.5 sm:hidden" data-mobile-data-status="true">
         <DataAsOfStatus asOf={asOf} locale={locale}/>
       </div>
@@ -101,7 +75,7 @@ export function Footer({locale}:{locale:Locale}) {
     ja:"MarketSightsは教育・研究目的の模擬投資実験です。実際の発注や個別の投資助言は行いません。仮想約定とリターンは実際の運用成績とは異なり、過去の結果は将来を保証しません。",
   };
   return (
-    <footer className="mx-auto mt-8 max-w-[1580px] px-4 pb-28 pt-9 text-xs leading-relaxed text-muted lg:px-8 lg:pb-10">
+    <footer className="mx-auto mt-8 max-w-[1580px] px-4 pb-10 pt-9 text-xs leading-relaxed text-muted lg:px-8">
       <div className="ms-divider mb-5"/>
       <p className="mb-2 text-[11px] font-extrabold tracking-[.17em] text-fg">MARKETSIGHTS <span className="text-accent">/</span> {sectionLabel(locale,"researchTerminal")}</p>
       <p className="max-w-4xl">{disclaimers[locale]}</p>

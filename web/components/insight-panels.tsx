@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, ChartNoAxesCombined, Clock3, Layers3, ShieldCheck } from "lucide-react";
 import { insightCopy } from "@/lib/insight-copy";
+import { historicalCopy } from "@/lib/historical-copy";
 import {
   compareLatestRound, generateWeeklyReports, weekFriday, verifiedDecisions,
   type AccuracyModel, type SymbolComparison, type WeeklyReport,
@@ -52,13 +53,14 @@ export function InsightTeasers({d}:{d:Dataset}) {
       ?reports[0].week+" · "+reports[0].actionCount+" "+c.votedCount:c.noReport,
       href:"/weekly",icon:Clock3},
     {title:c.accuracy,desc:c.noPublishedAccuracy,href:"/accuracy",icon:ShieldCheck},
+    {title:historicalCopy(d.locale).nav,desc:historicalCopy(d.locale).sub,href:"/historical",icon:ChartNoAxesCombined},
   ];
   return <section aria-label={c.title}>
     <div className="mb-3">
       <h2 className="text-lg font-bold tracking-tight">{c.title}</h2>
       <p className="mt-1 text-xs text-muted">{c.sub}</p>
     </div>
-    <div className="grid gap-3 md:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       {cards.map(card=><Link key={card.href} href={localizedHref(d.locale,card.href)}
         className="group rounded-2xl border border-line bg-panel p-4 transition hover:border-accent/70 hover:bg-panel-2">
         <div className="flex items-center justify-between gap-3">

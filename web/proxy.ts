@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * DB/admin/health endpoints and any unlisted paths stay protected.
  * Do not trust client-supplied x-ail-* headers.
  */
-const LOCALE_APP = /^\/(en|zh|ko|ja)(?:\/(?:portfolio|trades(?:\/\d+)?|performance|about|methodology|faq|privacy|consensus|accuracy|weekly(?:\/20\d\d-W(?:0[1-9]|[1-4]\d|5[0-3]))?|ai\/(?:gpt|claude|gemini|deepseek)|stocks\/[A-Z0-9.-]+))?\/?$/i;
+const LOCALE_APP = /^\/(en|zh|ko|ja)(?:\/(?:portfolio|trades(?:\/\d+)?|performance|about|methodology|faq|privacy|consensus|accuracy|historical|weekly(?:\/20\d\d-W(?:0[1-9]|[1-4]\d|5[0-3]))?|ai\/(?:gpt|claude|gemini|deepseek)|stocks\/[A-Z0-9.-]+))?\/?$/i;
 const PUBLIC_FILES = new Set(["/robots.txt", "/sitemap.xml", "/llms.txt", "/ads.txt", "/status"]);
 
 export function proxy(req: NextRequest) {

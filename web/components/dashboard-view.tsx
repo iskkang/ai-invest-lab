@@ -76,7 +76,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       </Section>
 
       <Section title={t(d.locale,"누적 수익률 추이")} action={<span className="text-[11px] text-muted">{t(d.locale, "점선 = 벤치마크")}</span>}>
-        <div><ReturnChart lines={returnLines(d, { benchmarks: true })} /></div>
+        <div><ReturnChart lines={returnLines(d, { benchmarks: true })} locale={d.locale} /></div>
         <Legend d={d} />
       </Section>
 

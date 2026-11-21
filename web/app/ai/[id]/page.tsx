@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { accountByAi, getData } from "@/lib/data";
 import { returnLines } from "@/lib/series";
 import { cn, fmtPct, toneClass } from "@/lib/utils";
-import { localizedHref,t } from "@/lib/i18n";
+import { localizedHref,t,localizedDecisionText } from "@/lib/i18n";
 
 export const revalidate = 300;
 
@@ -46,7 +46,7 @@ export default async function AiPage({ params }: { params: Promise<{ id: string 
       <StatGrid s={s} initial={a.initialCash} locale={d.locale} />
 
       <Section title={t(d.locale,"수익률: 벤치마크 대비")}>
-        <ReturnChart height={260} lines={returnLines(d, { only: [a.id, ...(spy ? [spy.id] : [])] })} />
+        <ReturnChart height={260} lines={returnLines(d, { only: [a.id, ...(spy ? [spy.id] : [])] })} locale={d.locale} />
       </Section>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -67,7 +67,7 @@ export default async function AiPage({ params }: { params: Promise<{ id: string 
                 <span className="tabular text-muted">{o.sessionDate}</span>
                 <span className="font-medium">{t(d.locale,o.side==="BUY"?"매수":"매도")} {o.symbol} {o.quantity} {t(d.locale,"주")}</span>
                 <Badge variant="warn">{o.status}</Badge>
-                <span className="text-muted">{o.reason}</span>
+                <span className="text-muted">{localizedDecisionText(d.locale,o.reason)}</span>
               </li>
             ))}
           </ul>

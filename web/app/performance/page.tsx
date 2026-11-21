@@ -6,7 +6,7 @@ import { Table, Td, Th } from "@/components/ui/table";
 import { getData } from "@/lib/data";
 import { returnLines } from "@/lib/series";
 import { cn, fmtNum, fmtPct, fmtUsd, toneClass } from "@/lib/utils";
-import { t } from "@/lib/i18n";
+import { t,localizedDecisionText } from "@/lib/i18n";
 
 export const revalidate = 300;
 export const metadata = { title: "Performance" };
@@ -19,7 +19,7 @@ export default async function PerformancePage() {
     <div className="space-y-4">
       <PageTitle title={t(d.locale,"성과 비교")} sub={t(d.locale,"AI 4개와 벤치마크 3개를 같은 시작일·같은 평가 규칙으로 비교합니다. 모두 실험 시작 이후 누적된 모의투자 결과입니다(과거 데이터 백테스트 아님).")} />
       <Section title={t(d.locale,"누적 수익률")}>
-        <div><ReturnChart lines={returnLines(d, { benchmarks: true })} /></div>
+        <div><ReturnChart lines={returnLines(d, { benchmarks: true })} locale={d.locale} /></div>
       </Section>
       <Section title={t(d.locale,"위험·성과 지표")}>
         <Table>
@@ -57,7 +57,7 @@ export default async function PerformancePage() {
         <ul className="mt-3 space-y-0.5 text-[11px] text-muted">
           <li>{({ko:"샤프 비율: 일간 수익률 60개 이상일 때만 계산(무위험수익률 0 가정, 연환산). 변동성: 20개 이상.",en:"Sharpe ratio requires 60 daily observations (zero risk-free rate, annualized); volatility requires 20.",zh:"夏普比率至少需要60个日收益样本（无风险利率按0计算、年化）；波动率至少需要20个。",ja:"シャープレシオは日次60観測以上（無リスク金利0、年率換算）、変動率は20以上が必要です。"} as const)[d.locale]}</li>
           <li>{({ko:"승률: 매도 체결 5건 이상일 때만 계산. 최대비중은 가격 변동으로 20%를 넘을 수 있습니다(신규 매수 시에만 20% 제한).",en:"Win rate requires at least 5 simulated sells. Position weights may exceed 20% after price moves (limit applies to new buys).",zh:"胜率至少需要5笔模拟卖出。因市场变化持仓可能超过20%（限制仅针对新买入）。",ja:"勝率は模擬売却5件以上で算出。価格変動により保有比率が20%を超える場合があります（新規買付時に制限）。"} as const)[d.locale]}</li>
-          {notes.slice(0, 4).map((n) => <li key={n}>{n}</li>)}
+          {notes.slice(0, 4).map((n) => <li key={n}>{localizedDecisionText(d.locale,n)}</li>)}
         </ul>
       </Section>
       <Section title={t(d.locale,"회차 기록")}>

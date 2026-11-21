@@ -1,4 +1,6 @@
 "use client";
+import { t } from "@/lib/i18n";
+import type { Locale } from "@/lib/public-content";
 
 import { useEffect, useRef } from "react";
 import {
@@ -50,7 +52,7 @@ function useChart(build: (el: HTMLDivElement, chart: IChartApi) => void, deps: u
 export interface LineInput { name: string; color: string; dashed?: boolean; data: { time: string; value: number }[] }
 
 /** 누적 수익률(%) 비교 차트 */
-export function ReturnChart({ lines, height = 300 }: { lines: LineInput[]; height?: number }) {
+export function ReturnChart({ lines, height = 300, locale="ko" }: { lines: LineInput[]; height?: number; locale?:Locale }) {
   const ref = useChart((_, chart) => {
     for (const l of lines) {
       const s = chart.addSeries(LineSeries, {
@@ -61,5 +63,5 @@ export function ReturnChart({ lines, height = 300 }: { lines: LineInput[]; heigh
       s.setData(l.data.map((p) => ({ time: p.time as Time, value: p.value })));
     }
   }, [JSON.stringify(lines.map((l) => [l.name, l.data.length, l.data.at(-1)?.value]))], height);
-  return <div ref={ref} style={{ height }} className="w-full" aria-label="누적 수익률 차트" role="img" />;
+  return <div ref={ref} style={{ height }} className="w-full" aria-label={t(locale,"누적 수익률 차트")} role="img" />;
 }

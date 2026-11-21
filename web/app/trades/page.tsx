@@ -55,7 +55,7 @@ export default async function TradesPage({ searchParams }: { searchParams: Promi
             {symbols.map((s) => <option key={s}>{s}</option>)}
           </select>
           <input type="date" name="from" defaultValue={sp.from} className="h-9 rounded-md border border-line bg-panel px-2" aria-label={t(d.locale,"시작일")} />
-          <input type="date" name="to" defaultValue={sp.to} className="h-9 rounded-md border border-line bg-panel px-2" aria-label={d.locale==="ko"?"종료일":d.locale==="en"?"End date":d.locale==="zh"?"结束日期":"終了日"} />
+          <input type="date" name="to" defaultValue={sp.to} className="h-9 rounded-md border border-line bg-panel px-2" aria-label={t(d.locale,"종료일")} />
           <button className="h-9 rounded-md bg-accent px-4 font-medium text-white">{t(d.locale,"적용")}</button>
           {(sp.symbol || sp.from || sp.to) && <Link href={q({ symbol: undefined, from: undefined, to: undefined })} className="text-muted underline">{t(d.locale,"초기화")}</Link>}
         </form>

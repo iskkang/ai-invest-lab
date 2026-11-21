@@ -21,10 +21,43 @@ from ail.market_data import active_universe, ingest, sync_sessions
 from ail.sources import NHQuoteSource
 
 
+def _retrieve_history(source, symbol, through, count):
+    """Page backwards by date to avoid oversized NH period requests.
+
+    The normal nhplug.call() wrapper returns a single page; no historical
+    records may be fabricated when the provider truncates one response.
+    """
+    unique = {}
+    end_date = through
+    for page in range(14):
+        batch = source.daily_bars(symbol, end_date, min(60, count - len(unique) + 5))
+        batch = [bar for bar in batch if bar.trade_date <= end_date]
+        if not batch:
+            raise ValueError("NH period returned empty historical page")
+        for bar in batch:
+            prior = unique.get(bar.trade_date)
+            if prior is not None and prior != bar:
+                raise ValueError("NH period revised a bar while paginating")
+            unique[bar.trade_date] = bar
+        if len(unique) >= count:
+            break
+        oldest = min(bar.trade_date for bar in batch)
+        next_end = oldest - timedelta(days=1)
+        if next_end >= end_date:
+            raise ValueError("NH period did not advance to an older page")
+        end_date = next_end
+    if len(unique) < max(200, count - 15):
+        raise ValueError("NH period returned insufficient genuine historical sessions")
+    rows = sorted(unique.values(), key=lambda bar: bar.trade_date)
+    if not rows or rows[-1].trade_date != through:
+        raise ValueError("NH period has no confirmed final session bar")
+    return rows
+
+
 def _fetch_in_child(symbol, through, count, sender):
     """Fetch one genuine NH PLUG series without touching a database connection."""
     try:
-        bars = NHQuoteSource().daily_bars(symbol, through, count)
+        bars = _retrieve_history(NHQuoteSource(), symbol, through, count)
         sender.send(("ok", bars))
     except Exception as exc:
         try:

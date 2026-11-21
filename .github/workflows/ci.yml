@@ -19,7 +19,7 @@ jobs:
         with: { python-version: "3.12" }
       - run: pip install -e "./engine[dev]"
       - run: psql -h localhost -U postgres -c "create role engine login password 'engine'" 
-      - run: python -m py_compile engine/scripts/provider_preflight.py engine/scripts/model_smoke_test.py
+      - run: python -m py_compile engine/scripts/provider_preflight.py engine/scripts/model_smoke_test.py engine/scripts/live_price_warmup.py
       - run: cd engine && pytest -q
         env: { TEST_PG_ENGINE_URL: "postgresql://engine:engine@localhost:5432/{db}" }
   web:

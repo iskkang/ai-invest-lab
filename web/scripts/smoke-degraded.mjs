@@ -33,7 +33,7 @@ try {
     const response = await req(path);
     assert.equal(response.status, 200, "editorial must remain available: " + path);
     const html = await response.text();
-    assert.ok(html.includes("AI Invest Lab"), "editorial content missing: " + path);
+    assert.ok(html.includes("MarketTrials"), "editorial content missing: " + path);
   }
   const privateApi = await req("/api/health/db");
   assert.equal(privateApi.status, 401, "private health endpoint unexpectedly public");

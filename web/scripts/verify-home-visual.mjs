@@ -48,6 +48,64 @@ try{
     const page=await context.newPage();
     const result=await page.goto(base+"/visual-layout-check",{waitUntil:"networkidle"});
     assert.equal(result?.status(),200,"fixture should only exist inside CI");
+    // The 5-item navigation must use the same canonical URL map on desktop
+    // and within the hamburger accordion on phones. Old bottom nav/sidebar gone.
+    assert.equal(await page.locator('nav[aria-label="Mobile navigation"]').count(),0,
+      "legacy bottom bar should never be rendered");
+    assert.equal(await page.locator("aside").count(),0,"13-item sidebar must be removed");
+    if(width>=1024){
+      const primary=page.locator('[data-header-nav="true"]');
+      assert.equal(await primary.count(),1,"desktop header navigation missing");
+      assert.equal(await primary.locator("[data-top-nav-item]").count(),5);
+      assert.equal(await page.locator("[data-mobile-menu-trigger]:visible").count(),0);
+      const compare=primary.locator('[data-nav-trigger="compare"]');
+      await compare.hover();
+      assert.equal(await primary.locator('[data-submenu="compare"] a').count(),4);
+      assert.deepEqual(await primary.locator('[data-submenu="compare"] a')
+        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
+          "/ko/consensus","/ko/performance","/ko/portfolio","/ko/trades",
+        ]);
+      await page.keyboard.press("Escape");
+      assert.equal(await primary.locator('[data-submenu="compare"]').count(),0);
+      const research=primary.locator('[data-nav-trigger="research"]');
+      await research.click();
+      assert.deepEqual(await primary.locator('[data-submenu="research"] a')
+        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
+          "/ko/patterns","/ko/historical","/ko/accuracy","/ko/weekly",
+        ]);
+      await page.keyboard.press("Escape");
+      const journal=primary.locator('[data-nav-trigger="journal"]');
+      await journal.hover();
+      assert.deepEqual(await primary.locator('[data-submenu="journal"] a')
+        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
+          "/ko/daily","/ko/journal","/ko/outcomes",
+        ]);
+      await page.keyboard.press("Escape");
+    }else{
+      assert.equal(await page.locator("[data-header-nav]:visible").count(),0);
+      const trigger=page.locator('[data-mobile-menu-trigger="true"]');
+      assert.equal(await trigger.count(),1,"top hamburger missing");
+      await trigger.click();
+      const overlay=page.locator('[data-mobile-nav-overlay="true"]');
+      assert.equal(await overlay.count(),1,"mobile drawer missing");
+      assert.equal(await overlay.locator('[data-mobile-nav-group]').count(),5);
+      const compare=overlay.locator('[data-mobile-nav-group="compare"] button');
+      await compare.click();
+      assert.equal(await compare.getAttribute("aria-expanded"),"true");
+      assert.deepEqual(await overlay.locator('[data-mobile-submenu="compare"] a')
+        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
+          "/ko/consensus","/ko/performance","/ko/portfolio","/ko/trades",
+        ]);
+      await overlay.locator('[data-mobile-nav-group="research"] button').click();
+      assert.equal(await overlay.locator('[data-mobile-submenu="compare"]').count(),0,
+        "accordion should have only one open group");
+      assert.equal(await overlay.locator('[data-mobile-submenu="research"] a').count(),4);
+      await overlay.locator('[data-mobile-nav-group="journal"] button').click();
+      assert.equal(await overlay.locator('[data-mobile-submenu="journal"] a').count(),3);
+      await page.keyboard.press("Escape");
+      assert.equal(await page.locator('[data-mobile-nav-overlay]').count(),0,"Escape must close drawer");
+      assert.equal(await page.evaluate(()=>document.body.style.overflow),"","scroll lock not restored");
+    }
     const prelaunch=page.locator('[data-prelaunch-fixture="true"] [data-home-phase="pre-first-published-round"]');
     assert.equal(await prelaunch.count(),1,"prelaunch banner should exist in real components");
     const prelaunchSection=prelaunch.locator("section.market-hero");

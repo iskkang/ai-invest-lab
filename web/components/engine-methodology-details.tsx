@@ -48,7 +48,6 @@ export function EngineMethodologyDetails({locale,active}:{locale:Locale;active:A
     <div className="rounded-2xl border border-line bg-panel px-5 py-5 sm:px-6">
       <h2 className="text-lg font-extrabold">{c.title}</h2>
       <p className="mt-2 text-sm leading-7 text-muted">{c.scope}</p>
-      <p className="mt-2 font-mono text-[11px] text-muted">{engine.source}</p>
     </div>
     <Section title={c.schedule}>
       <dl className="grid grid-cols-2 gap-2 sm:grid-cols-3">
@@ -80,10 +79,6 @@ export function EngineMethodologyDetails({locale,active}:{locale:Locale;active:A
       <dl className="overflow-hidden rounded-xl border border-line">
         {indicators.map(([label,value])=><TechnicalRow key={label} label={label} value={value}/>)}
       </dl>
-      <h3 className="mb-3 mt-5 text-sm font-bold">{c.rawFields} ({i.fields.length})</h3>
-      <ul className="flex flex-wrap gap-1.5">
-        {i.fields.map(name=><li key={name} className="rounded-md bg-panel-2 px-2 py-1.5 font-mono text-[11px] text-fg">{name}</li>)}
-      </ul>
       <p className="mt-3 text-xs leading-6 text-muted">{c.indicatorNote}</p>
     </Section>
     <Section title={c.costs}>

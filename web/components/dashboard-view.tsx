@@ -5,6 +5,7 @@ import { ReturnChart } from "@/components/charts";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { InsightTeasers } from "@/components/insight-panels";
 import { DashboardHero } from "@/components/dashboard-hero";
+import { MobileResearchShortcut } from "@/components/mobile-research-shortcut";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <div className="min-w-0 space-y-5">
       <DashboardHero d={d} />
+      {pending && <MobileResearchShortcut locale={d.locale} />}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="ms-kicker mb-2">PERFORMANCE / SEASON 01</p>
@@ -59,14 +61,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             {t(d.locale, "같은 시장 데이터, 같은 규칙, 각자")} ${d.experiment.initialCash.toLocaleString()} {t(d.locale, "로 시작 · 시작일")} {d.experiment.startSession}
           </p>
         </div>
-        <div className="flex gap-1 rounded-lg border border-line p-0.5 text-xs" role="tablist" aria-label="Sort by performance">
-          <Link href={`${localizedHref(d.locale, "/")}?sort=return`} className={cn("rounded-md px-2.5 py-1.5", sortKey === "cum_return" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "누적 수익률")}</Link>
-          <Link href={`${localizedHref(d.locale, "/")}?sort=sharpe`} className={cn("rounded-md px-2.5 py-1.5", sortKey === "sharpe" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "위험조정(샤프)")}</Link>
+        <div className="flex min-h-11 gap-1 rounded-lg border border-line p-1 text-xs" aria-label="Sort by performance">
+          <Link href={`${localizedHref(d.locale, "/")}?sort=return`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "cum_return" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "누적 수익률")}</Link>
+          <Link href={`${localizedHref(d.locale, "/")}?sort=sharpe`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "sharpe" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "위험조정(샤프)")}</Link>
         </div>
       </div>
 
       {pending && (
-        <Section title={t(d.locale, "첫 투자 회차 대기")}>
+        <Section className="hidden sm:block" title={t(d.locale, "첫 투자 회차 대기")}>
           <p className="text-sm leading-7 text-muted">
             {t(d.locale, "실험과 초기 가상 계좌가 준비됐습니다. 아직 투자 판단이나 체결 기록은 없습니다.")}
             {" "}{t(d.locale, "실제 돈의 주문은 실행하지 않습니다. 첫 평가 전에는 수익률과 순위를 표시하지 않습니다.")}
@@ -74,6 +76,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </Section>
       )}
       <AiCards d={d} sortKey={sortKey} />
+      <p className="mt-[-10px] text-right text-[11px] text-muted sm:hidden">
+        {({ko:"옆으로 밀어 AI별 성과 보기",en:"Swipe to compare all AI models",zh:"左右滑动查看所有 AI 模型",ja:"横にスワイプして全AIを比較"} as Record<Locale,string>)[d.locale]}
+      </p>
 
       <InsightTeasers d={d} />
 

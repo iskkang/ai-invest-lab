@@ -249,10 +249,11 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
   const rows = rankAccounts(d, sortKey);
   const spy = d.accounts.find(a => a.benchmarkCode === "SPY_BUY_HOLD");
   const spyRet = spy ? d.stats[spy.id]?.cum_return ?? null : null;
-  return <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+  return <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 2xl:grid-cols-4"
+    aria-label={translate(d.locale,"AI 투자 리더보드")} tabIndex={0}>
     {rows.map(({a,s},i)=><Link key={a.id}
       href={localizedHref(d.locale, "/ai/"+a.aiId)}
-      className="ms-card ms-card-hover ms-rank-card block p-4"
+      className="ms-card ms-card-hover ms-rank-card block w-[81vw] max-w-[322px] shrink-0 snap-start p-4 sm:w-auto sm:max-w-none sm:shrink"
       style={{"--agent-color":a.color} as CSSProperties}>
       <div className="relative z-10 flex items-center gap-3">
         <Avatar name={a.name} color={a.color} />

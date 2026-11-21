@@ -2,6 +2,7 @@ import type { Locale } from "./public-content";
 
 const HISTORICAL_COPY = {
   ko:{
+    swipe:"옆으로 밀어 다른 전략 보기",
     nav:"과거 전략 연구",headline:"과거 시장에서 어떤 투자 규칙이 유리했을까?",
     strap:"Historical Intelligence",sub:"실제 미국 주식 데이터로 고정 가중치 규칙을 순차 검증합니다. AI가 과거에 했던 판단으로 표시하지 않습니다.",
     notice:"과거 전략 백테스트 · AI 판단 아님", status:"데이터 분석 결과",
@@ -28,6 +29,7 @@ const HISTORICAL_COPY = {
     balancedDesc:"모멘텀과 안정성의 균형",momentumDesc:"최근 상승·상대강도 강조",defensiveDesc:"변동성과 낙폭 억제 강조",
   },
   en:{
+    swipe:"Swipe to explore the other strategies",
     nav:"Historical research",headline:"Which fixed rules worked in the historical market?",
     strap:"Historical Intelligence",sub:"Test fixed-weight historical rules on genuine US-stock records. These are NOT decisions made by AI models in the past.",
     notice:"Retrospective rules · Not AI decisions",status:"Historical research results",
@@ -54,6 +56,7 @@ const HISTORICAL_COPY = {
     balancedDesc:"Balanced trend and stability",momentumDesc:"Emphasis on recent relative strength",defensiveDesc:"Emphasis on volatility and drawdown control",
   },
   zh:{
+    swipe:"左右滑动查看其他策略",
     nav:"历史策略研究",headline:"哪些固定规则在历史行情中表现更好？",
     strap:"Historical Intelligence",sub:"以真实美股历史数据逐期检验固定权重规则。此结果并非 AI 模型在过去真实作出的投资决策。",
     notice:"历史规则回测 · 非 AI 决策",status:"历史研究结果",
@@ -80,6 +83,7 @@ const HISTORICAL_COPY = {
     balancedDesc:"趋势与稳定性兼顾",momentumDesc:"强调近期相对强度",defensiveDesc:"强调波动与回撤控制",
   },
   ja:{
+    swipe:"横にスワイプして他の戦略を見る",
     nav:"過去戦略の検証",headline:"過去の市場で有効だった固定ルールは？",
     strap:"Historical Intelligence",sub:"実際の米国株データで固定ウェイトのルールを時系列に沿って検証します。過去のAI判断を再現したものではありません。",
     notice:"過去のルール検証 · AI判断ではありません",status:"過去データ研究結果",

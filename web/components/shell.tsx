@@ -70,7 +70,7 @@ export function TopBar({asOf,symbols,locale}:{
               {t(locale,"데이터 기준일")} {asOf || "—"}
             </span>
             <LanguageSwitcher locale={locale}/>
-            <ThemeToggle />
+            <span className="hidden lg:inline-flex"><ThemeToggle locale={locale}/></span>
           </div>
         </div>
       </header>

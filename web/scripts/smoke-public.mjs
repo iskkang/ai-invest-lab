@@ -81,6 +81,9 @@ try{
       `trades links leaked another locale: ${locale}`);
     assert.ok(html.includes(labels.dashboard), `missing translated navigation: ${locale}`);
     assert.ok(html.includes(labels.performance), `missing translated performance: ${locale}`);
+    assert.ok(html.includes('aria-haspopup="dialog"'),"Mobile More entry must expose secondary pages");
+    assert.ok(html.includes('min-h-[61px]') || html.includes('min-h-\[61px\]'),
+      "Bottom navigation needs accessible tap targets");
     for (const other of Object.keys(navExpected).filter((x) => x !== locale)) {
       assert.ok(!html.includes(`href="/${other}/performance"`),
         `mixed-language navigation in ${locale}: unexpected ${other}`);
@@ -101,14 +104,15 @@ try{
   // Regression: only the selected nav item may have aria-current=page.
   // Root /en must NOT activate on descendant /en/weekly or /en/consensus.
   for (const locale of ["en","ko","zh","ja"]) {
-    for (const section of ["weekly","consensus","accuracy"]) {
+    for (const section of ["weekly","consensus","accuracy","historical"]) {
       const pathname="/"+locale+"/"+section;
       const html=await (await req(pathname)).text();
       const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
       const selected=anchors.filter(a=>a.includes('aria-current="page"'))
         .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
-      assert.deepEqual(selected,[pathname,pathname],
-        "Exactly the desktop and mobile active links must match: "+pathname);
+      const direct=["weekly","consensus","historical"].includes(section);
+      assert.deepEqual(selected,direct?[pathname,pathname]:[pathname],
+        "Mobile More menu must not mark hidden routes as a different tab: "+pathname);
     }
   }
   // Historical research is public in four languages but FAILS CLOSED if real

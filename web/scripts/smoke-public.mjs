@@ -49,7 +49,12 @@ try{
   await visible("/en/methodology","Comparable information");
   await visible("/ko/faq","실제 주식을 사거나");
   await visible("/zh/privacy","数据处理");
-  await visible("/en/ai/gpt","GPT");
+  // Without live DB credentials, data-dependent detail pages may return 500.
+  // They must never silently serve synthesized investment performance.
+  const aiUnavailable = await req("/en/ai/gpt");
+  assert.equal(aiUnavailable.status,500,"unavailable LIVE AI detail must fail closed");
+  const aiHtml = await aiUnavailable.text();
+  assert.ok(!aiHtml.includes("DEMO —"),"unavailable AI page must never show demo data");
   await visible("/robots.txt","/sitemap.xml");
   await visible("/llms.txt","# AI Invest Lab");
   await visible("/ads.txt","No advertising sellers");

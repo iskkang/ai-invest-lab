@@ -37,8 +37,9 @@ function useChart(build: (el: HTMLDivElement, chart: IChartApi) => void, deps: u
         crosshair: { mode: 0 },
         handleScroll: { vertTouchDrag: false },
       });
-      chart.timeScale().fitContent();
       build(el, chart);
+      // Fit the plotted series, not an empty chart.
+      chart.timeScale().fitContent();
     };
     render();
     const mo = new MutationObserver(render);

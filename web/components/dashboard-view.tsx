@@ -34,9 +34,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <p className="mt-3 text-sm leading-7 text-muted">
           {t(locale,"실제 실험 데이터가 연결되지 않았습니다. 확인되지 않은 투자 판단이나 임의의 수익률을 표시하지 않습니다.")}
         </p>
-        <Link href={localizedHref(locale,"/methodology")} className="mt-6 inline-flex rounded-lg border border-line px-4 py-2 text-sm font-semibold">
-          {t(locale,"실험 방식")}
-        </Link>
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
+          <Link href={localizedHref(locale,"/historical")} className="inline-flex min-h-11 items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white">
+            {({ko:"과거 시장 연구 보기",en:"Explore historical research",zh:"查看历史市场研究",ja:"過去の市場研究を見る"} as Record<Locale,string>)[locale]}
+          </Link>
+          <Link href={localizedHref(locale,"/methodology")} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 py-2 text-sm font-semibold">
+            {t(locale,"실험 방식")}
+          </Link>
+        </div>
       </section>
     );
   }
@@ -76,9 +81,6 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </Section>
       )}
       <AiCards d={d} sortKey={sortKey} />
-      <p className="mt-[-10px] text-right text-[11px] text-muted sm:hidden">
-        {({ko:"옆으로 밀어 AI별 성과 보기",en:"Swipe to compare all AI models",zh:"左右滑动查看所有 AI 模型",ja:"横にスワイプして全AIを比較"} as Record<Locale,string>)[d.locale]}
-      </p>
 
       <InsightTeasers d={d} />
 

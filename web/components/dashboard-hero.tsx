@@ -53,11 +53,11 @@ export function DashboardHero({d}:{d:Dataset}){
   const hasVerifiedDecision=d.decisions.some(dec=>dec.status==="valid");
   const primary=hasVerifiedDecision?"/consensus":"/historical";
   const secondary=hasVerifiedDecision?"/historical":"/consensus";
-  return <section className="market-hero px-4 pb-4 pt-5 sm:px-8 sm:pb-7 sm:pt-8" aria-label={c.eyebrow}>
+  return <section className="market-hero px-4 pb-3 pt-4 sm:px-8 sm:pb-7 sm:pt-8" aria-label={c.eyebrow}>
     <div className="relative grid items-center gap-4 md:min-h-[270px] md:gap-6 md:grid-cols-[minmax(0,1fr)_260px]">
       <div className="relative z-10">
         <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{c.eyebrow}</p>
-        <h1 className="hero-title mt-3 sm:mt-5">
+        <h1 className="hero-title mt-2 sm:mt-5">
           <span className="block">{c.title1}</span>
           <span className="hero-title-em block">{c.title2}</span>
         </h1>

@@ -61,7 +61,7 @@ export function TopBar({asOf,symbols,locale}:{
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-line bg-panel/92 backdrop-blur-xl">
-        <div className="mx-auto flex h-[62px] max-w-[1640px] items-center gap-2 px-3 sm:gap-4 sm:px-4 lg:h-[70px] lg:px-8">
+        <div className="mx-auto flex h-[56px] max-w-[1640px] items-center gap-2 px-3 sm:h-[62px] sm:gap-4 sm:px-4 lg:h-[70px] lg:px-8">
           <div className="lg:hidden"><Logo locale={locale}/></div>
           <div className="hidden w-full max-w-md flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">

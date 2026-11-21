@@ -1,14 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { headers } from "next/headers";
 import "./globals.css";
 import { BottomNav, DemoBanner, Footer, Sidebar, TopBar } from "@/components/shell";
 import { getData, lastSessionDate } from "@/lib/data";
 import { themeScript } from "@/lib/theme";
 
 export const metadata: Metadata = {
-  title: { default: "AI Invest Lab — AI 모의투자 리더보드", template: "%s · AI Invest Lab" },
-  description: "GPT·Claude·Gemini·DeepSeek가 같은 데이터·같은 규칙으로 미국 대형주를 모의투자합니다. 교육·연구용, 투자 권유 아님.",
-  robots: process.env.SITE_ACCESS === "public" ? undefined : { index: false, follow: false },
+  title: { default: "AI Invest Lab — AI Paper-Trading Leaderboard", template: "%s · AI Invest Lab" },
+  description: "Four independent AI models compare simulated US-stock investment decisions under identical conditions. Educational research only.",
+  // No global noindex: exact private routes are blocked by proxy.ts instead.
 };
 
 export const viewport: Viewport = {
@@ -18,36 +17,22 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const requestHeaders = await headers();
-  // Editorial pages never query private investment data. Their locale metadata
-  // overrides the private app's default noindex robots metadata.
-  if (requestHeaders.get("x-ail-public") === "1") {
-    const publicLocale = requestHeaders.get("x-ail-locale") || "en";
-    return (
-      <html lang={publicLocale === "zh" ? "zh-CN" : publicLocale} suppressHydrationWarning>
-        <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
-        <body className="min-h-dvh">{children}</body>
-      </html>
-    );
-  }
   const d = await getData();
   const symbols = d.universe.filter((u) => u.role === "investable").map((u) => ({ symbol: u.symbol, name: u.name }));
   return (
-    <html lang="ko" suppressHydrationWarning>
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
-      </head>
+    <html lang={d.locale === "zh" ? "zh-CN" : d.locale} suppressHydrationWarning>
+      <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body className="min-h-dvh">
-        <DemoBanner mode={d.mode} />
+        <DemoBanner mode={d.mode} locale={d.locale} />
         <div className="flex">
-          <Sidebar />
+          <Sidebar locale={d.locale} />
           <div className="min-w-0 flex-1">
-            <TopBar asOf={lastSessionDate(d)} symbols={symbols} />
+            <TopBar asOf={lastSessionDate(d)} symbols={symbols} locale={d.locale} />
             <main className="px-4 pt-5 lg:px-6">{children}</main>
-            <Footer />
+            <Footer locale={d.locale} />
           </div>
         </div>
-        <BottomNav />
+        <BottomNav locale={d.locale} />
       </body>
     </html>
   );

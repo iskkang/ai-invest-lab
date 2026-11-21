@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Database, ShieldAlert } from "lucide-react";
 import { ReturnChart, type LineInput } from "./charts";
+import { ChartLegend } from "./chart-legend";
 import { HISTORICAL_PROFILES, FEATURES, type HistoricalStudy, type Feature } from "@/lib/historical-strategy";
 import { historicalCopy } from "@/lib/historical-copy";
 import type { Locale } from "@/lib/public-content";
@@ -121,12 +122,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
     <section className="ms-card p-4 sm:p-5">
       <Title title={c.curves} sub={c.curvesSub}/>
       <ReturnChart lines={lines} height={285} locale={locale}/>
-      <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted">
-        {lines.map(line=><span key={line.name} className="flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full" style={{background:line.color}}/>
-          {line.name}
-        </span>)}
-      </div>
+      <ChartLegend lines={lines} locale={locale}/>
     </section>
     <section>
       <Title title={c.profiles} sub={c.profilesSub}/>

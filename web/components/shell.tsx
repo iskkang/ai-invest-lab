@@ -5,6 +5,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 import { localizedHref, t } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
+import { dataAsOfLabel } from "@/lib/home-display";
 
 export { BottomNav };
 
@@ -20,11 +21,11 @@ export function Logo({locale="ko"}:{locale?:Locale}) {
         <path d="M5.7 23.8l8.4-7.4 5.1 3.6 9.8-11" stroke="#D2FB91" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         <circle cx="28.9" cy="9.2" r="2.35" fill="#D2FB91"/>
       </svg>
-      <span className="flex flex-col">
+      <span className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[14px] font-extrabold leading-[1.1] tracking-[-.045em] sm:text-[17px]">
           Market<span className="text-accent group-hover:opacity-75">Sights</span>
         </span>
-        <span className="mt-[3px] hidden text-[8px] font-extrabold tracking-[.17em] text-muted sm:block">INTELLIGENCE LAB</span>
+        <span className="hidden whitespace-nowrap text-[8px] font-extrabold tracking-[.17em] text-muted sm:block"> · INTELLIGENCE LAB</span>
       </span>
     </Link>
   );
@@ -55,26 +56,39 @@ export function Sidebar({locale}:{locale:Locale}) {
   );
 }
 
+function DataAsOfStatus({ asOf, locale }: { asOf: string; locale: Locale }) {
+  const status = dataAsOfLabel(asOf, locale);
+  return (
+    <span data-home-data-status="true"
+      className="inline-flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-lg bg-panel-2 px-2.5 py-1.5 text-xs text-muted">
+      <span>{t(locale, "데이터 기준일")}</span>
+      <strong className="font-semibold text-fg tabular">{status}</strong>
+    </span>
+  );
+}
+
 export function TopBar({asOf,symbols,locale}:{
   asOf:string;symbols:{symbol:string;name:string}[];locale:Locale
 }) {
   return (
-    <>
-      <header className="sticky top-0 z-30 border-b border-line bg-panel/92 backdrop-blur-xl">
-        <div className="mx-auto flex h-[56px] max-w-[1640px] items-center gap-2 px-3 sm:h-[62px] sm:gap-4 sm:px-4 lg:h-[70px] lg:px-8">
-          <div className="lg:hidden"><Logo locale={locale}/></div>
-          <div className="hidden w-full max-w-md flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
-          <div className="ml-auto flex items-center gap-2 sm:gap-3">
-            <div className="lg:hidden"><MobileSearch symbols={symbols} locale={locale}/></div>
-            <span className="hidden rounded-md bg-panel-2 px-2.5 py-1.5 text-xs text-muted sm:inline">
-              {t(locale,"데이터 기준일")} {asOf || "—"}
-            </span>
-            <LanguageSwitcher locale={locale}/>
-            <span className="hidden lg:inline-flex"><ThemeToggle locale={locale}/></span>
+    <header className="sticky top-0 z-30 border-b border-line bg-panel/92 backdrop-blur-xl">
+      <div className="mx-auto flex min-h-[56px] max-w-[1640px] items-center gap-2 px-3 sm:min-h-[62px] sm:gap-4 sm:px-4 lg:min-h-[70px] lg:px-8">
+        <div className="min-w-0 shrink-0 lg:hidden"><Logo locale={locale}/></div>
+        <div className="hidden w-full max-w-md min-w-0 flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
+        <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
+          <div className="lg:hidden"><MobileSearch symbols={symbols} locale={locale}/></div>
+          <div className="hidden items-center gap-3 sm:flex">
+            <DataAsOfStatus asOf={asOf} locale={locale}/>
+            <span className="select-none text-xs text-muted" aria-hidden="true">│</span>
           </div>
+          <LanguageSwitcher locale={locale}/>
+          <span className="hidden lg:inline-flex"><ThemeToggle locale={locale}/></span>
         </div>
-      </header>
-    </>
+      </div>
+      <div className="border-t border-line/70 px-3 py-1.5 sm:hidden" data-mobile-data-status="true">
+        <DataAsOfStatus asOf={asOf} locale={locale}/>
+      </div>
+    </header>
   );
 }
 

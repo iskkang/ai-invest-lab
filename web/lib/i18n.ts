@@ -204,6 +204,9 @@ const rows: [string,string,string,string][] = [
 ["원문 언어: 한국어. 해당 언어의 검증된 번역이 아직 없습니다.","Source language: Korean. A verified translation is not yet available.","原文语言为韩语，目前尚无经过核实的译文。","原文は韓国語です。検証済みの翻訳はまだありません。"],
 ["MarketTrials 실험 규칙과 한계","MarketTrials methodology and limitations","MarketTrials 实验方法与局限","MarketTrialsの実験規則と限界"],
 ["종료일","End date","结束日期","終了日"],
+["차트 줄이기","Collapse chart","收起图表","チャートを縮小"],
+["차트 키우기","Expand chart","展开图表","チャートを拡大"],
+["주가 차트","Stock price chart","股票价格图","株価チャート"],
 ];
 export function t(locale: Locale | string, korean: string): string {
   if (locale === "ko") return korean;

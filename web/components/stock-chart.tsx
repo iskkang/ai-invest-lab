@@ -133,13 +133,13 @@ export function StockChart({ bars, markers, locale="ko" }: { bars: BarIn[]; mark
               {label}
             </label>
           ))}
-          <button onClick={() => setTall((t) => !t)} aria-label={tall ? "차트 줄이기" : "차트 키우기"}
+          <button onClick={() => setTall((t) => !t)} aria-label={t(locale,tall ? "차트 줄이기" : "차트 키우기")}
             className="hidden h-8 w-8 place-items-center rounded-md border border-line text-muted sm:grid">
             {tall ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
           </button>
         </div>
       </div>
-      <div ref={ref} className={cn("w-full", tall ? "h-[560px]" : "h-[300px] sm:h-[380px]")} role="img" aria-label="주가 차트" />
+      <div ref={ref} className={cn("w-full", tall ? "h-[560px]" : "h-[300px] sm:h-[380px]")} role="img" aria-label={t(locale,"주가 차트")} />
     </div>
   );
 }

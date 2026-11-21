@@ -69,6 +69,33 @@ def _db_check() -> bool:
         print("HINT Supabase: " + _db_dsn_hint(dsn))
         return False
 
+    # A Supabase Session pooler uses postgres.<project-ref>, NOT bare postgres.
+    # Log only whether the structure is correct. Never log the actual URI/password.
+    try:
+        uri = urlsplit(dsn)
+        host = (uri.hostname or "").lower()
+        user = uri.username or ""
+        if "pooler.supabase.com" in host:
+            if user == "postgres":
+                print("FAIL Supabase: Session pooler username is missing the project reference")
+                print(
+                    "HINT Supabase: copy Connect > Session pooler URI unchanged; "
+                    "username must be postgres.ykhewuumkymjgpvqfpuo, not postgres"
+                )
+                return False
+            if user != "postgres.ykhewuumkymjgpvqfpuo":
+                print("FAIL Supabase: Session pooler username does not match AI Invest Lab")
+                print("HINT Supabase: choose AI Invest Lab project, then Connect > Session pooler URI")
+                return False
+            if uri.port != 5432:
+                print("FAIL Supabase: Session pooler must use port 5432")
+                return False
+        else:
+            print("HINT Supabase: use the Supabase IPv4 Session pooler URI, not Direct connection")
+    except ValueError:
+        print("FAIL Supabase: malformed database connection URI")
+        return False
+
     try:
         with psycopg.connect(dsn, connect_timeout=15) as conn:
             try:
@@ -89,9 +116,21 @@ def _db_check() -> bool:
         print("FAIL Supabase: malformed PostgreSQL connection settings (ProgrammingError)")
         print("HINT Supabase: " + _db_dsn_hint(dsn))
         return False
-    except psycopg.OperationalError:
-        print("FAIL Supabase: connection refused/unreachable/authentication failed (OperationalError)")
-        print("HINT Supabase: verify Session pooler host, database password, port 5432, and network access.")
+    except psycopg.OperationalError as exc:
+        # libpq errors can include host/user/URI; expose only a fixed classification.
+        msg = str(exc).lower()
+        if "password authentication failed" in msg:
+            print("FAIL Supabase: PostgreSQL password authentication rejected")
+            print("HINT Supabase: copy the Session pooler URI again; check DB password and URL-encoding of reserved characters.")
+        elif "could not translate host name" in msg or "name or service not known" in msg:
+            print("FAIL Supabase: database hostname cannot be resolved")
+            print("HINT Supabase: copy the Session pooler URI directly from the correct project.")
+        elif "timeout" in msg or "connection refused" in msg:
+            print("FAIL Supabase: connection timeout/refused")
+            print("HINT Supabase: check host, port 5432 and Supabase service status.")
+        else:
+            print("FAIL Supabase: connection failed (OperationalError)")
+            print("HINT Supabase: verify the entire Session pooler URI; credentials are never logged.")
         return False
     except psycopg.Error as exc:
         print(f"FAIL Supabase: connection failed ({type(exc).__name__}, SQLSTATE={exc.sqlstate or 'N/A'})")
@@ -104,7 +143,8 @@ def _nh_check() -> bool:
     try:
         # Previous completed NYSE session, including on weekends and holidays.
         end = mc.previous_session(mc.ny_today())
-        bars = NHQuoteSource(max_retries=0).daily_bars("AAPL", end, 5)
+        # Retry only transient SDK rate-limit/network failures; no other API endpoints.
+        bars = NHQuoteSource(max_retries=2, sleep=lambda _: None).daily_bars("AAPL", end, 5)
         if not bars:
             print("FAIL NH PLUG: no AAPL daily bars returned")
             return False
@@ -114,7 +154,20 @@ def _nh_check() -> bool:
         print(f"PASS NH PLUG: AAPL, {len(bars)} valid historical daily bar(s)")
         return True
     except Exception as exc:
-        print(f"FAIL NH PLUG: historical quote request failed ({type(exc).__name__})")
+        # The NH adapter intentionally strips credentials/HTTP payloads.
+        msg = str(exc)
+        if msg.startswith("NH request failed [") and "]" in msg:
+            category = msg.split("[", 1)[1].split("]", 1)[0]
+            if category in ("rate_limit", "network", "auth", "http", "config"):
+                print(f"FAIL NH PLUG: AAPL quote request failed (category={category})")
+            else:
+                print("FAIL NH PLUG: AAPL quote request failed (provider/SDK error)")
+        elif msg.startswith("NH period: no Output_1"):
+            print("FAIL NH PLUG: historical quote response missing expected Output_1 rows")
+        elif msg.startswith("NH period: malformed row"):
+            print("FAIL NH PLUG: historical quote response format invalid")
+        else:
+            print(f"FAIL NH PLUG: historical quote request failed ({type(exc).__name__})")
         return False
 
 

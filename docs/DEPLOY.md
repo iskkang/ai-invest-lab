@@ -8,7 +8,7 @@ This is a private prototype with 21 RLS-protected tables. The Supabase anon role
 | --- | --- |
 | SUPABASE_URL | https://ykhewuumkymjgpvqfpuo.supabase.co |
 | SUPABASE_SECRET_KEY | Supabase Dashboard > Project Settings > API Keys > sb_secret_... key |
-| DATA_MODE | demo (do not use live until a live experiment exists) |
+| DATA_MODE | live (after creating the real `season-1` experiment; otherwise demo) |
 | SITE_ACCESS | private |
 | SITE_USER | lab (or existing username) |
 | SITE_PASSWORD | Existing private password; configure this yourself |
@@ -22,6 +22,14 @@ After saving Production env vars, redeploy in Vercel and open /api/health/db aft
 
 ## Live simulation prerequisites
 
-The new database initially has a schema but no experiment, price, or trading records. Set up the Python engine and its database connection first, fill the selected live experiment, and only then change DATA_MODE to live and redeploy.
+The private `season-1` experiment is initialized with four AI portfolios, three benchmark portfolios, and a first NYSE session of **2026-11-23**. Initial balances are $100,000 per virtual portfolio, but no return, AI decision, order, or trade is reported until it truly exists.
+
+1. Actions > `live-price-warmup` > Run workflow: manually fetch verified NH PLUG historical US stock prices for 30 stocks plus SPY, without invoking AI or placing orders. This only works before the first experiment session.
+2. Actions > `model-smoke-test` > Run workflow: explicitly test real model inference with a conservative estimated-cost guard, without writing trades.
+3. Vercel > AI Invest Lab project > Settings > Environment Variables > change `DATA_MODE` from `demo` to `live` for Production, then **Redeploy**. Keep `SITE_ACCESS=private` and `SUPABASE_SECRET_KEY` server-only. The dashboard truthfully shows **first round pending**, not a fabricated leaderboard, until valuations exist.
+4. GitHub repository Settings > Secrets and variables > Actions > Variables: set `AIL_ENGINE_ENABLED=true` **only after both checks pass and model usage/budget are reviewed**. The daily-engine schedule then creates decisions only on eligible NYSE sessions; the first is Nov 23 if activated before premarket. Post-close settlement creates performance snapshots.
+5. Once the engine has recorded real decisions and portfolio valuations, the LIVE dashboard shows actual AI decisions, hypothetical fills, returns and benchmarks. The web is read-only and visitors never invoke AI APIs.
+
+Do not turn on `DATA_MODE=live` expecting historical demo-like results. A newly created real experiment has no historical performance; only accumulate it from genuine dated decisions and daily valuations.
 
 Keep SITE_ACCESS=private until implementing least-privilege data read APIs, robust access control, and confirming market-data redistribution permissions. The current privileged server key setup is for internal testing only.

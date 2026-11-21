@@ -156,7 +156,7 @@ test("Decision follow-ups use future actual sessions, no forward fill and no raw
   assert.deepEqual(records[0].observed.map(x=>x.verdict),["hit","hit","pending"]);
   assert.deepEqual(records[1].observed.map(x=>x.verdict),["miss","miss","pending"]);
   assert.ok(!JSON.stringify(records).includes('"prices"'));
-  delete prices.AAPL[1];
+  prices.AAPL.splice(1,1);
   const withGap=evaluateDecisionFollowups(d,prices);
   assert.equal(withGap[0].observed[0].verdict,"unavailable");
 });

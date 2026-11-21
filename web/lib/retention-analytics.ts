@@ -1,5 +1,5 @@
 import type { Bar, Dataset, DecisionAction } from "./types";
-import { compareLatestRound, verifiedDecisions, type SymbolComparison } from "./insight-analytics";
+import { compareLatestRound, verifiedDecisions, type SymbolComparison } from "./insight-analytics.ts";
 
 /** Stored-data summaries only. No AI call on a page view, no implied HOLD. */
 export function rankedDisagreements(rows: SymbolComparison[]): SymbolComparison[] {

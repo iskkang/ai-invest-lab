@@ -112,6 +112,13 @@ class OpenRouterProvider:
                                 "json_schema": {"name": "trading_decision", "strict": True, "schema": portable_output_schema(DECISION_SCHEMA)}},
             "usage": {"include": True},
         }
+        # Some Claude routes reject OpenRouter's structured-output parameter
+        # with HTTP 400 even for a portable JSON schema. Keep the SAME input,
+        # system prompt and trading constraints, but request plain text JSON.
+        # All replies still pass the FULL local schema validation before
+        # any simulated order can be accepted. Never re-ask on a bad reply.
+        if model.startswith("anthropic/"):
+            body.pop("response_format", None)
         started = time.monotonic()
         attempts = 0
         while True:

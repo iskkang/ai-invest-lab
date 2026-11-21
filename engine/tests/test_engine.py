@@ -299,7 +299,12 @@ def test_11_api_cost_recorded_and_budget_enforced(db, settings, source):
     rows = db.execute("select * from api_usage order by ai_model_id").fetchall()
     assert len(rows) == 4 and all(D(r["cost_usd"]) == Decimal("0.0123") for r in rows)
     assert all(r["input_tokens"] == 1234 and r["output_tokens"] == 56 and not r["is_demo"] for r in rows)
-    assert all(b["temperature"] == 0 and b["response_format"]["type"] == "json_schema" for b in seen)
+    assert all(b["temperature"] == 0 for b in seen)
+    assert all(
+        ("response_format" not in b if b["model"].startswith("anthropic/")
+         else b["response_format"]["type"] == "json_schema")
+        for b in seen
+    )
     report = admin.cost_report(db, at(START, "12:00"))
     assert sum(D(r["cost_usd"]) for r in report["month"]) == Decimal("0.0492")
     # 월 예산을 거의 소진 → 다음 회차는 AI 를 한 번도 호출하지 않고 중단

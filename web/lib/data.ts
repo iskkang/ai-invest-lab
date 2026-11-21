@@ -143,7 +143,7 @@ async function loadSupabase(): Promise<Raw> {
   };
 }
 
-function normalize(raw: Raw, mode: "live" | "demo"): Dataset {
+function normalize(raw: Raw, mode: "live" | "demo"): Omit<Dataset, "locale"> {
   const e = raw.experiment;
   const colorFallback: Record<string, string> = {
     SPY_BUY_HOLD: "#a3a3a3", EQUAL_WEIGHT: "#eab308", CASH: "#525252",

@@ -93,7 +93,7 @@ export function BottomNav({ locale }: { locale: Locale }) {
           const href=localizedHref(locale,item.href);
           return <li key={item.key}>
             <Link href={href} aria-current={isNavActive(path,href)?"page":undefined}
-              className={cn("relative flex min-h-[61px] flex-col items-center justify-center gap-1 px-0.5 text-[10px] tracking-tight transition-colors",
+              className={cn("relative flex min-h-[61px] flex-col items-center justify-center gap-1 px-0.5 text-center text-[10px] leading-tight tracking-tight transition-colors",
                 isNavActive(path,href)?"font-bold text-accent before:absolute before:inset-x-3 before:top-0 before:h-[3px] before:rounded-b-full before:bg-accent":"text-muted hover:text-fg")}>
               <item.icon size={20} strokeWidth={1.8} aria-hidden/>{t(locale,item.key)}
             </Link>
@@ -104,7 +104,7 @@ export function BottomNav({ locale }: { locale: Locale }) {
             aria-expanded={moreOpen} aria-haspopup="dialog"
             aria-controls={moreOpen?"marketsights-mobile-more-menu":undefined}
             onClick={()=>setMoreOpen(value=>!value)}
-            className={cn("relative flex min-h-[61px] w-full flex-col items-center justify-center gap-1 px-0.5 text-[10px] tracking-tight",
+            className={cn("relative flex min-h-[61px] w-full flex-col items-center justify-center gap-1 px-0.5 text-center text-[10px] leading-tight tracking-tight",
               (activeMore||moreOpen)?"font-bold text-accent before:absolute before:inset-x-3 before:top-0 before:h-[3px] before:rounded-b-full before:bg-accent":"text-muted")}>
             <Ellipsis size={20} strokeWidth={1.8} aria-hidden/>
             {copy.more}

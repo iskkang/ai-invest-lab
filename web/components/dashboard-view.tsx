@@ -6,6 +6,7 @@ import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { InsightTeasers } from "@/components/insight-panels";
 import { DashboardHero } from "@/components/dashboard-hero";
 import { DailyBriefing, TopConflicts, FollowupsPreview } from "@/components/retention-panels";
+import { ReturnVisitPulse, DecisionRevisionPanel, PortfolioMovement, RoundJournalPanel } from "@/components/returning-panels";
 import { MobileResearchShortcut } from "@/components/mobile-research-shortcut";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
@@ -57,6 +58,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <div className="min-w-0 space-y-5">
+      <ReturnVisitPulse d={d} />
       <DailyBriefing d={d} compact />
       <DashboardHero d={d} />
       {pending && <MobileResearchShortcut locale={d.locale} />}
@@ -83,8 +85,13 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </Section>
       )}
       <AiCards d={d} sortKey={sortKey} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PortfolioMovement d={d} compact />
+        <DecisionRevisionPanel d={d} compact />
+      </div>
       <TopConflicts d={d} compact />
       <FollowupsPreview d={d} />
+      <RoundJournalPanel d={d} compact />
 
       <InsightTeasers d={d} />
 

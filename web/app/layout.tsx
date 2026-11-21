@@ -4,6 +4,8 @@ import { BottomNav, DemoBanner, Footer, Sidebar, TopBar } from "@/components/she
 import { getData, lastSessionDate } from "@/lib/data";
 import { themeScript } from "@/lib/theme";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: { default: "AI Invest Lab — AI Paper-Trading Leaderboard", template: "%s · AI Invest Lab" },
   description: "Four independent AI models compare simulated US-stock investment decisions under identical conditions. Educational research only.",

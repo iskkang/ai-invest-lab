@@ -51,6 +51,24 @@ def user_message(packet: dict) -> str:
     return canonical(packet)
 
 
+# OpenRouter providers do not accept identical JSON-Schema constraint keywords.
+# The wire schema retains REQUIRED fields, types, enumerations and structure;
+# local DECISION_SCHEMA validation still enforces every limit after inference.
+PORTABLE_SCHEMA_OMIT = frozenset({
+    "minLength", "maxLength", "maxItems", "minItems",
+    "minimum", "maximum", "multipleOf", "pattern", "format",
+})
+
+
+def portable_output_schema(schema):
+    if isinstance(schema, dict):
+        return {k: portable_output_schema(v) for k, v in schema.items()
+                if k not in PORTABLE_SCHEMA_OMIT}
+    if isinstance(schema, list):
+        return [portable_output_schema(v) for v in schema]
+    return schema
+
+
 class OpenRouterProvider:
     is_demo = False
 
@@ -91,7 +109,7 @@ class OpenRouterProvider:
             "max_tokens": max_output_tokens,
             "temperature": 0,
             "response_format": {"type": "json_schema",
-                                "json_schema": {"name": "trading_decision", "strict": True, "schema": DECISION_SCHEMA}},
+                                "json_schema": {"name": "trading_decision", "strict": True, "schema": portable_output_schema(DECISION_SCHEMA)}},
             "usage": {"include": True},
         }
         started = time.monotonic()
@@ -113,7 +131,21 @@ class OpenRouterProvider:
             break
         latency = int((time.monotonic() - started) * 1000)
         if r.status_code != 200:
-            return LLMResult("error", error=f"HTTP {r.status_code}", latency_ms=latency)
+            # Only classify bad-request errors; never log raw provider text,
+            # prompts, bearer tokens or rejected user data.
+            category = ""
+            if r.status_code == 400:
+                try:
+                    message = str((r.json().get("error") or {}).get("message", "")).lower()
+                    if "schema" in message or "response_format" in message:
+                        category = " (structured output rejected)"
+                    elif "temperature" in message:
+                        category = " (decoding parameter rejected)"
+                    elif "model" in message:
+                        category = " (model request rejected)"
+                except (ValueError, AttributeError, TypeError):
+                    pass
+            return LLMResult("error", error=f"HTTP {r.status_code}{category}", latency_ms=latency)
         try:
             data = r.json()
         except ValueError:

@@ -154,3 +154,60 @@ def test_code_fence_only_normalization():
 
 def test_hash_is_order_independent():
     assert sha256({"b": 1, "a": [1, 2]}) == sha256({"a": [1, 2], "b": 1})
+
+
+def test_portable_output_schema_keeps_required_structure_and_strips_provider_incompatible_limits():
+    from ail.decision import DECISION_SCHEMA
+    from ail.llm import portable_output_schema, PORTABLE_SCHEMA_OMIT
+    import json
+
+    wire = portable_output_schema(DECISION_SCHEMA)
+    original = json.dumps(DECISION_SCHEMA, sort_keys=True)
+    assert "maxItems" in original and "maxLength" in original
+    encoded = json.dumps(wire, sort_keys=True)
+    for keyword in PORTABLE_SCHEMA_OMIT:
+        assert '"' + keyword + '"' not in encoded
+    assert wire["additionalProperties"] is False
+    assert wire["required"] == DECISION_SCHEMA["required"]
+    assert wire["properties"]["actions"]["items"]["required"] == DECISION_SCHEMA["properties"]["actions"]["items"]["required"]
+    # Server-side full schema remains unchanged for strict response validation.
+    assert DECISION_SCHEMA["properties"]["actions"]["maxItems"] == 31
+
+
+def test_real_price_warmup_paginates_truncated_nh_pages_without_generating_bars():
+    import importlib.util
+    from datetime import date
+    from decimal import Decimal
+    from pathlib import Path
+
+    from ail import market_calendar as mc
+    from ail.sources import Bar
+
+    script = Path(__file__).resolve().parents[1] / "scripts" / "live_price_warmup.py"
+    spec = importlib.util.spec_from_file_location("nh_live_warmup_test", script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    dates = mc.sessions_between(date(2025, 10, 1), date(2026, 11, 19))[-250:]
+    bars = [
+        Bar("AAPL", day, Decimal("100"), Decimal("105"), Decimal("95"),
+            Decimal("101"), 100000, "nh_plug")
+        for day in dates
+    ]
+
+    class TruncatingPeriod:
+        def __init__(self):
+            self.calls = 0
+
+        def daily_bars(self, symbol, through, count):
+            self.calls += 1
+            assert symbol == "AAPL"
+            return [bar for bar in bars if bar.trade_date <= through][-min(count, 40):]
+
+    provider = TruncatingPeriod()
+    result = module._retrieve_history(provider, "AAPL", dates[-1], 215)
+    assert len(result) >= 215
+    assert all(bar.source == "nh_plug" for bar in result)
+    assert result[-1].trade_date == dates[-1]
+    assert len({bar.trade_date for bar in result}) == len(result)
+    assert provider.calls >= 6

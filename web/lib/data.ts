@@ -3,6 +3,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { unstable_cache } from "next/cache";
 import { isLocale, type Locale } from "./public-content";
+import { t } from "./i18n";
 import type { Dataset, Stats } from "./types";
 import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adjust";
 
@@ -25,7 +26,7 @@ export const getData = cache(async (): Promise<Dataset> => {
   const locale: Locale = isLocale(headerLocale) ? headerLocale : "ko";
   const publicPage = req.get("x-ail-public") === "1";
   const raw = await (publicPage ? loadCachedPublicRaw() : loadSupabase(false));
-  const dataset = { ...normalize(raw), locale, publicQuotesRedacted: publicPage };
+  const dataset = { ...normalize(raw, locale), locale, publicQuotesRedacted: publicPage };
   // Do not redistribute the licensed NH PLUG per-ticker OHLCV bars or fill
   // prices on anonymous public pages. Keep only model-generated results,
   // simulated account-level returns, and portfolio composition at this stage.
@@ -153,7 +154,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
   };
 }
 
-function normalize(raw: Raw): Omit<Dataset, "locale" | "publicQuotesRedacted"> {
+function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQuotesRedacted"> {
   const e = raw.experiment;
   const colorFallback: Record<string, string> = {
     SPY_BUY_HOLD: "#a3a3a3", EQUAL_WEIGHT: "#eab308", CASH: "#525252",
@@ -173,7 +174,10 @@ function normalize(raw: Raw): Omit<Dataset, "locale" | "publicQuotesRedacted"> {
     },
     accounts: (raw.accounts ?? []).map((a: Raw) => ({
       id: a.id, kind: a.kind, aiId: a.ai_model_id, benchmarkCode: a.benchmark_code,
-      name: a.display_name ?? a.name, color: a.color ?? colorFallback[a.benchmark_code] ?? "#888",
+      name: a.kind === "benchmark" ? t(locale, ({
+        SPY_BUY_HOLD: "SPY 단순 매수·보유", EQUAL_WEIGHT: "30종목 균등투자", CASH: "현금 100%"
+      } as Record<string,string>)[a.benchmark_code] ?? a.name) : a.display_name ?? a.name,
+      color: a.color ?? colorFallback[a.benchmark_code] ?? "#888",
       model: a.model, initialCash: n(a.initial_cash),
     })),
     snapshots: (raw.snapshots ?? []).map((s: Raw) => ({

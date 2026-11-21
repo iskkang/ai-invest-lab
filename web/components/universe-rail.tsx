@@ -12,7 +12,7 @@ export function UniverseRail({ d, current }: { d: Dataset; current?: string }) {
   return (
     <Card className="p-3">
       <div className="mb-2 flex items-center justify-between px-1">
-        <h2 className="flex items-center gap-2 font-bold"><ListChecks size={18} aria-hidden />투자 대상 {t(d.locale,"투자 대상 종목")}</h2>
+        <h2 className="flex items-center gap-2 font-bold"><ListChecks size={18} aria-hidden />{t(d.locale,"투자 대상 종목")}</h2>
         <span className="text-[11px] text-muted">{rows.length} {t(d.locale,"종목")}</span>
       </div>
       <p className="mb-2 px-1 text-[11px] text-muted">{t(d.locale,"점 = 현재 보유 중인 AI")}</p>
@@ -25,10 +25,10 @@ export function UniverseRail({ d, current }: { d: Dataset; current?: string }) {
               <span className="flex w-12 gap-0.5">
                 {r.holders.map((a) => <span key={a.id} title={a.name} className="h-2 w-2 rounded-full" style={{ background: a.color }} />)}
               </span>
-              <span className="ml-auto tabular">{fmtNum(r.close)}</span>
+              <span className="ml-auto tabular">{d.publicQuotesRedacted?"—":fmtNum(r.close)}</span>
               <span className={cn("w-16 rounded-md px-1.5 py-0.5 text-right text-xs font-semibold tabular",
                 (r.changePct ?? 0) > 0 ? "bg-up/10 text-up" : (r.changePct ?? 0) < 0 ? "bg-down/10 text-down" : "text-muted")}>
-                {fmtPct(r.changePct)}
+                {d.publicQuotesRedacted?"—":fmtPct(r.changePct)}
               </span>
             </Link>
           </li>

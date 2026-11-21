@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { headers } from "next/headers";
+import { isLocale, type Locale } from "@/lib/public-content";
 import { ReturnChart } from "@/components/charts";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
@@ -18,17 +20,19 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   try {
     d = await getData();
   } catch {
-    // A failed LIVE provider/DB read must not silently display synthetic demo returns.
+    // Locale is from trusted proxy path header even when Supabase is unavailable.
+    const requested = (await headers()).get("x-ail-locale") ?? "ko";
+    const locale: Locale = isLocale(requested) ? requested : "ko";
+    // Never replace an unavailable live dataset with simulated demo performance.
     return (
       <section role="status" className="mx-auto my-12 max-w-2xl rounded-2xl border border-line bg-panel px-6 py-10 text-center">
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">DATA UNAVAILABLE · 데이터 연결 오류</p>
-        <h1 className="text-xl font-bold">투자 데이터 화면을 불러오지 못했습니다.</h1>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">{t(locale,"데이터 연결 오류")}</p>
+        <h1 className="text-xl font-bold">{t(locale,"투자 데이터 화면을 불러오지 못했습니다.")}</h1>
         <p className="mt-3 text-sm leading-7 text-muted">
-          실시간 실험 데이터가 연결되지 않았습니다. 확인되지 않은 투자 판단이나 임의의 수익률을 표시하지 않습니다.
-          The live research data is temporarily unavailable. No synthetic performance is substituted.
+          {t(locale,"실제 실험 데이터가 연결되지 않았습니다. 확인되지 않은 투자 판단이나 임의의 수익률을 표시하지 않습니다.")}
         </p>
-        <Link href="/ko/methodology" className="mt-6 inline-flex rounded-lg border border-line px-4 py-2 text-sm font-semibold">
-          실험 방식 · Methodology
+        <Link href={localizedHref(locale,"/methodology")} className="mt-6 inline-flex rounded-lg border border-line px-4 py-2 text-sm font-semibold">
+          {t(locale,"실험 방식")}
         </Link>
       </section>
     );
@@ -67,11 +71,11 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       )}
       <AiCards d={d} sortKey={sortKey} />
 
-      <Section title="순위 상세" className="hidden md:block">
+      <Section title={t(d.locale,"순위 상세")} className="hidden md:block">
         <Leaderboard d={d} sortKey={sortKey} />
       </Section>
 
-      <Section title="누적 수익률 추이" action={<span className="text-[11px] text-muted">{t(d.locale, "점선 = 벤치마크")}</span>}>
+      <Section title={t(d.locale,"누적 수익률 추이")} action={<span className="text-[11px] text-muted">{t(d.locale, "점선 = 벤치마크")}</span>}>
         <div><ReturnChart lines={returnLines(d, { benchmarks: true })} /></div>
         <Legend d={d} />
       </Section>
@@ -83,7 +87,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           <TradeList d={d} trades={todays.slice(0, 12)} compact />
           {todays.length > 12 && <Link href={localizedHref(d.locale, "/trades")} className="mt-2 block text-center text-xs text-accent">{t(d.locale, "전체 보기")}</Link>}
         </Section>
-        <Section title="벤치마크 비교">
+        <Section title={t(d.locale,"벤치마크 비교")}>
           <ul className="divide-y divide-line">
             {[...benchmarkAccounts(d), ...aiAccounts(d)].map((a) => {
               const s = d.stats[a.id];

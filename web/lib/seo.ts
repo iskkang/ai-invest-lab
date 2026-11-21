@@ -21,7 +21,7 @@ export function alternateRoutes(suffix: string = "") {
 }
 export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean }): Metadata {
   const site = PUBLIC_COPY[locale];
-  const fullTitle = suffix === "" ? site.title : `${title} | AI Invest Lab`;
+  const fullTitle = suffix === "" ? site.title : `${title} | MarketTrials`;
   const description = suffix === "" ? site.description : `${title}. ${site.description}`;
   return {
     metadataBase: new URL(publicOrigin()),
@@ -36,7 +36,7 @@ export function dashboardMetadata(locale: Locale, suffix: string, title: string,
       description,
       url: localizedRoute(locale, suffix),
       type: "website",
-      siteName: "AI Invest Lab",
+      siteName: "MarketTrials",
     },
     robots: { index: !opts?.noindex, follow: !opts?.noindex },
   };

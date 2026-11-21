@@ -5,7 +5,7 @@ import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, Td, Th } from "./ui/table";
 import { Avatar } from "./ai-compare";
-import { localizedHref, t as translate } from "@/lib/i18n";
+import { localizedHref, t as translate, localizedDecisionText } from "@/lib/i18n";
 
 export function Dot({ color }: { color: string }) {
   return <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} aria-hidden />;
@@ -68,7 +68,7 @@ export function Leaderboard({ d, sortKey }: { d: Dataset; sortKey: "cum_return" 
                 </Td>
                 <Td className={cn("text-right", toneClass(s?.daily_return))}>{fmtPct(s?.daily_return)}</Td>
                 <Td className="text-right text-down">{fmtPct(s?.max_drawdown, 2, false)}</Td>
-                <Td className="text-right" title={s?.notes?.join(", ")}>{s?.sharpe === null || s?.sharpe === undefined ? "표본부족" : fmtNum(s.sharpe)}</Td>
+                <Td className="text-right" title={s?.notes?.join(", ")}>{s?.sharpe === null || s?.sharpe === undefined ? translate(d.locale,"표본부족") : fmtNum(s.sharpe)}</Td>
                 <Td className="text-right">{fmtPct(s?.cash_weight, 1, false)}</Td>
                 <Td className="text-right">{s?.trade_count ?? 0}</Td>
               </tr>
@@ -202,7 +202,7 @@ export function DecisionCard({ d, dec }: { d: Dataset; dec: Decision }) {
         <Badge variant={dec.status === "valid" ? "muted" : "warn"}>{dec.status === "valid" ? `${translate(d.locale,"데이터")} ${dec.dataAsOf}` : translate(d.locale,"무효 응답")}</Badge>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
-        {dec.status !== "valid" ? <p className="text-warn">{dec.error}</p> : <p className="leading-relaxed">{dec.summary}</p>}
+        {dec.status !== "valid" ? <p className="text-warn">{dec.error}</p> : <p className="leading-relaxed">{localizedDecisionText(d.locale,dec.summary)}</p>}
         {trades.length > 0 && (
           <ul className="space-y-2">
             {trades.slice(0, 6).map((x) => (
@@ -212,8 +212,8 @@ export function DecisionCard({ d, dec }: { d: Dataset; dec: Decision }) {
                   <Link href={localizedHref(d.locale, `/stocks/${x.symbol}`)} className="font-semibold hover:underline">{x.symbol}</Link>
                   <span className="text-muted tabular">{x.quantity} {translate(d.locale,"주")}</span>
                 </div>
-                <p className="mt-1 text-[13px] leading-relaxed text-fg/90">{x.reason}</p>
-                {x.risks?.length > 0 && <p className="mt-1 text-[12px] text-muted">{translate(d.locale,"위험:")} {x.risks.join(" · ")}</p>}
+                <p className="mt-1 text-[13px] leading-relaxed text-fg/90">{localizedDecisionText(d.locale,x.reason)}</p>
+                {x.risks?.length > 0 && <p className="mt-1 text-[12px] text-muted">{translate(d.locale,"위험:")} {x.risks.map(text=>localizedDecisionText(d.locale,text)).join(" · ")}</p>}
               </li>
             ))}
             {trades.length > 6 && <li className="text-xs text-muted">{translate(d.locale,"외")} {trades.length - 6} {translate(d.locale,"건")}</li>}
@@ -269,7 +269,7 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
           <dl className="mt-2 grid grid-cols-4 gap-1 text-[11px]">
             <div><dt className="text-muted">{translate(d.locale,"SPY 대비")}</dt><dd className={cn("font-semibold tabular", toneClass(s && spyRet !== null ? s.cum_return - spyRet : null))}>{s && spyRet !== null ? fmtPct(s.cum_return - spyRet, 1) : "—"}</dd></div>
             <div><dt className="text-muted">{translate(d.locale,"MDD")}</dt><dd className="font-semibold tabular">{fmtPct(s?.max_drawdown, 1, false)}</dd></div>
-            <div><dt className="text-muted">{translate(d.locale,"샤프")}</dt><dd className="font-semibold tabular">{s?.sharpe == null ? "표본부족" : fmtNum(s.sharpe)}</dd></div>
+            <div><dt className="text-muted">{translate(d.locale,"샤프")}</dt><dd className="font-semibold tabular">{s?.sharpe == null ? translate(d.locale,"표본부족") : fmtNum(s.sharpe)}</dd></div>
             <div><dt className="text-muted">{translate(d.locale,"현금")}</dt><dd className="font-semibold tabular">{fmtPct(s?.cash_weight, 0, false)}</dd></div>
           </dl>
         </Link>

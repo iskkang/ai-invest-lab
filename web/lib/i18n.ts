@@ -120,7 +120,7 @@ const rows: [string,string,string,string][] = [
 ["수익률: 벤치마크 대비","Returns vs. benchmark","收益率与基准比较","リターン対ベンチマーク"],
 ["SPY 단순 보유 대비","vs SPY buy-and-hold","与 SPY 买入持有相比","SPY単純保有比"],
 ["AI는 실제로 주식투자를 잘할까?","Can AI make better stock decisions?","AI 能做出更好的股票投资判断吗？","AIは株式投資をうまく判断できるのか？"],
-["AI Invest Lab 실험 규칙과 한계","Rules and limitations of AI Invest Lab","AI Invest Lab 实验规则与局限","AI Invest Labの実験規則と限界"],
+["MarketTrials 실험 규칙과 한계","Rules and limitations of MarketTrials","MarketTrials 实验规则与局限","MarketTrialsの実験規則と限界"],
 ["실험 방식","Experiment methodology","实验方法","実験方法"],
 ["비교 기준","Benchmarks","比较基准","比較基準"],
 ["한계와 주의","Limitations and caveats","局限与注意事项","限界と注意点"],
@@ -178,15 +178,54 @@ const rows: [string,string,string,string][] = [
 ["개인정보","Privacy","隐私","プライバシー"],
 ["실험 방법","Methodology","研究方法","研究方法"],
 ["출처","Source","来源","出典"],
+["데이터 연결 오류","Data connection error","数据连接错误","データ接続エラー"],
+["투자 데이터 화면을 불러오지 못했습니다.","Unable to load investment data.","无法加载投资数据。","投資データを読み込めません。"],
+["실제 실험 데이터가 연결되지 않았습니다. 확인되지 않은 투자 판단이나 임의의 수익률을 표시하지 않습니다.","Live experiment data is unavailable. Unverified AI decisions and invented returns will never be shown.","目前无法连接真实实验数据。我们不会显示未经核实的 AI 决策或虚构收益率。","実際の実験データに接続できません。未検証のAI判断や架空のリターンは表示しません。"],
+["SPY 단순 매수·보유","SPY buy and hold","SPY 买入持有","SPY買い持ち"],
+["30종목 균등투자","Equal-weight 30 stocks","30 只股票等权配置","30銘柄均等配分"],
+["현금 100%","100% Cash","100% 现金","現金100%"],
+["SPY, 30종목 균등투자 및 현금 100% 벤치마크를 비교합니다.","Benchmarks: SPY, equal-weighted 30-stock portfolio and cash.","基准包括 SPY、30 只股票等权组合及全现金组合。","SPY・30銘柄均等配分・全額現金の各ベンチマークと比較します。"],
+["52주 범위","52-week range","52 周价格区间","52週レンジ"],
+["가격은 기록된 분할을 반영한 조정 시계열입니다. ▲매수 ▼매도 · 색상 =","Price history is adjusted for recorded splits. ▲ Buy ▼ Sell · Color =","价格历史根据已记录的拆股调整。▲ 买入 ▼ 卖出 · 颜色 =","株式分割を反映した調整株価です。▲買い ▼売り · 色 ="],
+["지표 상태는 기술적 상태를 설명하는 라벨이며 매수·매도 신호가 아닙니다.","Indicator labels describe technical conditions, not buy/sell signals.","指标标签仅描述技术状态，不构成买卖信号。","指標ラベルはテクニカルな状態を示すものであり、売買シグナルではありません。"],
+["과매수 구간","Overbought","超买","買われすぎ"],
+["과매도 구간","Oversold","超卖","売られすぎ"],
+["중립","Neutral","中性","中立"],
+["단기 상승 추세","Short-term uptrend","短期上行趋势","短期上昇トレンド"],
+["단기 하락 추세","Short-term downtrend","短期下行趋势","短期下落トレンド"],
+["작음","Small","较小","小"],
+["큼","Large","较大","大"],
+["거래량","Volume","成交量","出来高"],
+["AI 매매","AI trades","AI 交易","AI売買"],
+["기간","Period","期间","期間"],
+["누적 수익률 차트","Cumulative return chart","累计收益率图","累積リターンチャート"],
+["페이지를 찾을 수 없습니다","Page not found","页面未找到","ページが見つかりません"],
+["대시보드로","Back to dashboard","返回仪表盘","ダッシュボードへ戻る"],
+["원문 언어: 한국어. 해당 언어의 검증된 번역이 아직 없습니다.","Source language: Korean. A verified translation is not yet available.","原文语言为韩语，目前尚无经过核实的译文。","原文は韓国語です。検証済みの翻訳はまだありません。"],
+["MarketTrials 실험 규칙과 한계","MarketTrials methodology and limitations","MarketTrials 实验方法与局限","MarketTrialsの実験規則と限界"],
 ];
 export function t(locale: Locale | string, korean: string): string {
   if (locale === "ko") return korean;
   const item = rows.find(row => row[0] === korean);
-  if (!item) return korean;
+  if (!item) {
+    // Fail closed on untranslated Hangul UI labels instead of silently
+    // displaying Korean in English, Chinese or Japanese pages.
+    if (/[가-힣]/.test(korean)) {
+      return ({en:"Translation unavailable",zh:"暂无译文",ja:"翻訳なし"} as const)[locale as "en" | "zh" | "ja"] ?? korean;
+    }
+    return korean;
+  }
   return item[locale === "en" ? 1 : locale === "zh" ? 2 : locale === "ja" ? 3 : 0];
 }
 export function localizedHref(locale: Locale | string, href: string): string {
   if (!href.startsWith("/") || href.startsWith("/api/")) return href;
   const normalized = href === "/lab" ? "/" : href;
   return `/${locale || "ko"}${normalized === "/" ? "" : normalized}`;
+}
+
+/** The investment AI emits Korean rationales. Never misrepresent an unverified translation. */
+export function localizedDecisionText(locale: Locale, text: string | null | undefined): string {
+  if (!text) return "";
+  if (locale === "ko" || !/[가-힣]/.test(text)) return text;
+  return t(locale,"원문 언어: 한국어. 해당 언어의 검증된 번역이 아직 없습니다.");
 }

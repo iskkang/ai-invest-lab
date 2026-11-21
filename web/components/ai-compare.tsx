@@ -4,7 +4,7 @@ import { STANCE_LABEL, STANCE_TONE, compareSummary } from "@/lib/stock";
 import { cn, fmtNum, fmtUsd, toneClass } from "@/lib/utils";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
-import { t } from "@/lib/i18n";
+import { t, localizedDecisionText } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
 
 const CONF: Record<string, [number, string]> = { low: [1, "낮음"], medium: [2, "보통"], high: [3, "높음"] };
@@ -37,7 +37,7 @@ function Confidence({ level, locale }: { level: string | null | undefined;locale
 }
 
 function Reason({v,locale}:{v:AiView;locale:Locale}) {
-  if(v.action) return <p className="text-[13px] leading-relaxed text-fg/85">{v.action.reason}</p>;
+  if(v.action) return <p className="text-[13px] leading-relaxed text-fg/85">{localizedDecisionText(locale,v.action.reason)}</p>;
   const source:Record<string,Record<Locale,string>>={
     KEEP:{ko:"보유를 유지했고 최근 판단에서 이 종목을 언급하지 않았습니다.",en:"Position held; the latest decision did not mention this ticker.",zh:"继续持有，最近的决策中未提及该股票。",ja:"保有を継続し、最近の判断では当該銘柄に言及していません。"},
     NONE:{ko:"아직 이 종목에 대한 매매 판단이 없습니다.",en:"No trading decision for this ticker yet.",zh:"尚无该股票的交易决策。",ja:"この銘柄の取引判断はまだありません。"},
@@ -54,7 +54,7 @@ function Body({ v, locale, redacted=false }: { v: AiView;locale:Locale;redacted?
         <p className="mb-1 text-[13px] font-semibold">{t(locale,"판단 이유")}</p>
         <Reason v={v} locale={locale} />
       </div>
-      {v.action?.risks?.length ? <p className="text-[12px] text-muted">{t(locale,"위험 요인:")} {v.action.risks.join(" · ")}</p> : null}
+      {v.action?.risks?.length ? <p className="text-[12px] text-muted">{t(locale,"위험 요인:")} {v.action.risks.map(text=>localizedDecisionText(locale,text)).join(" · ")}</p> : null}
       {v.action?.indicators_used?.length ? (
         <div className="flex flex-wrap gap-1">{v.action.indicators_used.map((i) => <Badge key={i} variant="outline">{i}</Badge>)}</div>
       ) : null}

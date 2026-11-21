@@ -1,5 +1,5 @@
 import { ReturnChart } from "@/components/charts";
-import { Dot, Section } from "@/components/blocks";
+import { Dot, Section, RoundBadge } from "@/components/blocks";
 import { PageTitle } from "@/components/shell";
 import { Badge } from "@/components/ui/badge";
 import { Table, Td, Th } from "@/components/ui/table";
@@ -41,7 +41,7 @@ export default async function PerformancePage() {
                   <Td className={cn("text-right", toneClass(s?.weekly_return))}>{fmtPct(s?.weekly_return)}</Td>
                   <Td className={cn("text-right", toneClass(s?.monthly_return))}>{fmtPct(s?.monthly_return)}</Td>
                   <Td className="text-right">{fmtPct(s?.max_drawdown, 2, false)}</Td>
-                  <Td className="text-right">{s?.volatility_ann == null ? "표본부족" : fmtPct(s.volatility_ann, 1, false)}</Td>
+                  <Td className="text-right">{s?.volatility_ann == null ? t(d.locale,"표본부족") : fmtPct(s.volatility_ann, 1, false)}</Td>
                   <Td className="text-right">{s?.sharpe == null ? "—" : fmtNum(s.sharpe)}</Td>
                   <Td className={cn("text-right", toneClass(s?.realized_pnl))}>{s ? fmtUsd(s.realized_pnl) : "—"}</Td>
                   <Td className={cn("text-right", toneClass(s?.unrealized_pnl))}>{s ? fmtUsd(s.unrealized_pnl) : "—"}</Td>
@@ -67,7 +67,7 @@ export default async function PerformancePage() {
             {d.rounds.slice(0, 20).map((r) => (
               <tr key={r.id}>
                 <Td>{r.sessionDate}</Td><Td>{r.dataAsOf}</Td>
-                <Td>{r.status === "aborted" ? <Badge variant="warn" title={r.abortReason ?? ""}>{t(d.locale,"보류")}</Badge> : <Badge variant="muted">{r.status}</Badge>}</Td>
+                <Td><RoundBadge status={r.status} reason={r.abortReason} locale={d.locale}/></Td>
                 <Td><code className="text-[11px] text-muted">{r.snapshotHash?.slice(0, 16) ?? "—"}…</code></Td>
               </tr>
             ))}

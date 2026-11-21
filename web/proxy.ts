@@ -53,7 +53,7 @@ export function proxy(req: NextRequest) {
     status: 401,
     headers: {
       ...privateHeaders,
-      "WWW-Authenticate": 'Basic realm="AI Invest Lab private API", charset="UTF-8"',
+      "WWW-Authenticate": 'Basic realm="MarketTrials private API", charset="UTF-8"',
     },
   });
 }

@@ -18,6 +18,7 @@ import { aiAccounts, benchmarkAccounts, getData, lastSessionDate } from "@/lib/d
 import { returnLines } from "@/lib/series";
 import { cn, fmtPct, toneClass } from "@/lib/utils";
 import { localizedHref, t } from "@/lib/i18n";
+import { sectionLabel } from "@/lib/section-labels";
 
 export const revalidate = 300;
 
@@ -57,6 +58,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const latestDecisions = lastRound ? verifiedDecisions(d).filter(x => x.roundId === lastRound.id) : [];
   const buys = todays.filter((t) => t.side === "BUY").length;
   const sells = todays.length - buys;
+  const initialCash = "$" + d.experiment.initialCash.toLocaleString("en-US");
+  const startDate = d.experiment.startSession;
+  const experimentIntro = ({
+    ko: `AI 4개 모두 같은 시장 데이터와 투자 규칙을 사용하며, 각각 ${initialCash}로 시작합니다. 첫 거래일은 ${startDate}입니다.`,
+    en: `All four AIs use the same market data and rules, each starting with ${initialCash}. First session: ${startDate}.`,
+    zh: `四个 AI 使用相同的市场数据与规则，每个初始资金为 ${initialCash}。首个交易日：${startDate}。`,
+    ja: `4つのAIが同じ市場情報とルールを使い、それぞれ ${initialCash} から開始します。初回取引日：${startDate}。`,
+  } as const)[d.locale];
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
@@ -68,15 +77,15 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       {pending && <MobileResearchShortcut locale={d.locale} />}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="ms-kicker mb-2">PERFORMANCE / SEASON 01</p>
+          <p className="ms-kicker mb-2">{sectionLabel(d.locale,"performanceSeason")}</p>
           <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">{t(d.locale, "AI 투자 리더보드")}</h2>
           <p className="mt-1 text-sm text-muted">
-            {t(d.locale, "같은 시장 데이터, 같은 규칙, 각자")} ${d.experiment.initialCash.toLocaleString()} {t(d.locale, "로 시작 · 시작일")} {d.experiment.startSession}
+            {experimentIntro}
           </p>
         </div>
         <div className="flex min-h-11 gap-1 rounded-lg border border-line p-1 text-xs" aria-label="Sort by performance">
           <Link href={`${localizedHref(d.locale, "/")}?sort=return`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "cum_return" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "누적 수익률")}</Link>
-          <Link href={`${localizedHref(d.locale, "/")}?sort=sharpe`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "sharpe" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "위험조정(샤프)")}</Link>
+          <Link href={`${localizedHref(d.locale, "/")}?sort=sharpe`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "sharpe" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "위험 조정(샤프 지수)")}</Link>
         </div>
       </div>
 

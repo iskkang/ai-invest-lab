@@ -1,3 +1,4 @@
+import { sectionLabel } from "@/lib/section-labels";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Database, ShieldAlert } from "lucide-react";
 import { ReturnChart, type LineInput } from "./charts";
@@ -30,7 +31,7 @@ function Head({locale}:{locale:Locale}){
 }
 function Title({title,sub}:{title:string;sub:string}){
   return <div className="mb-4">
-    <p className="ms-kicker mb-2">HISTORICAL / RESEARCH</p>
+    <p className="ms-kicker mb-2">{sectionLabel(locale,"historicalResearch")}</p>
     <h2 className="text-xl font-extrabold tracking-tight">{title}</h2>
     <p className="mt-1 text-xs leading-6 text-muted">{sub}</p>
   </div>;

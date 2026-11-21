@@ -49,8 +49,8 @@ export function Leaderboard({ d, sortKey }: { d: Dataset; sortKey: "cum_return" 
           <thead>
             <tr>
               <Th>#</Th><Th>AI</Th><Th className="text-right">{translate(d.locale,"평가자산")}</Th><Th className="text-right">{translate(d.locale,"누적")}</Th>
-              <Th className="text-right">{translate(d.locale,"SPY 대비")}</Th><Th className="text-right">{translate(d.locale,"일간")}</Th><Th className="text-right">{translate(d.locale,"MDD")}</Th>
-              <Th className="text-right">{translate(d.locale,"샤프")}</Th><Th className="text-right">{translate(d.locale,"현금비중")}</Th><Th className="text-right">{translate(d.locale,"거래")}</Th>
+              <Th className="text-right">{translate(d.locale,"SPY 대비")}</Th><Th className="text-right">{translate(d.locale,"일간")}</Th><Th className="text-right">{translate(d.locale,"최대 낙폭(MDD)")}</Th>
+              <Th className="text-right">{translate(d.locale,"샤프 지수")}</Th><Th className="text-right">{translate(d.locale,"현금비중")}</Th><Th className="text-right">{translate(d.locale,"거래")}</Th>
             </tr>
           </thead>
           <tbody>
@@ -91,7 +91,7 @@ export function StatGrid({ s, initial, locale = "ko" }: { s: Stats | undefined; 
     [translate(locale,"현금 비중"), fmtPct(s.cash_weight, 1, false), null],
     [translate(locale,"최대 낙폭(MDD)"), fmtPct(s.max_drawdown, 2, false), -1],
     [translate(locale,"변동성(연환산)"), s.volatility_ann === null ? translate(locale,"표본 부족") : fmtPct(s.volatility_ann, 1, false), null],
-    [translate(locale,"샤프 비율"), s.sharpe === null ? translate(locale,"표본 부족") : fmtNum(s.sharpe), null],
+    [translate(locale,"샤프 지수"), s.sharpe === null ? translate(locale,"표본 부족") : fmtNum(s.sharpe), null],
     [translate(locale,"실현손익"), fmtUsd(s.realized_pnl, 2), s.realized_pnl],
     [translate(locale,"미실현손익"), fmtUsd(s.unrealized_pnl, 2), s.unrealized_pnl],
     [translate(locale,"거래 승률"), s.win_rate === null ? translate(locale,"표본 부족") : fmtPct(s.win_rate, 1, false), null],
@@ -308,9 +308,9 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
         <div><dt className="text-[10px] text-muted">{translate(d.locale,"SPY 대비")}</dt>
           <dd className={cn("mt-1 text-xs font-bold tabular",toneClass(s&&spyRet!==null?s.cum_return-spyRet:null))}>
             {s&&spyRet!==null?fmtPct(s.cum_return-spyRet,1):"—"}</dd></div>
-        <div><dt className="text-[10px] text-muted">{translate(d.locale,"MDD")}</dt>
+        <div><dt className="text-[10px] text-muted">{translate(d.locale,"최대 낙폭(MDD)")}</dt>
           <dd className="mt-1 text-xs font-bold tabular">{fmtPct(s?.max_drawdown,1,false)}</dd></div>
-        <div><dt className="text-[10px] text-muted">{translate(d.locale,"샤프")}</dt>
+        <div><dt className="text-[10px] text-muted">{translate(d.locale,"샤프 지수")}</dt>
           <dd className="mt-1 text-xs font-bold tabular">{s?.sharpe==null?translate(d.locale,"표본부족"):fmtNum(s.sharpe)}</dd></div>
         <div><dt className="text-[10px] text-muted">{translate(d.locale,"현금")}</dt>
           <dd className="mt-1 text-xs font-bold tabular">{fmtPct(s?.cash_weight,0,false)}</dd></div>

@@ -1,3 +1,4 @@
+import { sectionLabel } from "@/lib/section-labels";
 import Link from "next/link";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, ChartNoAxesCombined,
@@ -19,7 +20,7 @@ function Head({locale,detail}:{locale:Locale;detail?:PatternId}){
   const c=patternCopy(locale);
   const specifics=detail?patternDetail(locale,detail):null;
   return <header className="insight-banner relative overflow-hidden rounded-2xl px-5 py-7 sm:px-8 sm:py-9">
-    <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{c.label}</p>
+    <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{sectionLabel(locale,"patternEvidence")}</p>
     <h1 className="mt-4 max-w-4xl text-[27px] font-extrabold leading-tight tracking-[-.04em] text-white sm:text-4xl">
       {specifics?specifics.name:c.headline}
     </h1>
@@ -111,7 +112,7 @@ function SummaryCard({locale,pattern}:{locale:Locale;pattern:PatternSummary}){
 function AllWeather({locale}:{locale:Locale}){
   const c=patternCopy(locale);
   return <section className="rounded-2xl border border-dashed border-line bg-panel-2 p-5 sm:p-6">
-    <p className="ms-kicker mb-2">PORTFOLIO / ALL WEATHER</p>
+    <p className="ms-kicker mb-2">{sectionLabel(locale,"portfolioAllWeather")}</p>
     <h2 className="text-base font-extrabold">{c.allWeather}</h2>
     <p className="mt-2 max-w-3xl text-sm leading-7 text-muted">{c.allWeatherText}</p>
   </section>;
@@ -175,7 +176,7 @@ export function PatternDashboard({locale,data}:{locale:Locale;data:PublicPattern
   return <div className="mx-auto max-w-6xl space-y-5 pb-12">
     <Head locale={locale}/><Overview locale={locale} study={data.study}/>
     <div className="flex flex-wrap items-end justify-between gap-3">
-      <div><p className="ms-kicker mb-2">PATTERN / OBSERVATIONS</p>
+      <div><p className="ms-kicker mb-2">{sectionLabel(locale,"patternObservations")}</p>
         <h2 className="text-xl font-extrabold">{c.explore}</h2></div>
       <p className="text-xs text-muted">{c.snapshot}: {data.study.dataTo}</p>
     </div>
@@ -237,7 +238,7 @@ export function PatternLabTeaser({locale}:{locale:Locale}){
       <ChartNoAxesCombined size={23} aria-hidden/>
     </span>
     <span className="min-w-0 flex-1">
-      <span className="block text-[10px] font-bold tracking-widest text-accent">PATTERN LAB / RESEARCH</span>
+      <span className="block text-[10px] font-bold tracking-widest text-accent">{sectionLabel(locale,"patternTeaser")}</span>
       <strong className="mt-1 block text-[15px] font-extrabold">{c.teaser}</strong>
       <span className="mt-1 block text-xs leading-5 text-muted">{c.teaserSub}</span>
     </span>

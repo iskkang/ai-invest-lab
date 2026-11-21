@@ -5,7 +5,7 @@ import type { Locale } from "./public-content";
  */
 export const methodDetailsCopy={
   ko:{
-    title:"엔진 실제 설정과 검증 기준",
+    title:"실제 엔진 설정과 검증 기준",
     scope:"아래 종목·모델·판단시간·지표·기본 비용은 Python 엔진 코드에서 생성했습니다. 환경변수로 변경 가능한 값은 기본값과 운영 DB 확인값을 구분합니다.",
     schedule:"판단 시각 및 유효 거래일",window:"판단 허용 구간",target:"권장 판단 시각",
     eastern:"미국 동부시간(ET)",summer:"서머타임(EDT) → 한국시간",winter:"표준시(EST) → 한국시간",
@@ -16,7 +16,7 @@ export const methodDetailsCopy={
     universe:"초기 투자 대상 30종목",universeNote:"이 목록은 engine/ail/config.py의 DEFAULT_UNIVERSE입니다. 운영 중 CLI로 종목을 추가·제외했다면 실제 활성 종목군은 변경 이력을 따릅니다. SPY는 비교 지표이며 30종목에 포함되지 않습니다.",
     indicators:"모델에 전달하는 지표·시세 필드",indicatorParams:"지표별 계산 기간",
     rawFields:"요청 패킷에 들어가는 실제 필드명",
-    returns:"수익률 모멘텀",sma:"단순이동평균(SMA)",ema:"지수이동평균(EMA)",rsi:"Wilder RSI",
+    returns:"수익률 모멘텀",sma:"단순이동평균(SMA)",ema:"지수이동평균(EMA)",rsi:"상대강도지수(RSI·와일더 방식)",
     macd:"MACD 빠른/느린/신호",volatility:"연율화 변동성",maxDrawdown:"최대낙폭",
     volume:"거래량 변화",hiLo:"고가·저가 기간",closes:"최근 종가 배열",annual:"연율화 계수",
     sessions:"거래일",indicatorNote:"지표는 확정 일봉에서 서버가 계산하며 데이터가 충분하지 않으면 null이 될 수 있습니다. last_close·prev_close·last_volume·bars_available은 지표 외 기초 시세·데이터 상태 필드입니다.",
@@ -29,11 +29,11 @@ export const methodDetailsCopy={
     inference:"모델 간 공통 프롬프트·추론 설정",systemPrompt:"시스템 프롬프트",
     systemPromptValue:"4개 AI에 동일한 SYSTEM_PROMPT 문자열을 사용합니다.",
     userPacket:"사용자 입력 데이터",userPacketValue:"시장 스냅샷과 거래 규칙은 공통입니다. 계좌 잔액·보유 종목·자기 과거 기록·participant_id는 모델마다 달라 동일한 전체 입력 문자열은 아닙니다.",
-    temp:"temperature",maxTokens:"max_tokens",maxDefault:"Python 기본값. AIL_MAX_OUTPUT_TOKENS 환경변수로 변경할 수 있습니다.",
+    temp:"응답 무작위성(temperature)",maxTokens:"최대 출력 토큰(max_tokens)",maxDefault:"Python 기본값. AIL_MAX_OUTPUT_TOKENS 환경변수로 변경할 수 있습니다.",
     claudeException:"출력 형식 차이",claudeExceptionValue:"현재 코드에서 Claude 요청은 response_format(json_schema)을 제거합니다. 4개 모두 로컬 전체 JSON Schema 검증을 받지만 API 단계의 구조화 출력 강제는 동일하지 않습니다.",
-    sample:"성과 통계 최소 표본 수",sharpe:"샤프 비율",win:"매매 승률",volSample:"연율화 변동성",
+    sample:"성과 통계 최소 표본 수",sharpe:"샤프 지수",win:"매매 승률",volSample:"연율화 변동성",
     sharpeValue:"수익률 관측치",winValue:"실현손익이 기록된 매도 거래",volValue:"수익률 관측치",
-    sampleNote:"표본이 부족하면 수치를 추정하지 않고 빈 값으로 표시합니다. 샤프는 표본이 충분해도 수익률 표준편차가 0이면 표시되지 않습니다. 샤프 계산의 무위험수익률은 0으로 가정합니다.",
+    sampleNote:"표본이 부족하면 수치를 추정하지 않고 빈 값으로 표시합니다. 샤프 지수는 표본이 충분해도 수익률 표준편차가 0이면 표시하지 않습니다. 샤프 지수를 계산할 때 무위험수익률은 0으로 가정합니다.",
     source:"시세 출처와 재배포 제한",provider:"NH투자증권 나무플러그(NH PLUG) API",
     sourceNote:"원시 주가 OHLCV 및 재배포 권한이 확인되지 않은 시세는 공개하지 않습니다. 같은 날짜의 확정 일봉을 기준으로 서버에서 계산한 연구용 파생 정보와 가상 성과만 취급합니다.",
     disclaimer:"실제 주식 주문 또는 투자 자문이 아닌 교육용 모의투자 실험입니다.",

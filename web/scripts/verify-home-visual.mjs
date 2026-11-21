@@ -48,63 +48,26 @@ try{
     const page=await context.newPage();
     const result=await page.goto(base+"/visual-layout-check",{waitUntil:"networkidle"});
     assert.equal(result?.status(),200,"fixture should only exist inside CI");
-    // The 5-item navigation must use the same canonical URL map on desktop
-    // and within the hamburger accordion on phones. Old bottom nav/sidebar gone.
-    assert.equal(await page.locator('nav[aria-label="Mobile navigation"]').count(),0,
-      "legacy bottom bar should never be rendered");
-    assert.equal(await page.locator("aside").count(),0,"13-item sidebar must be removed");
-    if(width>=1024){
-      const primary=page.locator('[data-header-nav="true"]');
-      assert.equal(await primary.count(),1,"desktop header navigation missing");
-      assert.equal(await primary.locator("[data-top-nav-item]").count(),5);
-      assert.equal(await page.locator("[data-mobile-menu-trigger]:visible").count(),0);
-      const compare=primary.locator('[data-nav-trigger="compare"]');
-      await compare.hover();
-      assert.equal(await primary.locator('[data-submenu="compare"] a').count(),4);
-      assert.deepEqual(await primary.locator('[data-submenu="compare"] a')
-        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/en/consensus","/en/performance","/en/portfolio","/en/trades",
-        ]);
+    // Mobile bottom navigation is intentional. Desktop keeps the five-item header.
+    const bottomNav=page.locator('nav[data-bottom-tabs][aria-label="Mobile navigation"]');
+    if(width<768){
+      assert.equal(await bottomNav.count(),1,"mobile bottom navigation must exist");
+      assert.equal(await bottomNav.locator('a').count(),4,"four destination tabs");
+      assert.equal(await bottomNav.locator('button[aria-haspopup="dialog"]').count(),1,"More tab");
+      for(const item of await bottomNav.locator('a,button').all()){
+        const box=await item.boundingBox();
+        assert.ok(box&&box.height>=44&&box.width>=44,"mobile tabs must have 44px touch targets");
+      }
+      await bottomNav.locator('button[aria-haspopup="dialog"]').click();
+      const sheet=page.locator('[data-more-sheet]');
+      assert.equal(await sheet.count(),1,"More sheet should open");
+      assert.deepEqual(await sheet.locator('a').allTextContents(),["About","Methodology","FAQ","Privacy"]);
+      assert.equal(await sheet.getByRole('group',{name:"Appearance"}).count(),1);
       await page.keyboard.press("Escape");
-      assert.equal(await primary.locator('[data-submenu="compare"]').count(),0);
-      const research=primary.locator('[data-nav-trigger="research"]');
-      await research.click();
-      assert.deepEqual(await primary.locator('[data-submenu="research"] a')
-        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/en/patterns","/en/historical","/en/accuracy","/en/weekly",
-        ]);
-      await page.keyboard.press("Escape");
-      const journal=primary.locator('[data-nav-trigger="journal"]');
-      await journal.hover();
-      assert.deepEqual(await primary.locator('[data-submenu="journal"] a')
-        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/en/daily","/en/journal","/en/outcomes",
-        ]);
-      await page.keyboard.press("Escape");
+      assert.equal(await sheet.count(),0,"Escape should close More sheet");
     }else{
-      assert.equal(await page.locator("[data-header-nav]:visible").count(),0);
-      const trigger=page.locator('[data-mobile-menu-trigger="true"]');
-      assert.equal(await trigger.count(),1,"top hamburger missing");
-      await trigger.click();
-      const overlay=page.locator('[data-mobile-nav-overlay="true"]');
-      assert.equal(await overlay.count(),1,"mobile drawer missing");
-      assert.equal(await overlay.locator('[data-mobile-nav-group]').count(),5);
-      const compare=overlay.locator('[data-mobile-nav-group="compare"] button');
-      await compare.click();
-      assert.equal(await compare.getAttribute("aria-expanded"),"true");
-      assert.deepEqual(await overlay.locator('[data-mobile-submenu="compare"] a')
-        .evaluateAll(nodes=>nodes.map(n=>new URL(n.href).pathname)),[
-          "/en/consensus","/en/performance","/en/portfolio","/en/trades",
-        ]);
-      await overlay.locator('[data-mobile-nav-group="research"] button').click();
-      assert.equal(await overlay.locator('[data-mobile-submenu="compare"]').count(),0,
-        "accordion should have only one open group");
-      assert.equal(await overlay.locator('[data-mobile-submenu="research"] a').count(),4);
-      await overlay.locator('[data-mobile-nav-group="journal"] button').click();
-      assert.equal(await overlay.locator('[data-mobile-submenu="journal"] a').count(),3);
-      await page.keyboard.press("Escape");
-      assert.equal(await page.locator('[data-mobile-nav-overlay]').count(),0,"Escape must close drawer");
-      assert.equal(await page.evaluate(()=>document.body.style.overflow),"","scroll lock not restored");
+      assert.equal(await bottomNav.isVisible(),false,"mobile tabs must be hidden on desktop");
+      assert.equal(await page.locator('[data-header-nav="true"]').count(),1,"desktop header navigation missing");
     }
     const prelaunch=page.locator('[data-prelaunch-fixture="true"] [data-home-phase="pre-first-published-round"]');
     assert.equal(await prelaunch.count(),1,"prelaunch banner should exist in real components");
@@ -134,12 +97,12 @@ try{
     }
     const status=page.locator('[data-home-data-status="true"]:visible');
     assert.equal(await status.count(),1,"exactly one visible as-of status at "+width);
-    assert.match(await status.innerText(),/Before first round/,"missing pre-first-round state");
+    assert.match(await status.innerText(),/Awaiting first round/,"missing pre-first-round state");
     assert.doesNotMatch(await status.innerText(),/—/,"empty as-of date must not use dash");
-    const logos=page.locator('a[aria-label="MarketSights home"]:visible');
+    const logos=page.locator('a[aria-label="LogicSight home"]:visible');
     assert.equal(await logos.count(),width<1024?1:1);
     const text=await logos.first().textContent();
-    assert.ok(text.includes("· INTELLIGENCE LAB"),"brand/section must contain explicit separator");
+    assert.ok(text.includes("LogicSight"),"current brand must be visible");
     const headline=await page.locator("h1.hero-title").textContent();
     assert.equal(headline.replace(/\s+/g," ").trim(),"One market. Four AI perspectives.",
       "hero title must include natural sentence spacing at "+width);

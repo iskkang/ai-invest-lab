@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, Search, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isNavActive } from "@/lib/nav-active";
 import { t, localizedHref } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
 
@@ -21,8 +22,7 @@ export const NAV = [
 const MOBILE_NAV = NAV.filter(item =>
   ["/","/consensus","/weekly","/accuracy","/portfolio"].includes(item.href));
 
-const active = (path: string, target: string) =>
-  target === path || (target !== "/" && path.startsWith(target + "/"));
+const active = (path: string, target: string) => isNavActive(path, target);
 
 export function SideNav({ locale }: { locale: Locale }) {
   const path = usePathname();

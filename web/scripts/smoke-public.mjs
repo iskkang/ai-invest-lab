@@ -98,6 +98,19 @@ try{
       await visible("/"+locale+"/"+suffix,heading);
     }
   }
+  // Regression: only the selected nav item may have aria-current=page.
+  // Root /en must NOT activate on descendant /en/weekly or /en/consensus.
+  for (const locale of ["en","ko","zh","ja"]) {
+    for (const section of ["weekly","consensus","accuracy"]) {
+      const pathname="/"+locale+"/"+section;
+      const html=await (await req(pathname)).text();
+      const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
+      const selected=anchors.filter(a=>a.includes('aria-current="page"'))
+        .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
+      assert.deepEqual(selected,[pathname,pathname],
+        "Exactly the desktop and mobile active links must match: "+pathname);
+    }
+  }
   const unpublished=await req("/ko/weekly/2026-W48");
   assert.ok([200,404].includes(unpublished.status),"Unexpected unpublished report status");
   if(unpublished.status===200) {

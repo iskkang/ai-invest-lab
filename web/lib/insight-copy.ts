@@ -3,6 +3,11 @@ import type { Locale } from "./public-content";
 /** All MarketSights research headings are translated independently of AI text. */
 const TEXT = {
   ko: {
+    emptyTitle:"첫 주간 리포트를 준비하고 있습니다", launchStatus:"실험 시작 예정", pendingStatus:"검증된 판단 기록 대기",
+    startSessionLabel:"실험 시작일", verifiedRoundsLabel:"기록된 유효 판단 회차", earliestReportLabel:"첫 리포트 가능일(예정)",
+    beforeLaunchDetail:"AI 판단과 가상 계좌 평가가 실제로 기록된 뒤, 첫 주간 거래가 완료되면 리포트가 생성됩니다. 표기된 날짜는 최소 가능일이며 발행을 보장하지 않습니다.",
+    afterLaunchDetail:"정식 AI 판단과 모의투자 평가가 기록되고 거래 주간이 완료되어야 리포트가 생성됩니다. 확인되지 않은 결과는 표시하지 않습니다.",
+    viewComparison:"AI 판단 비교", viewDashboard:"수익률 대시보드",
     title:"AI가 시장을 보는 서로 다른 시각", sub:"4개 AI의 실제 모의투자 판단, 주간 변화와 사후 검증을 비교합니다.",
     consensus:"AI 판단 비교", consensusSub:"동일 거래일에 실제로 기록된 매수·매도·보유 의견을 나란히 비교합니다.",
     weekly:"주간 AI 인사이트",weeklySub:"검증된 판단·모의 평가 데이터에서 자동 구성한 주간 리포트입니다.",
@@ -36,6 +41,11 @@ const TEXT = {
     highlights:"이번 주 핵심 인사이트", topAgreement:"가장 많이 일치한 종목", topDisagreement:"의견이 갈린 종목", topPerformer:"검증된 주간 수익률 선두",
   },
   en: {
+    emptyTitle:"Preparing the first weekly report", launchStatus:"Experiment scheduled", pendingStatus:"Awaiting verified AI decisions",
+    startSessionLabel:"Experiment start date", verifiedRoundsLabel:"Verified decision rounds", earliestReportLabel:"Earliest possible report",
+    beforeLaunchDetail:"A report appears only after AI decisions and virtual portfolio valuations are actually recorded and the first trading week finishes. The date is the earliest possibility, not a guaranteed publication date.",
+    afterLaunchDetail:"A completed trading week with recorded AI decisions and portfolio valuations is required. Unverified results are never shown.",
+    viewComparison:"Compare AI decisions", viewDashboard:"View leaderboard",
     title:"See how AI models interpret the same market",sub:"Compare recorded AI paper-trade decisions, weekly developments and later outcomes.",
     consensus:"AI decision comparison",consensusSub:"Compare explicitly recorded buy, sell and hold views from the same market session.",
     weekly:"Weekly AI insights",weeklySub:"Automatically assembled from verified decisions and simulated account valuations.",
@@ -69,6 +79,11 @@ const TEXT = {
     highlights:"This week's verified highlights",topAgreement:"Most shared view",topDisagreement:"Most divergent stock",topPerformer:"Observed weekly return leader",
   },
   zh: {
+    emptyTitle:"正在准备首份每周报告", launchStatus:"实验即将开始", pendingStatus:"等待已核实的 AI 决策",
+    startSessionLabel:"实验开始日期", verifiedRoundsLabel:"已核实的决策轮次", earliestReportLabel:"首份报告最早日期",
+    beforeLaunchDetail:"只有在真实记录 AI 决策和虚拟账户估值且第一个交易周结束后才生成报告。所示日期仅为最早可能时间，不保证届时发布。",
+    afterLaunchDetail:"须有已完成交易周的 AI 决策和账户估值记录才会生成报告，不显示未经核实的结果。",
+    viewComparison:"比较 AI 决策", viewDashboard:"查看收益排名",
     title:"比较不同 AI 对同一市场的判断",sub:"对比真实记录的 AI 模拟投资决策、每周变化和后续结果。",
     consensus:"AI 决策比较",consensusSub:"比较同一交易日各 AI 明确记录的买入、卖出及持有意见。",
     weekly:"每周 AI 洞察",weeklySub:"根据已核实的 AI 决策与虚拟账户估值自动生成的周报。",
@@ -102,6 +117,11 @@ const TEXT = {
     highlights:"本周已核实的重点",topAgreement:"最一致的意见",topDisagreement:"分歧最大的股票",topPerformer:"已核实的周收益领先模型",
   },
   ja: {
+    emptyTitle:"初回の週間レポートを準備中です", launchStatus:"実験開始前", pendingStatus:"検証済みAI判断を待機中",
+    startSessionLabel:"実験開始日", verifiedRoundsLabel:"検証済み判断回数", earliestReportLabel:"最短のレポート公開可能日",
+    beforeLaunchDetail:"実際のAI判断と仮想口座評価が記録され、最初の取引週が終了してからレポートを生成します。表示日は最短の目安であり、公開を保証するものではありません。",
+    afterLaunchDetail:"取引週が終了し、AI判断と口座評価が記録されている場合にのみ生成します。未検証の結果は表示しません。",
+    viewComparison:"AI判断を比較", viewDashboard:"ランキングを見る",
     title:"同じ市場に対するAIの見方を比較",sub:"実際に記録されたAIの模擬投資判断、週次の変化、その後の結果を比較します。",
     consensus:"AI判断の比較",consensusSub:"同じ取引日に明示された買い・売り・保有判断を比較します。",
     weekly:"週間AIインサイト",weeklySub:"検証済みの判断・模擬口座評価に基づく自動集計レポートです。",

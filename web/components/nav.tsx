@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, History, Search, ShieldCheck, X, Ellipsis } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, History, Search, ShieldCheck, X, Ellipsis, CalendarDays, Target } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { isNavActive } from "@/lib/nav-active";
@@ -12,7 +12,9 @@ import type { Locale } from "@/lib/public-content";
 
 export const NAV = [
   { href: "/", key: "대시보드", icon: LayoutDashboard },
+  { href: "/daily", key: "매일 브리핑", icon: CalendarDays },
   { href: "/consensus", key: "AI 비교", icon: GitCompareArrows },
+  { href: "/outcomes", key: "판단 추적", icon: Target },
   { href: "/historical", key: "과거 전략 연구", icon: History },
   { href: "/weekly", key: "주간 리포트", icon: Newspaper },
   { href: "/accuracy", key: "판단 검증", icon: ShieldCheck },
@@ -24,7 +26,7 @@ export const NAV = [
 // Four high-frequency destinations stay one tap away. Less frequent
 // research/portfolio pages remain accessible through a real mobile sheet.
 const MOBILE_NAV = NAV.filter(item =>
-  ["/","/consensus","/historical","/weekly"].includes(item.href));
+  ["/","/daily","/consensus","/outcomes"].includes(item.href));
 const MORE_NAV = NAV.filter(item=>!MOBILE_NAV.includes(item));
 const MORE_LABEL={
   ko:{more:"더보기",all:"전체 메뉴",close:"메뉴 닫기"},

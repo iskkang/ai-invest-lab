@@ -13,6 +13,7 @@ import type { Locale } from "@/lib/public-content";
 import { fmtPct } from "@/lib/utils";
 import { Badge } from "./ui/badge";
 import { Section } from "./blocks";
+import { TopConflicts } from "./retention-panels";
 
 const stat = (n: number) => new Intl.NumberFormat("en-US").format(n);
 const signalText = (locale: Locale, dir: string) => {
@@ -121,6 +122,7 @@ export function ConsensusBody({d}:{d:Dataset}) {
   const c=insightCopy(d.locale), result=compareLatestRound(d);
   return <div className="mx-auto max-w-5xl space-y-5">
     <InsightsHeader locale={d.locale} title={c.consensus} sub={c.consensusSub}/>
+    <TopConflicts d={d}/>
     {!result.date?<Section title={c.waiting}>
       <p className="text-sm text-muted">{c.noDecision}</p>
     </Section>:<>

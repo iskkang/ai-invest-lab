@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ReturnChart } from "@/components/charts";
+import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
 import { Badge } from "@/components/ui/badge";
@@ -56,6 +57,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <div><ReturnChart lines={returnLines(d, { benchmarks: true })} /></div>
         <Legend d={d} />
       </Section>
+
+      <DashboardAdSlot locale={d.locale} />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Section title={`${t(d.locale, "최근 거래일 매매")} (${last || "—"})`} action={<span className="text-xs text-muted tabular"><span className="text-up">{t(d.locale, "매수")} {buys}</span> · <span className="text-down">{t(d.locale, "매도")} {sells}</span></span>}>

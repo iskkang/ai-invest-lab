@@ -58,7 +58,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-4">
-        <Breadcrumb items={[{ href: "/", label: "Dashboard" }, { label: symbol }]} />
+        <Breadcrumb items={[{ href: "/lab", label: "Dashboard" }, { label: symbol }]} />
 
         {/* 종목 헤더 */}
         <div className="flex flex-wrap items-center gap-x-8 gap-y-4">

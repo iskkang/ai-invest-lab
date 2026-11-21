@@ -109,7 +109,7 @@ export const methodDetailsCopy={
     sharpeValue:"收益率观测值",winValue:"含已实现盈亏的卖出成交",volValue:"收益率观测值",
     sampleNote:"样本不足不会编造数值，直接留空。收益率标准差为零时夏普值也不展示；无风险收益率设为零。",
     source:"行情来源与再分发限制",provider:"Market data provider (not publicly disclosed)",
-    sourceNote:"The index ticker is a TradingView widget and is independent of the experiment data. 不公开原始OHLCV及未获得再分发许可的报价。服务器派生的研究汇总与模拟交易结果与授权行情数据分开处理。",
+    sourceNote:"指数行情条由 TradingView 小组件提供，与实验数据无关。不公开原始OHLCV及未获得再分发许可的报价。服务器派生的研究汇总与模拟交易结果与授权行情数据分开处理。",
     disclaimer:"仅供教育性模拟投资研究，不执行真实证券交易或提供个人投资建议。",
   },
   ja:{
@@ -145,7 +145,7 @@ export const methodDetailsCopy={
     sharpeValue:"リターンの観測値",winValue:"実現損益のある売却取引",volValue:"リターンの観測値",
     sampleNote:"標本が不足する場合は推定せず空欄表示。シャープは十分な標本でもリターン標準偏差が0なら非表示です。無リスク金利は0と仮定します。",
     source:"価格データの提供元と再配布制限",provider:"Market data provider (not publicly disclosed)",
-    sourceNote:"指数行情条由 TradingView 小组件提供，与实验数据无关。原始OHLCVと再配布許可を確認できない価格情報は公開しません。サーバー側の派生分析集計と模擬投資実績は原始データと分けて取り扱います。",
+    sourceNote:"指数帯はTradingViewウィジェットであり、実験データとは無関係です。原始OHLCVと再配布許可を確認できない価格情報は公開しません。サーバー側の派生分析集計と模擬投資実績は原始データと分けて取り扱います。",
     disclaimer:"教育目的の模擬投資研究であり、実際の証券注文や個別投資助言は行いません。",
   },
 } as const;

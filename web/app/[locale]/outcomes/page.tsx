@@ -6,6 +6,7 @@ import { isLocale } from "@/lib/public-content";
 import { dashboardMetadata } from "@/lib/seo";
 import { retentionCopy } from "@/lib/retention-copy";
 import { FollowupsPage } from "@/components/retention-panels";
+import { ModelOutcomeScorecard, RecentResolvedPanel } from "@/components/returning-panels";
 import { InsightUnavailable } from "@/components/insight-panels";
 
 export const revalidate=3600;
@@ -20,6 +21,11 @@ export default async function OutcomesPage({params}:Props) {
   if(!isLocale(locale))notFound();
   try {
     const d=await getData();
-    return <FollowupsPage d={d} signals={await getDecisionFollowups(d)}/>;
+    const signals=await getDecisionFollowups(d,Number.MAX_SAFE_INTEGER);
+    return <div className="mx-auto max-w-5xl space-y-5">
+      <ModelOutcomeScorecard d={d} signals={signals}/>
+      <RecentResolvedPanel d={d} signals={signals}/>
+      <FollowupsPage d={d} signals={signals}/>
+    </div>;
   }catch{return <InsightUnavailable locale={locale}/>;}
 }

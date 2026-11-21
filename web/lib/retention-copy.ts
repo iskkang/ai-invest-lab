@@ -23,7 +23,7 @@ const COPY={
     caution:"종목별 원본 주가·수익률은 공개하지 않습니다. 방향 일치는 모의 체결 손익이나 AI 예측력의 증거가 아닙니다. 데이터 사용 권한 검토는 별도로 필요합니다.",
     reason:"기록된 판단 이유",verified:"실제 기록 · 모의투자",latestResults:"최근 검증 결과",
     noOutcomeYet:"평가 기간이 경과하면 각 판단의 방향 일치 여부가 이곳에 나타납니다.",
-    noVerdict:"결과 대기",learn:"검증 방식 보기",updated:"결과는 저장된 거래일 데이터가 늘어나면 자동 갱신됩니다.",
+    noVerdict:"결과 대기",learn:"검증 방식 보기",recentHundred:"전체 표본을 AI별 검증 통계에 반영했습니다. 아래 개별 판단 목록은 최근 100건만 표시합니다.",updated:"결과는 저장된 거래일 데이터가 늘어나면 자동 갱신됩니다.",
   },
   en:{
     daily:"Today's AI investing brief",dailySub:"Latest AI decisions summarized from official stored records.",
@@ -47,7 +47,7 @@ const COPY={
     caution:"No raw per-ticker prices or returns are republished. Correct direction is neither realized trading P&L nor proof of model skill. Review of derived-data rights is still required.",
     reason:"Recorded rationale",verified:"Verified records · Paper trading",latestResults:"Latest observations",
     noOutcomeYet:"Directional checks appear here once their observation windows have elapsed.",
-    noVerdict:"Awaiting outcome",learn:"Read methodology",updated:"Results refresh as new verified market-session data becomes available.",
+    noVerdict:"Awaiting outcome",learn:"Read methodology",recentHundred:"All verified samples contribute to the model scorecards. The individual follow-up list below displays only the latest 100 decisions.",updated:"Results refresh as new verified market-session data becomes available.",
   },
   zh:{
     daily:"今日 AI 投资简报",dailySub:"依据正式保存的记录自动汇总最新 AI 判断。",
@@ -70,7 +70,7 @@ const COPY={
     method:"这是方向核验，不是交易收益计算。仅核验已结算轮次的明确买卖判断，比较当日开盘价与后续第1、5、20个交易日收盘价。持有及未提及的股票不计入。",
     caution:"不公布个股原始价格或收益率。方向正确不等于模拟成交盈利，也不能证明预测能力。衍生数据使用权限仍须确认。",
     reason:"已记录的理由",verified:"核实记录 · 模拟交易",latestResults:"最新核验",
-    noOutcomeYet:"观察期结束后将展示方向是否符合。",noVerdict:"等待结果",learn:"查看方法",updated:"随着核实的市场数据增加，结果将自动更新。",
+    noOutcomeYet:"观察期结束后将展示方向是否符合。",noVerdict:"等待结果",learn:"查看方法",recentHundred:"模型统计包含全部有效样本；下方只展示最近100条判断。",updated:"随着核实的市场数据增加，结果将自动更新。",
   },
   ja:{
     daily:"今日のAI投資ブリーフ",dailySub:"正式に保存された最新のAI判断を自動集計します。",
@@ -93,7 +93,7 @@ const COPY={
     method:"模擬投資判断の方向確認であり、取引損益ではありません。決済済み判断の明示的な買い・売りのみ対象とし、判断日の始値とその後1・5・20取引日目の終値を比較します。保有・未言及は除外します。",
     caution:"個別銘柄の原株価や騰落率は公開しません。方向一致は約定損益や予測力の証明ではありません。派生データの利用権利は別途確認が必要です。",
     reason:"記録された理由",verified:"検証記録 · 模擬投資",latestResults:"最新の観測",
-    noOutcomeYet:"観測期間が満了すると方向一致の結果を表示します。",noVerdict:"結果待ち",learn:"検証方式",updated:"検証済み市場データの追加に伴い結果が更新されます。",
+    noOutcomeYet:"観測期間が満了すると方向一致の結果を表示します。",noVerdict:"結果待ち",learn:"検証方式",recentHundred:"モデル統計には全有効サンプルを反映し、個別の判断は直近100件のみ表示します。",updated:"検証済み市場データの追加に伴い結果が更新されます。",
   },
 } as const;
 export const retentionCopy=(locale:Locale)=>COPY[locale];

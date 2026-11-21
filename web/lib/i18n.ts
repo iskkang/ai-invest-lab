@@ -213,6 +213,7 @@ const rows: [string,string,string,string][] = [
 ["과거 전략 연구","Historical lab","历史策略研究","過去戦略研究"],
 ["매일 브리핑","Daily brief","每日简报","毎日のブリーフ"],
 ["판단 추적","Decision follow-ups","判断追踪","判断追跡"],
+["실험 일지","Experiment journal","实验日志","実験ジャーナル"],
 ];
 export function t(locale: Locale | string, korean: string): string {
   if (locale === "ko") return korean;

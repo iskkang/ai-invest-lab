@@ -97,14 +97,14 @@ try{
     zh:"比较不同 AI 对同一市场的判断",
     ja:"同じ市場に対するAIの見方を比較",
   })) {
-    for (const suffix of ["consensus","daily","outcomes","weekly","accuracy"]) {
+    for (const suffix of ["consensus","daily","outcomes","journal","weekly","accuracy"]) {
       await visible("/"+locale+"/"+suffix,heading);
     }
   }
   // Regression: only the selected nav item may have aria-current=page.
   // Root /en must NOT activate on descendant /en/weekly or /en/consensus.
   for (const locale of ["en","ko","zh","ja"]) {
-    for (const section of ["weekly","consensus","accuracy","historical","daily","outcomes"]) {
+    for (const section of ["weekly","consensus","accuracy","historical","daily","outcomes","journal"]) {
       const pathname="/"+locale+"/"+section;
       const html=await (await req(pathname)).text();
       const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);

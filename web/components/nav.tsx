@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
-import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, History, Search, ShieldCheck, X, Ellipsis, CalendarDays, Target } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, History, Search, ShieldCheck, X, Ellipsis, CalendarDays, Target, CalendarClock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "./theme-toggle";
 import { isNavActive } from "@/lib/nav-active";
@@ -13,6 +13,7 @@ import type { Locale } from "@/lib/public-content";
 export const NAV = [
   { href: "/", key: "대시보드", icon: LayoutDashboard },
   { href: "/daily", key: "매일 브리핑", icon: CalendarDays },
+  { href: "/journal", key: "실험 일지", icon: CalendarClock },
   { href: "/consensus", key: "AI 비교", icon: GitCompareArrows },
   { href: "/outcomes", key: "판단 추적", icon: Target },
   { href: "/historical", key: "과거 전략 연구", icon: History },

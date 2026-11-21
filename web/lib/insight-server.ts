@@ -47,10 +47,10 @@ export async function getAggregateAccuracy(d: Dataset) {
 
 
 /** Resolve past directional outcomes on the server. Price rows never reach RSC. */
-export async function getDecisionFollowups(d:Dataset) {
+export async function getDecisionFollowups(d:Dataset,limit=100) {
   const {followupInputs,evaluateDecisionFollowups}=await import("./retention-analytics");
   const input=followupInputs(d);
   if(!input.since)return [];
   const adjusted=await loadPrivateAdjustedBars(input.symbols,input.since);
-  return evaluateDecisionFollowups(d,adjusted);
+  return evaluateDecisionFollowups(d,adjusted,limit);
 }

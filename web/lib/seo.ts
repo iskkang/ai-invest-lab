@@ -3,7 +3,7 @@ import { LOCALES, PUBLIC_COPY, publicOrigin, type Locale } from "./public-conten
 
 export const VISIBLE_SECTIONS = [
   "", "/portfolio", "/trades", "/performance", "/about",
-  "/methodology", "/faq", "/privacy", "/consensus", "/daily", "/outcomes", "/weekly", "/accuracy", "/historical",
+  "/methodology", "/faq", "/privacy", "/consensus", "/daily", "/outcomes", "/journal", "/weekly", "/accuracy", "/historical",
 ] as const;
 export type VisibleSection = (typeof VISIBLE_SECTIONS)[number];
 

@@ -249,11 +249,11 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
   const rows = rankAccounts(d, sortKey);
   const spy = d.accounts.find(a => a.benchmarkCode === "SPY_BUY_HOLD");
   const spyRet = spy ? d.stats[spy.id]?.cum_return ?? null : null;
-  return <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 sm:pb-0 2xl:grid-cols-4"
-    aria-label={translate(d.locale,"AI 투자 리더보드")} tabIndex={0}>
+  return <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 2xl:grid-cols-4"
+    aria-label={translate(d.locale,"AI 투자 리더보드")}>
     {rows.map(({a,s},i)=><Link key={a.id}
       href={localizedHref(d.locale, "/ai/"+a.aiId)}
-      className="ms-card ms-card-hover ms-rank-card block w-[81vw] max-w-[322px] shrink-0 snap-start p-4 sm:w-auto sm:max-w-none sm:shrink"
+      className="ms-card ms-card-hover ms-rank-card block min-w-0 p-3.5 sm:p-4"
       style={{"--agent-color":a.color} as CSSProperties}>
       <div className="relative z-10 flex items-center gap-3">
         <Avatar name={a.name} color={a.color} />
@@ -266,7 +266,7 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
           {s?String(i+1).padStart(2,"0"):"—"}
         </span>
       </div>
-      <div className="relative z-10 mt-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+      <div className="relative z-10 mt-3 flex flex-wrap items-end justify-between gap-x-4 gap-y-3 sm:mt-5">
         <div>
           <p className="text-[10px] font-bold tracking-[.12em] text-muted uppercase">{translate(d.locale,"평가자산")}</p>
           <p className="mt-1 text-[23px] font-extrabold leading-none tracking-tight tabular">{s?fmtUsd(s.equity):"—"}</p>
@@ -278,7 +278,7 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
           </p>
         </div>
       </div>
-      <dl className="relative z-10 mt-5 grid grid-cols-4 gap-2 border-t border-line pt-4">
+      <dl className="relative z-10 mt-3 grid grid-cols-4 gap-2 border-t border-line pt-3 sm:mt-5 sm:pt-4">
         <div><dt className="text-[10px] text-muted">{translate(d.locale,"SPY 대비")}</dt>
           <dd className={cn("mt-1 text-xs font-bold tabular",toneClass(s&&spyRet!==null?s.cum_return-spyRet:null))}>
             {s&&spyRet!==null?fmtPct(s.cum_return-spyRet,1):"—"}</dd></div>

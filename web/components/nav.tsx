@@ -62,7 +62,7 @@ export function HeaderNav({locale}:{locale:Locale}) {
             :<>
               <button type="button" className={base} data-nav-trigger={group.id}
                 aria-expanded={expanded} aria-controls={"top-nav-"+group.id}
-                onClick={()=>setOpenId(current=>current===group.id?null:group.id)}
+                onClick={()=>setOpenId(group.id)}
                 onKeyDown={e=>{
                   if(e.key==="ArrowDown"){
                     e.preventDefault();setOpenId(group.id);

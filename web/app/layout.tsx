@@ -30,7 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // Never silently switch LIVE investment results to synthetic DEMO performance.
   const req = await headers();
   const candidate = req.get("x-ail-locale");
-  const fallbackLocale: Locale = isLocale(candidate) ? candidate : "ko";
+  const fallbackLocale: Locale = isLocale(candidate ?? "") ? (candidate as Locale) : "ko";
   let d: Awaited<ReturnType<typeof getData>> | null = null;
   try {
     d = await getData();

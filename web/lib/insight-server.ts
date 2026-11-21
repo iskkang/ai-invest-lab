@@ -6,7 +6,7 @@ import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adju
 import type { Dataset } from "./types";
 
 /** Public results expose only aggregate AI accuracy, never licensed price rows. */
-const loadPrivateAdjustedBars = unstable_cache(async (symbols: string[], since: string) => {
+export const loadPrivateAdjustedBars = unstable_cache(async (symbols: string[], since: string) => {
   const db = serverSupabase();
   const rows: PriceRow[] = [];
   for (let offset = 0; offset < 60000; offset += 1000) {
@@ -43,4 +43,14 @@ export async function getAggregateAccuracy(d: Dataset) {
   const since=directional.map(row=>row.session).sort()[0];
   const adjusted=await loadPrivateAdjustedBars(symbols,since);
   return evaluateDirectionalAccuracy(d,adjusted);
+}
+
+
+/** Resolve past directional outcomes on the server. Price rows never reach RSC. */
+export async function getDecisionFollowups(d:Dataset) {
+  const {followupInputs,evaluateDecisionFollowups}=await import("./retention-analytics");
+  const input=followupInputs(d);
+  if(!input.since)return [];
+  const adjusted=await loadPrivateAdjustedBars(input.symbols,input.since);
+  return evaluateDecisionFollowups(d,adjusted);
 }

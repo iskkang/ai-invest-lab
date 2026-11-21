@@ -5,6 +5,7 @@ import { ReturnChart } from "@/components/charts";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { InsightTeasers } from "@/components/insight-panels";
 import { DashboardHero } from "@/components/dashboard-hero";
+import { DailyBriefing, TopConflicts, FollowupsPreview } from "@/components/retention-panels";
 import { MobileResearchShortcut } from "@/components/mobile-research-shortcut";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
@@ -56,6 +57,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <div className="min-w-0 space-y-5">
+      <DailyBriefing d={d} compact />
       <DashboardHero d={d} />
       {pending && <MobileResearchShortcut locale={d.locale} />}
       <div className="flex flex-wrap items-end justify-between gap-3">
@@ -81,6 +83,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </Section>
       )}
       <AiCards d={d} sortKey={sortKey} />
+      <TopConflicts d={d} compact />
+      <FollowupsPreview d={d} />
 
       <InsightTeasers d={d} />
 

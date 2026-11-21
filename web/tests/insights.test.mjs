@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   isoWeek,compareLatestRound,generateWeeklyReports,evaluateDirectionalAccuracy,
 } from "../lib/insight-analytics.ts";
+import { dailyBrief, rankedDisagreements, evaluateDecisionFollowups, followupInputs } from "../lib/retention-analytics.ts";
 
 const model=(id,name)=>({id,kind:"ai",aiId:name.toLowerCase(),benchmarkCode:null,name,color:"#777",model:name,initialCash:100000});
 const base=()=>({
@@ -101,4 +102,61 @@ test("Official decided round appears in comparisons before simulated fills, but 
   assert.equal(compareLatestRound(d).comparedSymbols,1);
   assert.ok(evaluateDirectionalAccuracy(d,{}).every(row=>row.samples===0));
   assert.deepEqual(generateWeeklyReports(d,new Date("2026-12-07T12:00:00Z")),[]);
+});
+
+
+test("Daily brief shows no invented conclusions and counts only valid explicit actions",()=>{
+  const d=base();
+  const waiting=dailyBrief(d);
+  assert.equal(waiting.date,null);
+  assert.equal(waiting.buy,0);
+  assert.equal(waiting.participants,0);
+  d.rounds=[{id:7,sessionDate:"2026-11-23",status:"decided",dataAsOf:"2026-11-19"}];
+  d.decisions=[
+    decision(1,7,"gpt","2026-11-23",[action("AAPL","BUY"),action("NVDA","SELL")]),
+    decision(2,7,"claude","2026-11-23",[action("AAPL","SELL"),action("NVDA","HOLD",0)]),
+    {...decision(3,7,"gemini","2026-11-23",[action("NVDA","BUY")]),status:"invalid"},
+  ];
+  const summary=dailyBrief(d);
+  assert.equal(summary.date,"2026-11-23");
+  assert.equal(summary.participants,2);
+  assert.equal(summary.buy,1);
+  assert.equal(summary.sell,2);
+  assert.equal(summary.hold,1);
+  assert.equal(summary.disagreements[0].symbol,"AAPL");
+  assert.equal(rankedDisagreements(compareLatestRound(d).disagreements).length,2);
+});
+
+test("Follow-ups do not treat holds or aborted rounds as predictions",()=>{
+  const d=base();
+  d.rounds=[{id:4,sessionDate:"2026-11-23",status:"aborted",dataAsOf:"2026-11-19"}];
+  d.decisions=[decision(1,4,"gpt","2026-11-23",[action("AAPL","BUY")])];
+  assert.equal(evaluateDecisionFollowups(d,{}).length,0);
+  assert.equal(followupInputs(d).since,null);
+  d.rounds[0].status="settled";
+  d.decisions[0].actions=[action("NVDA","HOLD",0)];
+  assert.equal(evaluateDecisionFollowups(d,{}).length,0);
+});
+
+test("Decision follow-ups use future actual sessions, no forward fill and no raw prices",()=>{
+  const d=base();
+  d.rounds=[{id:5,sessionDate:"2026-11-23",status:"settled",dataAsOf:"2026-11-19"}];
+  d.decisions=[
+    decision(1,5,"gpt","2026-11-23",[action("AAPL","BUY"),action("NVDA","HOLD",0)]),
+    decision(2,5,"claude","2026-11-23",[action("AAPL","SELL")]),
+  ];
+  const prices={SPY:[],AAPL:[]};
+  for(let i=0;i<8;i++){
+    const date=new Date(Date.UTC(2026,10,23+i)).toISOString().slice(0,10);
+    prices.SPY.push([date,100,100,100,101,200]);
+    prices.AAPL.push([date,100,100,100,105+i,200]);
+  }
+  const records=evaluateDecisionFollowups(d,prices);
+  assert.equal(records.length,2);
+  assert.deepEqual(records.find(x=>x.aiId==="gpt").observed.map(x=>x.verdict),["hit","hit","pending"]);
+  assert.deepEqual(records.find(x=>x.aiId==="claude").observed.map(x=>x.verdict),["miss","miss","pending"]);
+  assert.ok(!JSON.stringify(records).includes('"prices"'));
+  prices.AAPL.splice(1,1);
+  const withGap=evaluateDecisionFollowups(d,prices);
+  assert.equal(withGap.find(x=>x.aiId==="gpt").observed[0].verdict,"unavailable");
 });

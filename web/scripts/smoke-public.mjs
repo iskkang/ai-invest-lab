@@ -97,20 +97,20 @@ try{
     zh:"比较不同 AI 对同一市场的判断",
     ja:"同じ市場に対するAIの見方を比較",
   })) {
-    for (const suffix of ["consensus","weekly","accuracy"]) {
+    for (const suffix of ["consensus","daily","outcomes","weekly","accuracy"]) {
       await visible("/"+locale+"/"+suffix,heading);
     }
   }
   // Regression: only the selected nav item may have aria-current=page.
   // Root /en must NOT activate on descendant /en/weekly or /en/consensus.
   for (const locale of ["en","ko","zh","ja"]) {
-    for (const section of ["weekly","consensus","accuracy","historical"]) {
+    for (const section of ["weekly","consensus","accuracy","historical","daily","outcomes"]) {
       const pathname="/"+locale+"/"+section;
       const html=await (await req(pathname)).text();
       const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
       const selected=anchors.filter(a=>a.includes('aria-current="page"'))
         .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
-      const direct=["weekly","consensus","historical"].includes(section);
+      const direct=["daily","consensus","outcomes"].includes(section);
       assert.deepEqual(selected,direct?[pathname,pathname]:[pathname],
         "Mobile More menu must not mark hidden routes as a different tab: "+pathname);
     }
@@ -129,7 +129,7 @@ try{
     const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
     const selected=anchors.filter(a=>a.includes('aria-current="page"'))
       .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
-    assert.deepEqual(selected,["/"+locale+"/historical","/"+locale+"/historical"],
+    assert.deepEqual(selected,["/"+locale+"/historical"],
       "Only historical nav should be selected: "+locale);
   }
   const unpublished=await req("/ko/weekly/2026-W48");
@@ -165,7 +165,7 @@ try{
   assert.equal(map.status,200);
   const sitemap=await map.text();
   for(const locale of ["en","zh","ko","ja"]){
-    for(const suffix of ["portfolio","trades","performance","consensus","weekly","accuracy","historical","ai/gpt"]){
+    for(const suffix of ["portfolio","trades","performance","consensus","daily","outcomes","weekly","accuracy","historical","ai/gpt"]){
       assert.ok(sitemap.includes(`/${locale}/${suffix}`),`sitemap missing ${locale}/${suffix}`);
     }
   }

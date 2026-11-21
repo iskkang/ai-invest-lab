@@ -1,19 +1,20 @@
 import type { MetadataRoute } from "next";
-import {
-  LOCALES, PUBLIC_SECTIONS, languageAlternates, localeUrl,
-  type PublicSection
-} from "@/lib/public-content";
+import { LOCALES } from "@/lib/public-content";
+import { VISIBLE_SECTIONS, alternateRoutes, localizedRoute } from "@/lib/seo";
 
-/** Only actual, public, translated HTML pages are included. */
+/** SEO targets the real chart-first AI dashboard and its translated subpages. */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const sections: (PublicSection | undefined)[] = [undefined, ...PUBLIC_SECTIONS];
-  return sections.flatMap((section) =>
-    LOCALES.map((locale) => ({
-      url: localeUrl(locale, section),
-      lastModified: new Date("2026-11-21T00:00:00Z"),
-      changeFrequency: section ? "monthly" as const : "weekly" as const,
-      priority: section ? 0.65 : 0.9,
-      alternates: { languages: languageAlternates(section) },
+  const sections:string[] = [
+    ...VISIBLE_SECTIONS,
+    "/ai/gpt", "/ai/claude", "/ai/gemini", "/ai/deepseek",
+  ];
+  return sections.flatMap((section)=>
+    LOCALES.map(locale=>({
+      url:localizedRoute(locale,section),
+      lastModified:new Date("2026-11-21T00:00:00Z"),
+      changeFrequency:section===""?"daily" as const:"weekly" as const,
+      priority:section===""?1:section.startsWith("/ai/")?0.85:0.7,
+      alternates:{languages:alternateRoutes(section)},
     }))
   );
 }

@@ -8,10 +8,10 @@ export function MarketTickerTape(){
   const host=document.createElement("div");host.className="tradingview-widget-container__widget";node.appendChild(host);
   const script=document.createElement("script");script.src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";script.async=true;
   script.textContent=JSON.stringify({symbols:[
-   {proName:"FOREXCOM:SPXUSD",title:"S&P 500"},
+   {proName:"TVC:SPX",title:"S&P 500"},
    {proName:"NASDAQ:NDX",title:"Nasdaq 100"},
    {proName:"DJ:DJI",title:"Dow Jones"},
-   {proName:"TVC:RUT",title:"Russell 2000"},
+   {proName:"RUSSELL:RUT",title:"Russell 2000"},
    {proName:"CBOE:VIX",title:"VIX"}
   ],showSymbolLogo:false,isTransparent:false,displayMode:"adaptive",colorTheme:"light",locale:"en"});
   node.appendChild(script);

@@ -28,7 +28,7 @@ export function MarketTickerTape(){
    colorTheme:"dark",
    isTransparent:false,
    width:"100%",
-   displayMode:"regular",
+   displayMode:"compact",
    locale:"en"
   });
   node.appendChild(script);

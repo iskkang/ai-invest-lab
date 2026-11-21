@@ -152,46 +152,84 @@ export function BottomNav({ locale }: { locale: Locale }) {
   </>;
 }
 
-export function StockSearch({ symbols, locale }: { symbols: {symbol:string;name:string}[];locale:Locale }) {
+const SEARCH_COPY = {
+  ko: {empty:"검색 가능한 종목이 아직 없습니다.",noMatch:"검색 결과가 없습니다.",hint:"종목명이나 티커로 찾기",close:"검색 닫기"},
+  en: {empty:"No searchable stocks are available yet.",noMatch:"No matching stocks.",hint:"Search by company or ticker",close:"Close search"},
+  zh: {empty:"暂无可搜索的股票。",noMatch:"没有匹配的股票。",hint:"按公司名称或代码搜索",close:"关闭搜索"},
+  ja: {empty:"検索できる銘柄はまだありません。",noMatch:"該当する銘柄はありません。",hint:"社名またはティッカーで検索",close:"検索を閉じる"},
+} as const;
+
+export function StockSearch({ symbols, locale, onNavigate }: {
+  symbols: {symbol:string;name:string}[]; locale:Locale; onNavigate?:()=>void;
+}) {
   const router = useRouter();
   const [q,setQ] = useState("");
+  const [showResults,setShowResults] = useState(false);
+  const formRef=useRef<HTMLFormElement>(null);
   const listId=useId();
-  const go = (value:string) => {
-    const term = value.trim().toUpperCase();
-    const match = symbols.find(s => s.symbol === term) ??
-      symbols.find(s => s.name.toUpperCase().includes(term));
-    if(match) {router.push(localizedHref(locale, `/stocks/${match.symbol}`));setQ("");}
+  const term=q.trim().toLocaleLowerCase();
+  const matches=symbols.filter(s=>
+    !term || s.symbol.toLowerCase().includes(term) || s.name.toLocaleLowerCase().includes(term)
+  ).slice(0,6);
+  const copy=SEARCH_COPY[locale];
+
+  useEffect(()=>{
+    function dismiss(e:PointerEvent){
+      if(e.target instanceof Node && !formRef.current?.contains(e.target))setShowResults(false);
+    }
+    document.addEventListener("pointerdown",dismiss);
+    return ()=>document.removeEventListener("pointerdown",dismiss);
+  },[]);
+
+  const navigate=(symbol:string)=>{
+    router.push(localizedHref(locale,`/stocks/${symbol}`));
+    setQ("");
+    setShowResults(false);
+    onNavigate?.();
   };
   return (
-    <form role="search" className="relative w-full" onSubmit={e=>{e.preventDefault();go(q);}}>
+    <form ref={formRef} role="search" className="relative w-full"
+      onSubmit={e=>{e.preventDefault();if(matches[0])navigate(matches[0].symbol);}}>
       <Search size={17} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden />
-      <input value={q} onChange={e=>setQ(e.target.value)} list={listId}
-        aria-label={t(locale,"종목 검색")} placeholder={t(locale,"종목 코드 또는 회사명 (예: AAPL, Microsoft)")}
-        className="h-10 w-full rounded-lg border border-line bg-panel pl-9 pr-3 text-sm outline-none placeholder:text-muted focus:border-accent" />
-      <datalist id={listId}>
-        {symbols.map(s=><option key={s.symbol} value={s.symbol}>{s.name}</option>)}
-      </datalist>
+      <input type="search" autoComplete="off" value={q}
+        onFocus={()=>setShowResults(true)}
+        onChange={e=>{setQ(e.target.value);setShowResults(true);}}
+        onKeyDown={e=>{if(e.key==="Escape"){setShowResults(false);e.currentTarget.blur();}}}
+        role="combobox" aria-autocomplete="list" aria-expanded={showResults} aria-controls={listId}
+        aria-label={t(locale,"종목 검색")} placeholder={copy.hint}
+        className="h-11 w-full min-w-0 rounded-xl border border-line bg-panel pl-9 pr-3 text-base outline-none placeholder:text-muted focus:border-accent lg:text-sm" />
+      {showResults && <div id={listId} role="listbox"
+        className="absolute inset-x-0 top-[calc(100%+6px)] z-50 max-h-[min(55dvh,340px)] overflow-y-auto overscroll-contain rounded-xl border border-line bg-panel p-1.5 shadow-xl">
+        {!symbols.length?<p className="px-3 py-4 text-sm text-muted">{copy.empty}</p>
+        :!matches.length?<p className="px-3 py-4 text-sm text-muted">{copy.noMatch}</p>
+        :matches.map(s=><button key={s.symbol} type="button" role="option" aria-selected={false}
+          onClick={()=>navigate(s.symbol)}
+          className="flex min-h-12 w-full items-center gap-3 rounded-lg px-3 py-2 text-left hover:bg-panel-2 focus:bg-panel-2 focus:outline-none active:bg-panel-2">
+          <span className="min-w-[54px] shrink-0 text-sm font-bold text-accent">{s.symbol}</span>
+          <span className="min-w-0 truncate text-sm text-fg">{s.name}</span>
+        </button>)}
+      </div>}
     </form>
   );
 }
 
-
-/** Compact mobile header. Search is shown on demand, instead of pushing the
- * leaderboard below a permanent second-row search box. */
+/** Compact mobile search opens a full-width, touch-friendly suggestion panel. */
 export function MobileSearch({symbols,locale}:{
   symbols:{symbol:string;name:string}[];locale:Locale
 }){
   const path=usePathname();
   const [open,setOpen]=useState(false);
+  const searchId=useId();
   useEffect(()=>setOpen(false),[path]);
   return <>
     <button type="button" onClick={()=>setOpen(value=>!value)}
-      aria-expanded={open} aria-label={t(locale,"종목 검색")}
+      aria-expanded={open} aria-controls={searchId}
+      aria-label={open?SEARCH_COPY[locale].close:t(locale,"종목 검색")}
       className="grid h-11 w-11 place-items-center rounded-xl border border-line bg-panel-2 text-muted hover:text-accent">
       {open?<X size={18} aria-hidden/>:<Search size={18} aria-hidden/>}
     </button>
-    {open&&<div className="absolute inset-x-0 top-full z-50 border-b border-line bg-panel p-4 shadow-xl">
-      <StockSearch symbols={symbols} locale={locale}/>
+    {open&&<div id={searchId} className="absolute inset-x-0 top-full z-50 border-b border-line bg-panel p-3 shadow-xl sm:p-4">
+      <StockSearch symbols={symbols} locale={locale} onNavigate={()=>setOpen(false)}/>
     </div>}
   </>;
 }

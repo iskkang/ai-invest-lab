@@ -97,3 +97,21 @@ test("Outcome scorecards exclude pending/unavailable and hide rates below 20 sam
   assert.equal(followupScorecard(d,many,1)[0].samples,25);
   assert.equal(followupScorecard(d,many,1)[0].qualified,true);
 });
+
+test("Homepage switches to full dashboard only after a published official round",()=>{
+  const d=base();
+  // Having prepared accounts, snapshots or failed runs is not a first
+  // published decision; nothing may unlock an empty leaderboard.
+  d.snapshots=[{accountId:1,date:"2026-11-22",equity:100000}];
+  assert.equal(publicationPulse(d).publishedRounds,0);
+  d.rounds=[{id:1,sessionDate:"2026-11-23",status:"aborted"}];
+  assert.equal(publicationPulse(d).publishedRounds,0);
+  d.rounds.push({id:2,sessionDate:"2026-11-24",status:"skipped"});
+  assert.equal(publicationPulse(d).publishedRounds,0);
+  d.rounds.push({id:3,sessionDate:"2026-11-25",status:"decided"});
+  assert.equal(publicationPulse(d).publishedRounds,1);
+  d.rounds[2].status="settled";
+  assert.equal(publicationPulse(d).publishedRounds,1);
+  d.rounds.push({id:4,sessionDate:"2026-11-26",status:"decided"});
+  assert.equal(publicationPulse(d).publishedRounds,2);
+});

@@ -57,26 +57,32 @@ export function InsightTeasers({d}:{d:Dataset}) {
     {title:c.accuracy,desc:c.noPublishedAccuracy,href:"/accuracy",icon:ShieldCheck},
     {title:historicalCopy(d.locale).nav,desc:historicalCopy(d.locale).sub,href:"/historical",icon:ChartNoAxesCombined},
   ];
+  // When live AI decisions do not exist, lead with the historical research
+  // that already contains genuine study results rather than an empty AI screen.
+  if(!d.decisions.some(dec=>dec.status==="valid")){
+    const historical=cards.find(card=>card.href==="/historical");
+    if(historical){cards.splice(cards.indexOf(historical),1);cards.unshift(historical);}
+  }
   return <section aria-label={c.title}>
     <div className="mb-4">
       <p className="ms-kicker mb-2">INTELLIGENCE / EXPLORE</p>
       <h2 className="text-xl font-extrabold tracking-tight">{c.title}</h2>
       <p className="mt-1 text-xs leading-6 text-muted">{c.sub}</p>
     </div>
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-4">
       {cards.map((card,i)=><Link key={card.href}
         href={localizedHref(d.locale,card.href)}
         data-index={String(i+1).padStart(2,"0")}
-        className="ms-card ms-card-hover ms-insight-card group flex min-h-[171px] flex-col p-4 sm:p-5">
+        className="ms-card ms-card-hover ms-insight-card group flex min-h-[134px] flex-col p-3 sm:min-h-[171px] sm:p-5">
         <div className="relative z-10 flex items-center justify-between gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
+          <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent/10 text-accent sm:h-10 sm:w-10">
             <card.icon size={19} strokeWidth={1.85} aria-hidden/>
           </span>
           <ArrowRight size={17} className="text-muted transition group-hover:translate-x-1 group-hover:text-accent" aria-hidden/>
         </div>
-        <h3 className="relative z-10 mt-4 text-[15px] font-bold tracking-tight">{card.title}</h3>
-        <p className="relative z-10 mt-2 flex-1 text-xs leading-5 text-muted">{card.desc}</p>
-        <span className="relative z-10 mt-3 text-[11px] font-bold text-accent">{c.seeAll} →</span>
+        <h3 className="relative z-10 mt-3 text-[13px] font-bold leading-5 tracking-tight sm:mt-4 sm:text-[15px]">{card.title}</h3>
+        <p className="relative z-10 mt-2 hidden flex-1 text-xs leading-5 text-muted sm:block">{card.desc}</p>
+        <span className="relative z-10 mt-auto pt-3 text-[11px] font-bold text-accent">{c.seeAll} →</span>
       </Link>)}
     </div>
   </section>;

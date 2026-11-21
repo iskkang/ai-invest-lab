@@ -5,6 +5,7 @@ import { localizedHref } from "@/lib/i18n";
 
 const COPY={
   ko:{
+    mobileIntro:"실제 과거 시장 연구는 지금 확인하고, AI 판단은 기록이 쌓이는 대로 비교하세요.",
     eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"하나의 시장,",title2:"네 가지 AI의 시선.",
     intro:"누가 더 높은 수익률을 기록할까? 서로 다른 AI의 판단을 비교하고, 실제 모의투자 결과와 과거 시장 데이터로 검증합니다.",
@@ -14,6 +15,7 @@ const COPY={
     note:"각 모델의 의견과 수익률은 실제 기록이 생긴 후 공개됩니다.",
   },
   en:{
+    mobileIntro:"Explore historical research now. AI comparisons will follow verified decisions.",
     eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"One market.",title2:"Four AI perspectives.",
     intro:"Which model performs better? Compare independent AI decisions and examine actual simulated results alongside verified historical market research.",
@@ -23,6 +25,7 @@ const COPY={
     note:"Performance rankings appear only after real decision and valuation records exist.",
   },
   zh:{
+    mobileIntro:"现在可查看真实历史研究；AI 对比将在判断记录累积后开放。",
     eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"同一个市场，",title2:"四种 AI 视角。",
     intro:"哪个 AI 的表现更好？比较独立 AI 的判断，并以真实记录的模拟投资结果和历史市场数据进行检验。",
@@ -32,6 +35,7 @@ const COPY={
     note:"只有产生真实决策与账户估值记录后才公布收益率排名。",
   },
   ja:{
+    mobileIntro:"過去の市場分析は今すぐ確認できます。AI比較は判断記録の蓄積後に公開します。",
     eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"同じ市場、",title2:"4つのAIの視点。",
     intro:"どのAIが優れた成果を上げるのか。独立したAI判断と実際の模擬運用記録を比較し、過去の市場データでも検証します。",
@@ -46,24 +50,29 @@ export function DashboardHero({d}:{d:Dataset}){
   const c=COPY[d.locale];
   const models=d.accounts.filter(a=>a.kind==="ai");
   const scheduled=new Date().toISOString().slice(0,10)<d.experiment.startSession && d.rounds.length===0;
-  return <section className="market-hero px-5 pb-5 pt-6 sm:px-8 sm:pb-7 sm:pt-8" aria-label={c.eyebrow}>
-    <div className="relative grid min-h-[220px] items-center gap-6 md:min-h-[270px] md:grid-cols-[minmax(0,1fr)_260px]">
+  const hasVerifiedDecision=d.decisions.some(dec=>dec.status==="valid");
+  const primary=hasVerifiedDecision?"/consensus":"/historical";
+  const secondary=hasVerifiedDecision?"/historical":"/consensus";
+  return <section className="market-hero px-4 pb-4 pt-5 sm:px-8 sm:pb-7 sm:pt-8" aria-label={c.eyebrow}>
+    <div className="relative grid items-center gap-4 md:min-h-[270px] md:gap-6 md:grid-cols-[minmax(0,1fr)_260px]">
       <div className="relative z-10">
         <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{c.eyebrow}</p>
-        <h1 className="hero-title mt-5">
+        <h1 className="hero-title mt-3 sm:mt-5">
           <span className="block">{c.title1}</span>
           <span className="hero-title-em block">{c.title2}</span>
         </h1>
-        <p className="mt-4 max-w-xl text-[13px] leading-6 text-[#d4ddf0] sm:text-sm sm:leading-7">
+        <p className="mt-2 text-[12px] leading-5 text-[#d4ddf0] sm:hidden">{c.mobileIntro}</p>
+        <p className="mt-4 hidden max-w-xl text-[13px] leading-6 text-[#d4ddf0] sm:block sm:text-sm sm:leading-7">
           {c.intro}
         </p>
-        <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-3">
-          <Link href={localizedHref(d.locale,"/consensus")} className="hero-action">
-            <GitCompareArrows size={16} aria-hidden/>{c.explore}<ArrowRight size={15} aria-hidden/>
+        <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 sm:mt-5 sm:gap-x-4">
+          <Link href={localizedHref(d.locale,primary)} className="hero-action min-h-11">
+            <GitCompareArrows size={16} aria-hidden/>
+            {hasVerifiedDecision?c.explore:c.historical}<ArrowRight size={15} aria-hidden/>
           </Link>
-          <Link href={localizedHref(d.locale,"/historical")}
-            className="inline-flex items-center gap-1.5 py-2 text-xs font-semibold text-[#e8eeff] underline decoration-[#95b8f0]/50 underline-offset-4 hover:text-[#c9f58a]">
-            {c.historical}<ArrowRight size={14} aria-hidden/>
+          <Link href={localizedHref(d.locale,secondary)}
+            className="inline-flex min-h-11 items-center gap-1.5 py-2 text-xs font-semibold text-[#e8eeff] underline decoration-[#95b8f0]/50 underline-offset-4 hover:text-[#c9f58a]">
+            {hasVerifiedDecision?c.historical:c.explore}<ArrowRight size={14} aria-hidden/>
           </Link>
         </div>
       </div>
@@ -78,12 +87,12 @@ export function DashboardHero({d}:{d:Dataset}){
         </div>
       </div>
     </div>
-    <div className="hero-meta mt-5 flex flex-wrap items-center justify-between gap-3 pt-4 text-[11px]">
+    <div className="hero-meta mt-4 flex flex-wrap items-center justify-between gap-2 pt-3 text-[11px] sm:mt-5 sm:gap-3 sm:pt-4">
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
         <span><b className="mr-1.5 text-[#d2f69a]">{models.length.toString().padStart(2,"0")}</b>{c.agents}</span>
         <span><b className="mr-1.5 font-semibold text-white">{d.experiment.startSession}</b>{c.start}</span>
       </div>
-      <span className="inline-flex items-center gap-2 text-[#c7d7f0]">
+      <span className="hidden items-center gap-2 text-[#c7d7f0] sm:inline-flex">
         <span className="h-1.5 w-1.5 rounded-full bg-[#c9f58a]" aria-hidden/>
         {scheduled?c.scheduled:c.tracking}
       </span>

@@ -45,11 +45,11 @@ export function ModelDisclosure({locale,activeModels,dark=false}:{
   const baseText=dark?"text-[#e0e8f8]":"text-muted";
   const headingColor=dark?"text-white":"text-fg";
   const border=dark?"border-white/20":"border-line";
-  return <div data-model-disclosure="true" className="max-w-full space-y-3">
+  return <div data-model-disclosure="true" className="min-w-0 w-full max-w-full space-y-3">
     <p className={"text-sm font-semibold leading-6 "+headingColor}>{c.notice}</p>
     <p className={"text-xs leading-6 "+baseText}>{c.frozen}</p>
-    <div className={"max-w-full overflow-x-auto rounded-xl border "+border}>
-      <table className="w-full min-w-[560px] text-left text-xs">
+    <div className={"min-w-0 w-full max-w-full rounded-xl border "+border}>
+      <table className="model-disclosure-table w-full text-left text-xs">
         <thead className={"border-b "+border}>
           <tr>
             <th scope="col" className="p-3">AI</th>

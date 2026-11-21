@@ -90,3 +90,13 @@ test("Directional accuracy requires a later 5th and 20th verified SPY session",(
   assert.equal(rows.find(x=>x.aiId==="gemini"&&x.horizon===5).samples,0);
   assert.ok(evaluateDirectionalAccuracy(d,bars).every(x=>!x.qualified));
 });
+
+test("Official decided round appears in comparisons before simulated fills, but not accuracy",()=>{
+  const d=base();
+  d.rounds=[{id:9,sessionDate:"2026-11-23",status:"decided",dataAsOf:"2026-11-19"}];
+  d.decisions=[decision(1,9,"gpt","2026-11-23",[action("AAPL","BUY")])];
+  assert.equal(compareLatestRound(d).date,"2026-11-23");
+  assert.equal(compareLatestRound(d).comparedSymbols,1);
+  assert.ok(evaluateDirectionalAccuracy(d,{}).every(row=>row.samples===0));
+  assert.deepEqual(generateWeeklyReports(d,new Date("2026-12-07T12:00:00Z")),[]);
+});

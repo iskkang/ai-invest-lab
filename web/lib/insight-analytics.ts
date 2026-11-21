@@ -36,9 +36,12 @@ const aiAccounts = (d: Dataset) => d.accounts.filter((a) => a.kind === "ai");
 const settledRounds = (d: Dataset) =>
   d.rounds.filter((r) => r.status === "settled")
     .slice().sort((a,b) => b.sessionDate.localeCompare(a.sessionDate));
+const finalizedDecisions = (d: Dataset) =>
+  d.rounds.filter((r) => r.status === "decided" || r.status === "settled")
+    .slice().sort((a,b) => b.sessionDate.localeCompare(a.sessionDate));
 
 export function verifiedDecisions(d: Dataset): Decision[] {
-  const completed = new Set(settledRounds(d).map((r) => r.id));
+  const completed = new Set(finalizedDecisions(d).map((r) => r.id));
   const ai = new Set(aiAccounts(d).map((a) => a.aiId));
   return d.decisions.filter((dec) =>
     completed.has(dec.roundId) && dec.status === "valid" &&
@@ -87,7 +90,7 @@ function comparisons(d: Dataset, decisions: Decision[]): SymbolComparison[] {
 }
 
 export function compareLatestRound(d: Dataset): ConsensusResult {
-  const rounds = settledRounds(d);
+  const rounds = finalizedDecisions(d);
   const totalModels = aiAccounts(d).length;
   const candidate = rounds.find((r) => verifiedDecisions(d).some((dec) => dec.roundId === r.id));
   if (!candidate) return {
@@ -238,7 +241,8 @@ export function evaluateDirectionalAccuracy(
   const bySymbol = new Map(Object.entries(adjustedBars).map(([symbol,bars]) =>
     [symbol,new Map(bars.map((bar) => [bar[0],bar]))]
   ));
-  const decisions = verifiedDecisions(d);
+  const settled = new Set(settledRounds(d).map(round=>round.id));
+  const decisions = verifiedDecisions(d).filter(dec=>settled.has(dec.roundId));
   const rows: AccuracyModel[] = [];
   for (const model of aiAccounts(d)) {
     const mine = decisions.filter((dec) => dec.aiId === model.aiId);

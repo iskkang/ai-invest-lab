@@ -33,7 +33,9 @@ const loadPrivateAdjustedBars = unstable_cache(async (symbols: string[], since: 
 
 /** No original price, per-stock quote or secret is returned to the browser. */
 export async function getAggregateAccuracy(d: Dataset) {
-  const directional=verifiedDecisions(d).flatMap(dec=>dec.actions.filter(action=>
+  const settled=new Set(d.rounds.filter(r=>r.status==="settled").map(r=>r.id));
+  const directional=verifiedDecisions(d).filter(dec=>settled.has(dec.roundId))
+    .flatMap(dec=>dec.actions.filter(action=>
     (action.action==="BUY" || action.action==="SELL") && action.quantity>0 && action.symbol!=="SPY"
   ).map(action=>({symbol:action.symbol,session:dec.sessionDate})));
   if(!directional.length)return evaluateDirectionalAccuracy(d,{});

@@ -111,7 +111,7 @@ export function PortfolioMovement({d,compact=false}:{d:Dataset;compact?:boolean}
 }
 
 export function RoundJournalPanel({d,compact=false}:{d:Dataset;compact?:boolean}){
-  const c=returningCopy(d.locale),rounds=recentRoundJournal(d,compact?4:24);
+  const c=returningCopy(d.locale),rounds=recentRoundJournal(d,compact?4:d.rounds.length);
   return <section className="rounded-2xl border border-line bg-panel p-4 sm:p-6" aria-label={c.diary}>
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div><div className="flex items-center gap-2"><History size={18} className="text-accent" aria-hidden/>
@@ -121,7 +121,7 @@ export function RoundJournalPanel({d,compact=false}:{d:Dataset;compact?:boolean}
     </div>
     {!rounds.length?<p className="mt-4 rounded-xl bg-panel-2 px-4 py-5 text-sm text-muted">{c.noSessions} · {d.experiment.startSession}</p>
     :<ol className="mt-4 space-y-2">
-      {rounds.map(x=><li key={x.id} className="rounded-xl border border-line bg-panel-2 px-3 py-3 sm:px-4">
+      {rounds.map(x=><li id={"round-"+x.date} key={x.id} className="rounded-xl border border-line bg-panel-2 px-3 py-3 sm:px-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <CalendarClock size={15} className="text-muted" aria-hidden/>

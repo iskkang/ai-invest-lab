@@ -20,6 +20,7 @@ export default async function JournalPage({params}:Props){
   try{
     const d=await getData();
     return <div className="mx-auto max-w-5xl space-y-5">
+      <header className="space-y-2"><h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{returningCopy(locale).diary}</h1><p className="text-sm leading-6 text-muted">{returningCopy(locale).diarySub}</p></header>
       <ReturnVisitPulse d={d}/>
       <DecisionRevisionPanel d={d}/>
       <PortfolioMovement d={d}/>

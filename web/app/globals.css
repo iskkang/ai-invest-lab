@@ -232,3 +232,42 @@ body{
   .ms-rank-card .tabular{overflow-wrap:anywhere}
   .market-hero .hero-meta{font-size:10px}
 }
+
+/* First-round disclosure: readable stacked model cards on narrow screens.
+   Do not rely on a wide table or hidden horizontal page overflow. */
+@media (max-width: 639px) {
+  html, body { max-width: 100%; }
+  [data-home-phase="pre-first-published-round"],
+  [data-home-phase="pre-first-published-round"] > section,
+  [data-model-disclosure="true"] { min-width: 0; width: 100%; max-width: 100%; }
+  .model-disclosure-table,
+  .model-disclosure-table tbody,
+  .model-disclosure-table tr,
+  .model-disclosure-table th,
+  .model-disclosure-table td { display: block; width: 100%; min-width: 0; }
+  .model-disclosure-table thead { display: none; }
+  .model-disclosure-table tbody { padding: 8px; }
+  .model-disclosure-table tr {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(180,195,225,.22);
+  }
+  .model-disclosure-table tr:last-child { border-bottom: 0; }
+  .model-disclosure-table th,
+  .model-disclosure-table td {
+    padding: 5px 8px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .model-disclosure-table th { font-size: 14px; }
+  .model-disclosure-table td::before {
+    display: block;
+    margin-bottom: 3px;
+    font: 600 10px/1.5 var(--font-sans);
+    letter-spacing: .03em;
+    opacity: .72;
+  }
+  .model-disclosure-table td:nth-child(2)::before { content: "OpenRouter ID"; }
+  .model-disclosure-table td:nth-child(3)::before { content: "Provider tier"; }
+  .model-disclosure-table td:nth-child(4)::before { content: "Official source"; }
+  .model-disclosure-table td:nth-child(5)::before { content: "Active model"; }
+}

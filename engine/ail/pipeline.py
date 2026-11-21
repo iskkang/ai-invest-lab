@@ -12,6 +12,7 @@ run_settle(now) — 폐장 후 실행: 오늘 D 의 시가 체결·종가 평가
 from __future__ import annotations
 
 import concurrent.futures as cf
+import time
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
@@ -229,6 +230,8 @@ def _packet(conn, exp, account, participant_id, session, data_as_of, decision_at
 def run_decision_round(conn, exp: dict, session: date, now: datetime, source_name: str, provider,
                        settings: Settings) -> dict:
     """session 시가 체결을 위한 판단 회차. 동일 세션 회차는 한 번만 만들어진다(UNIQUE)."""
+    round_started = time.monotonic()
+    cutoff_at = mc.ny_time(session, settings.decision_latest)
     expected_source = "demo" if exp["mode"] == "demo" else "nh_plug"
     if source_name != expected_source:
         raise LabError(f"{exp['name']}: {exp['mode']} experiment cannot use {source_name} prices")
@@ -240,6 +243,8 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
     open_at, _, _ = mc.session_times(session)
     if now >= open_at:
         raise LabError("decision after market open is not allowed (fill price would be known)")
+    if now > cutoff_at:
+        raise LabError(f"decision after {settings.decision_latest} ET cutoff is not allowed")
     with conn.transaction():
         rnd = conn.execute("insert into experiment_rounds(experiment_id, session_date, decision_at, data_as_of, status)"
                            " values (%s,%s,%s,%s,'created') returning *", (exp["id"], session, now, data_as_of)).fetchone()
@@ -347,6 +352,13 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
 
     if failures:
         return abort("PARTICIPANT_FAILURE: " + "; ".join(failures))
+
+    # A round may start inside the allowed window but finish after the cutoff.
+    # The passed `now` is the start timestamp (also used in historical tests),
+    # so advance it by monotonic elapsed time rather than reading the wall clock.
+    completed_at = now + timedelta(seconds=max(0, time.monotonic() - round_started))
+    if completed_at > cutoff_at:
+        return abort(f"DECISION_CUTOFF_EXCEEDED: completed after {settings.decision_latest} ET; excluded from official performance")
 
     with conn.transaction():
         for p in participants:

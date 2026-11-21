@@ -5,7 +5,7 @@ import type { Locale } from "./public-content";
  */
 export const methodDetailsCopy={
   ko:{
-    title:"실제 엔진 설정과 검증 기준",
+    title:"엔진 설정(구성된 기본값)",
     scope:"아래 종목·모델·판단시간·지표·기본 비용은 Python 엔진 코드에서 생성했습니다. 환경변수로 변경 가능한 값은 기본값과 운영 DB 확인값을 구분합니다.",
     schedule:"판단 시각 및 유효 거래일",window:"판단 허용 구간",target:"권장 판단 시각",
     eastern:"미국 동부시간(ET)",summer:"서머타임(EDT) → 한국시간",winter:"표준시(EST) → 한국시간",
@@ -13,6 +13,8 @@ export const methodDetailsCopy={
     frequencyValue:"NYSE 거래일마다 공식 판단 최대 1회. 스케줄러 재시도는 중복 회차로 집계하지 않습니다.",
     calendarValue:"XNYS(뉴욕증권거래소) 거래일 달력 기준. 주말·미국장 휴장일은 제외하며 조기 폐장 거래일은 유효합니다.",
     timingNote:"실제 GitHub Actions 실행은 지연되거나 실패할 수 있으므로 표의 시각은 허용 정책과 권장 시각이지 실행 보장이 아닙니다. 판단은 직전 확정 거래일 데이터로 개장 전에 수행합니다.",
+    cutoffPolicy:"09:15 ET를 넘겨 AI 판단이 완료되면 회차 전체를 중단(aborted)하고 공식 성과에서 제외합니다. 응답·비용 기록은 감사 목적으로 남기되 가상 주문은 생성하지 않습니다.",
+    kstCutoff:"마감 22:15 KST(서머타임) / 23:15 KST(표준시)",verified:"확인됨",
     universe:"초기 투자 대상 30종목",universeNote:"이 목록은 engine/ail/config.py의 DEFAULT_UNIVERSE입니다. 운영 중 CLI로 종목을 추가·제외했다면 실제 활성 종목군은 변경 이력을 따릅니다. SPY는 비교 지표이며 30종목에 포함되지 않습니다.",
     indicators:"모델에 전달하는 지표·시세 필드",indicatorParams:"지표별 계산 기간",
     rawFields:"요청 패킷에 들어가는 실제 필드명",
@@ -39,7 +41,7 @@ export const methodDetailsCopy={
     disclaimer:"실제 주식 주문 또는 투자 자문이 아닌 교육용 모의투자 실험입니다.",
   },
   en:{
-    title:"Verified engine settings and methodology",
+    title:"Engine settings (configured defaults)",
     scope:"Stocks, model IDs, timing, indicator parameters and default costs below are generated from the Python engine. Runtime environment overrides are distinguished from confirmed experiment database values.",
     schedule:"Decision schedule and eligible sessions",window:"Allowed decision window",target:"Target decision time",
     eastern:"US Eastern Time (ET)",summer:"Daylight time (EDT) → Korea time",winter:"Standard time (EST) → Korea time",
@@ -47,6 +49,8 @@ export const methodDetailsCopy={
     frequencyValue:"At most one official decision round per NYSE session. Scheduler retries cannot produce duplicate rounds.",
     calendarValue:"XNYS / New York Stock Exchange exchange calendar. Weekends and NYSE holidays are excluded; early-close sessions remain eligible.",
     timingNote:"GitHub Actions may run late or fail. The stated window is an execution policy, not a guaranteed completion time. Decisions use the previous completed session before the opening bell.",
+    cutoffPolicy:"If the AI responses finish after 09:15 ET, the entire round is aborted and excluded from official performance. Responses and usage remain in the audit log, but no paper orders are created.",
+    kstCutoff:"Cutoff 22:15 KST (daylight time) / 23:15 KST (standard time)",verified:"Verified",
     universe:"Initial universe of 30 US equities",universeNote:"This is DEFAULT_UNIVERSE in engine/ail/config.py. Administrative additions or removals can change the active universe. SPY is a benchmark and not one of the 30.",
     indicators:"Indicator and quote fields given to the models",indicatorParams:"Indicator lookback and parameters",
     rawFields:"Exact field names in the request packet",
@@ -73,7 +77,7 @@ export const methodDetailsCopy={
     disclaimer:"Educational paper-trading research only; no real brokerage orders or personal investment advice.",
   },
   zh:{
-    title:"已核验的引擎设置与研究方法",
+    title:"引擎设置（已配置的默认值）",
     scope:"股票池、模型ID、决策时段、指标参数及默认费用均从Python引擎生成。可被环境变量覆盖的默认值与数据库核实值分开显示。",
     schedule:"决策时段与有效交易日",window:"允许决策的时间区间",target:"计划决策时间",
     eastern:"美国东部时间(ET)",summer:"夏令时(EDT) → 韩国时间",winter:"标准时间(EST) → 韩国时间",
@@ -81,6 +85,8 @@ export const methodDetailsCopy={
     frequencyValue:"每个纽约证券交易所交易日最多一轮正式决策。调度重试不会产生重复轮次。",
     calendarValue:"按照XNYS纽约证券交易所日历。周末与休市日不计入；提前收盘日仍是有效交易日。",
     timingNote:"GitHub Actions可能延迟或失败。该时间为运行规则而非执行保证。开盘前仅使用上一已完成交易日的数据。",
+    cutoffPolicy:"若 AI 响应在美国东部时间 09:15 截止后才完成，整轮将中止且不计入正式业绩。保留响应与费用的审计记录，但不生成模拟订单。",
+    kstCutoff:"截止 22:15 KST（夏令时）/ 23:15 KST（标准时）",verified:"已核实",
     universe:"初始30只美股标的",universeNote:"来自engine/ail/config.py的DEFAULT_UNIVERSE。管理员可能增删运行中的股票。SPY是比较基准，不属于这30只。",
     indicators:"提供给模型的技术指标与行情字段",indicatorParams:"指标周期及参数",
     rawFields:"实际请求数据中的字段名",
@@ -107,7 +113,7 @@ export const methodDetailsCopy={
     disclaimer:"仅供教育性模拟投资研究，不执行真实证券交易或提供个人投资建议。",
   },
   ja:{
-    title:"確認済みエンジン設定と研究方法",
+    title:"エンジン設定（設定済みの既定値）",
     scope:"銘柄・モデルID・判断時刻・指標パラメータ・既定費用はPythonエンジンから生成。環境変数で変わる既定値とDBで確認した運用値は区別します。",
     schedule:"判断時間帯と有効取引日",window:"判断を許可する時間帯",target:"判断の目標時刻",
     eastern:"米国東部時間(ET)",summer:"夏時間(EDT) → 韓国時間",winter:"標準時(EST) → 韓国時間",
@@ -115,6 +121,8 @@ export const methodDetailsCopy={
     frequencyValue:"NYSEの各取引日につき正式判断は最大1回。スケジューラーの再試行による重複ラウンドは作成しません。",
     calendarValue:"XNYS（ニューヨーク証券取引所）カレンダーに準拠。週末・休場日を除き、短縮取引日も有効です。",
     timingNote:"GitHub Actionsの遅延・失敗はあり得ます。表示時刻は運用ルールであり実行保証ではありません。前取引日までの確定情報を開場前に使用します。",
+    cutoffPolicy:"AIの回答が米東部時間09:15の締切後に完了した場合、ラウンド全体を中断し公式成績の集計対象外とします。監査用の応答・費用記録は残しますが、仮想注文は作成しません。",
+    kstCutoff:"締切 22:15 KST（夏時間）/ 23:15 KST（標準時）",verified:"確認済み",
     universe:"初期の米国株30銘柄",universeNote:"engine/ail/config.pyのDEFAULT_UNIVERSEです。運用中の管理者による追加・除外で現在の銘柄群は変わる場合があります。SPYは比較基準で、30銘柄に含みません。",
     indicators:"モデルへ渡すテクニカル指標・価格フィールド",indicatorParams:"指標の期間とパラメータ",
     rawFields:"リクエストに含まれる実際のフィールド名",

@@ -64,7 +64,9 @@ export function EngineMethodologyDetails({locale,active}:{locale:Locale;active:A
         <div><dt className="font-bold">{c.frequency}</dt><dd className="text-muted">{c.frequencyValue}</dd></div>
         <div><dt className="font-bold">{c.calendar} · {d.calendar}</dt><dd className="text-muted">{c.calendarValue}</dd></div>
       </dl>
-      <p className="mt-3 rounded-xl bg-panel-2 p-3 text-xs leading-6 text-muted">{c.timingNote}</p>
+      <p className="mt-3 rounded-xl bg-panel-2 p-3 text-sm font-bold leading-6">{c.kstCutoff}</p>
+      <p className="mt-2 text-xs leading-6 text-muted">{c.cutoffPolicy}</p>
+      <p className="mt-2 rounded-xl bg-panel-2 p-3 text-xs leading-6 text-muted">{c.timingNote}</p>
     </Section>
     <Section title={c.universe}>
       <ul className="grid grid-cols-5 gap-2 sm:grid-cols-6 lg:grid-cols-10">
@@ -93,13 +95,13 @@ export function EngineMethodologyDetails({locale,active}:{locale:Locale;active:A
       </dl>
       <h3 className="mt-5 text-xs font-bold tracking-wide text-muted">{c.active}</h3>
       {active?<dl className="mt-3 grid grid-cols-2 gap-2">
-        <LabelValue label={c.fee} value={fmtBp(active.feeBps)}/>
-        <LabelValue label={c.slippage} value={fmtBp(active.slippageBps)}/>
+        <LabelValue label={c.fee+" · "+c.verified} value={fmtBp(active.feeBps)}/>
+        <LabelValue label={c.slippage+" · "+c.verified} value={fmtBp(active.slippageBps)}/>
       </dl>:<p className="mt-2 text-xs leading-6 text-muted">{c.notVerified}</p>}
       <p className="mt-3 text-xs leading-6 text-muted">{c.override}</p>
     </Section>
     <Section title={c.models}>
-      <ModelDisclosure locale={locale} activeModels={activeModels}/>
+      <ModelDisclosure locale={locale} activeModels={active?activeModels:undefined}/>
       <p className="mt-3 text-xs leading-6 text-muted">{c.modelsNote}</p>
     </Section>
     <Section title={c.inference}>

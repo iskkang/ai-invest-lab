@@ -52,7 +52,6 @@ export function TopBar({asOf,symbols,locale}:{
           <div className="lg:hidden"><MobileSearch symbols={symbols} locale={locale}/></div>
           <div className="hidden items-center gap-3 sm:flex">
             <DataAsOfStatus asOf={asOf} locale={locale}/>
-            <span className="select-none text-xs text-muted" aria-hidden="true">│</span>
           </div>
           <LanguageSwitcher locale={locale}/>
           <span className="hidden lg:inline-flex"><ThemeToggle locale={locale}/></span>
@@ -80,7 +79,7 @@ export function Footer({locale}:{locale:Locale}) {
       <p className="mb-2 text-[11px] font-extrabold tracking-[.17em] text-fg">MARKETSIGHTS <span className="text-accent">/</span> {sectionLabel(locale,"researchTerminal")}</p>
       <p className="max-w-4xl">{disclaimers[locale]}</p>
       <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs" aria-label="Research information">
-        <Link href={localizedHref(locale,"/methodology")} className="hover:text-accent">{t(locale,"실험 방식")}</Link>
+        <Link href={localizedHref(locale,"/methodology")} className="hover:text-accent">{t(locale,"실험 방법")}</Link>
         <Link href={localizedHref(locale,"/weekly")} className="hover:text-accent">{t(locale,"주간 리포트")}</Link>
         <Link href={localizedHref(locale,"/accuracy")} className="hover:text-accent">{t(locale,"판단 검증")}</Link>
         <Link href={localizedHref(locale,"/faq")} className="hover:text-accent">FAQ</Link>

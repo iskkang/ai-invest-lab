@@ -22,7 +22,7 @@ export function alternateRoutes(suffix: string = "") {
 export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean }): Metadata {
   const site = PUBLIC_COPY[locale];
   const fullTitle = suffix === "" ? site.title : `${title} | MarketSights`;
-  const description = suffix === "" ? site.description : `${title}. ${site.description}`;
+  const description = site.description;
   return {
     metadataBase: new URL(publicOrigin()),
     title: { absolute: fullTitle },

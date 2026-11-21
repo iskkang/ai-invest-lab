@@ -16,7 +16,7 @@ export default async function About() {
     <div className="space-y-4">
       <PageTitle title={t(locale,"AI는 실제로 주식투자를 잘할까?")}
         sub={t(locale,"MarketSights 실험 규칙과 한계")}/>
-      <Section title={t(locale,"실험 방식")}>
+      <Section title={t(locale,"실험 방법")}>
         <p className="mb-4 text-sm leading-7 text-muted">{c.aboutMethod}</p>
         <ol className="space-y-4">
           {c.method.map(m=>(

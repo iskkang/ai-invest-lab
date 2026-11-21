@@ -47,7 +47,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             {({ko:"과거 시장 연구 보기",en:"Explore historical research",zh:"查看历史市场研究",ja:"過去の市場研究を見る"} as Record<Locale,string>)[locale]}
           </Link>
           <Link href={localizedHref(locale,"/methodology")} className="inline-flex min-h-11 items-center rounded-lg border border-line px-4 py-2 text-sm font-semibold">
-            {t(locale,"실험 방식")}
+            {t(locale,"실험 방법")}
           </Link>
         </div>
       </section>

@@ -14,7 +14,7 @@ const COPY = {
     detail:(models:number,stocks:number,cash:string)=>
       `${models}개 AI가 같은 미국 주식 ${stocks}종목의 시장 데이터·가상 원금(${cash})·매매 규칙으로 판단합니다. 각자의 계좌 기록은 다르며 서로의 판단은 공유하지 않습니다.`,
     noRecords:"실제로 기록된 판단과 계좌 평가가 생기기 전에는 순위·수익률·매매 내역을 표시하지 않습니다.",
-    methodology:"실험 방법 확인",historical:"과거 전략 연구",patterns:"패턴 검증 보기",
+    methodology:"실험 방법",historical:"과거 전략 연구",patterns:"패턴 검증 보기",
   },
   en: {
     eyebrow:"AI paper trading · Before the first official round",

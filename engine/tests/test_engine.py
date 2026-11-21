@@ -73,6 +73,24 @@ def test_02_no_future_data_in_snapshot(db, settings, source):
         run_decision_round(db, exp, NEXT, at(NEXT, "09:31"), "demo", ScriptedProvider(), settings)
 
 
+# A decision begun before 09:15 ET must not be counted if responses finish late.
+def test_02b_late_response_aborts_without_orders(db, settings, source, monkeypatch):
+    from types import SimpleNamespace
+    from ail import pipeline
+    exp = bootstrap(db, settings)
+    prev = mc.previous_session(START)
+    settle_through(db, exp, source, prev, at(prev, "18:00"), settings)
+    ticks = iter((0.0, 120.0))  # 09:14 ET start; simulated 09:16 ET completion
+    monkeypatch.setattr(pipeline, "time", SimpleNamespace(monotonic=lambda: next(ticks)))
+    result = run_decision_round(db, exp, START, at(START, "09:14"), "demo", ScriptedProvider(), settings)
+    assert result["status"] == "aborted"
+    assert "DECISION_CUTOFF_EXCEEDED" in result["reason"]
+    assert count(db, "select count(*) as n from ai_decisions") == 4
+    assert count(db, "select count(*) as n from orders") == 0
+    assert count(db, "select count(*) as n from trades") == 0
+    assert db.execute("select status from experiment_rounds where session_date=%s", (START,)).fetchone()["status"] == "aborted"
+
+
 # 3 & 12. 동일 거래 중복 체결 없음 / 재실행해도 데이터 중복 없음
 def test_03_12_rerun_is_idempotent(db, settings, source):
     prov = ScriptedProvider()

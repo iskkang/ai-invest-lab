@@ -62,7 +62,7 @@ export function HeaderNav({locale}:{locale:Locale}) {
             :<>
               <button type="button" className={base} data-nav-trigger={group.id}
                 aria-expanded={expanded} aria-controls={"top-nav-"+group.id}
-                onClick={()=>setOpenId(group.id)}
+                onClick={()=>setOpenId(current=>current===group.id?null:group.id)}
                 onKeyDown={e=>{
                   if(e.key==="ArrowDown"){
                     e.preventDefault();setOpenId(group.id);
@@ -75,7 +75,7 @@ export function HeaderNav({locale}:{locale:Locale}) {
                 <ChevronDown size={15} aria-hidden className={cn("transition-transform",expanded&&"rotate-180")}/>
               </button>
               {expanded&&<ul id={"top-nav-"+group.id} aria-label={group.names[locale]+" · "+MENU_COPY[locale].sub}
-                className="absolute left-1/2 top-full z-50 mt-2 w-[220px] -translate-x-1/2 space-y-1 rounded-2xl border border-line bg-panel p-2 shadow-xl"
+                className="absolute left-1/2 top-full z-50 mt-0 w-[220px] -translate-x-1/2 space-y-1 rounded-2xl border border-line bg-panel p-2 shadow-xl"
                 data-submenu={group.id}>
                 {group.children.map(child=>{
                   const href=localizedHref(locale,child.href);

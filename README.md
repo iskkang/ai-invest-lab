@@ -4,6 +4,17 @@
 
 교육·연구용 **모의투자**입니다. 실제 주문 기능은 없습니다(NH API는 시세 조회만, 주문 경로는 코드에서 차단).
 
+## 공개 웹사이트 / 언어 / SEO
+
+- 기본 주소 `/` → 공개 영문 페이지 `/en` (로그인 불필요).
+- 사용자 선택 언어: `/en` (English), `/zh` (简体中文), `/ko` (한국어), `/ja` (日本語). 각 언어의 방법론·FAQ·개인정보·광고 안내까지 20개 공개 페이지.
+- 검색용 `/robots.txt`, `/sitemap.xml`, `/llms.txt` 및 승인된 퍼블리셔 ID만 등록하는 `/ads.txt` 제공.
+- 기존 투자 리더보드는 `/lab`으로 이전하여 **비밀번호 보호 유지**. NH 시세 원본·비공개 계좌·API를 공개할 수 있는 권리는 확인되지 않았습니다.
+- 광고 스크립트와 개인화 추적은 아직 활성화되지 않았습니다(AdSense 사이트 승인 및 필요한 CMP 동의 절차 이후 도입).
+- [공개 사이트 배포·SEO·광고 운영 체크리스트](docs/PUBLIC_LAUNCH.md).
+
+
+
 ## 구조
 
 ```
@@ -107,13 +118,13 @@ python web/tests/mobile_check.py    # next start 후 모바일 화면 점검(Pla
 |---|---|
 | 원본 엔진·DB·RLS·체결·기업행동·벤치마크 | 원본 README: 로컬 PostgreSQL 16 테스트 35개 통과 (이번 수정에서 재실행 필요) |
 | P0 수정(가격공급원 분리·미래분할 차단·live 차트) | 회귀 테스트 추가. 실제 PostgreSQL·Supabase·빌드 검증은 환경에 맞춰 재실행 필요 |
-| NH PLUG 시세 연동 | ⚠️ **실제 호출 미검증**. 공식 openapi.json 필드명과 SDK 예제 기준으로 구현, 응답 파싱은 가짜 응답으로만 테스트 |
+| NH PLUG 시세 연동 | ✅ provider-preflight에서 AAPL 일봉 5개 실제 조회 성공. 31종목 전체 데이터 적재와 이후 정기 안정성 검증은 별도. |
 | NH 시세 수정주가 여부 | ⚠️ 명세에 표시 없음 → 분할 감지·중단 + 수동 기업행동 입력으로 대응 |
-| OpenRouter 호출·비용 필드 | ⚠️ **실제 호출 미검증**. 요청/응답 형식은 모의 서버로 테스트. 모델 ID·가격은 2026-11-21 OpenRouter 페이지에서 확인 |
+| OpenRouter 호출·비용 필드 | ✅ provider-preflight에서 인증·4모델 카탈로그 조회 성공. 4모델 실제 추론·JSON 성공은 model-smoke-test 수동 실행이 필요. |
 | 각 모델의 structured output(json_schema) 지원 | ⚠️ 모델마다 다를 수 있음. 지원하지 않아도 엔진이 스키마로 다시 검증 |
-| Supabase 웹 조회(DATA_MODE=live) | ⚠️ 실제 프로젝트 미연결. DEMO JSON 경로만 빌드·화면 검증 |
-| GitHub Actions | ⚠️ 워크플로 파일만 작성, 실제 실행 미확인 |
-| NH 시세 공개 재배포 권한 | ❌ 미확인 → 웹 기본값 `SITE_ACCESS=private`(비밀번호 보호, noindex) |
+| Supabase 웹 조회(DATA_MODE=live) | ✅ 비공개 Vercel health check에서 DB 연결 확인. LIVE 실험 계좌 생성 완료, 초기 AI 판단·성과 데이터는 아직 없음. |
+| GitHub Actions | ✅ CI 및 provider-preflight 실행 성공. 이후 daily-engine을 자동 활성화하지 않음. |
+| NH 시세 공개 재배포 권한 | ❌ 미확인 → 공개 편집형 사이트와 비공개 /lab을 분리. 원본 시세·투자 거래 상세 공개 금지. |
 
 ## P0 마이그레이션 및 기존 기록 주의
 

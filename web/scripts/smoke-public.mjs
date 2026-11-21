@@ -97,14 +97,14 @@ try{
     zh:"比较不同 AI 对同一市场的判断",
     ja:"同じ市場に対するAIの見方を比較",
   })) {
-    for (const suffix of ["consensus","daily","outcomes","journal","weekly","accuracy"]) {
+    for (const suffix of ["consensus","daily","outcomes","journal","weekly","accuracy","patterns"]) {
       await visible("/"+locale+"/"+suffix,heading);
     }
   }
   // Regression: only the selected nav item may have aria-current=page.
   // Root /en must NOT activate on descendant /en/weekly or /en/consensus.
   for (const locale of ["en","ko","zh","ja"]) {
-    for (const section of ["weekly","consensus","accuracy","historical","daily","outcomes","journal"]) {
+    for (const section of ["weekly","consensus","accuracy","historical","daily","outcomes","journal","patterns"]) {
       const pathname="/"+locale+"/"+section;
       const html=await (await req(pathname)).text();
       const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
@@ -131,6 +131,25 @@ try{
       .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
     assert.deepEqual(selected,["/"+locale+"/historical"],
       "Only historical nav should be selected: "+locale);
+  }
+  // The Pattern Lab must be public in all four languages and must never
+  // fabricate pattern statistics when quote credentials are absent.
+  for(const [locale,heading] of Object.entries({
+    ko:"유명한 매매 패턴은 실제로 얼마나 맞았을까?",
+    en:"Do famous trading patterns actually hold up?",
+    zh:"著名交易形态真的有效吗？",
+    ja:"有名な売買パターンは本当に有効か？",
+  })){
+    await visible("/"+locale+"/patterns",heading);
+    const html=await (await req("/"+locale+"/patterns")).text();
+    assert.ok(html.includes("inverted-hammer")||html.includes("역망치형")||html.includes("Inverted hammer"));
+    assert.ok(!html.includes("120.25%"),"Pattern study must not contain arbitrary fallback returns");
+    await visible("/"+locale+"/patterns/fibonacci-618",
+      locale==="ko"?"유명한 매매 패턴은 실제로 얼마나 맞았을까?":
+      locale==="en"?"Do famous trading patterns actually hold up?":
+      locale==="zh"?"著名交易形态真的有效吗？":"有名な売買パターンは本当に有効か？");
+    const detailHtml=await (await req("/"+locale+"/patterns/fibonacci-618")).text();
+    assert.ok(!detailHtml.includes('id="pattern-price-feed"'),"Pattern detail must not publish raw price feed");
   }
   const unpublished=await req("/ko/weekly/2026-W48");
   assert.ok([200,404].includes(unpublished.status),"Unexpected unpublished report status");
@@ -165,7 +184,7 @@ try{
   assert.equal(map.status,200);
   const sitemap=await map.text();
   for(const locale of ["en","zh","ko","ja"]){
-    for(const suffix of ["portfolio","trades","performance","consensus","daily","outcomes","weekly","accuracy","historical","ai/gpt"]){
+    for(const suffix of ["portfolio","trades","performance","consensus","daily","outcomes","weekly","accuracy","historical","patterns","patterns/fibonacci-618","ai/gpt"]){
       assert.ok(sitemap.includes(`/${locale}/${suffix}`),`sitemap missing ${locale}/${suffix}`);
     }
   }

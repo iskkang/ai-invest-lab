@@ -26,7 +26,7 @@ export function MarketTickerTape(){
    symbols,
    showSymbolLogo:false,
    colorTheme:"dark",
-   isTransparent:true,
+   isTransparent:false,
    width:"100%",
    displayMode:"regular",
    locale:"en"
@@ -35,7 +35,7 @@ export function MarketTickerTape(){
   return()=>{node.replaceChildren()};
  },[]);
  return <section aria-label="Market ETF prices supplied by TradingView" data-market-ticker
-  className="ticker-outer h-[46px] w-full overflow-hidden border-y border-line bg-[#101d32] sm:h-[52px]">
+  className="ticker-outer h-[52px] w-full overflow-hidden border-y border-line bg-[#101d32]">
   <div ref={host} className="tradingview-widget-container ticker-inner"/>
  </section>;
 }

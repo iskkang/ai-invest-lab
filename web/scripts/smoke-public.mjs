@@ -57,36 +57,34 @@ try{
       assert.ok(html.includes(`href="/${locale}/methodology"`),`localized methodology link missing in ${locale}`);
     }
   }
-  // Each full document must agree on locale across <html>, app shell,
-  // dropdown, bottom navigation and on-page localized content.
-  const navExpected = {
-    ko: { dashboard: "대시보드", performance: "성과", language: "한국어" },
-    en: { dashboard: "Dashboard", performance: "Performance", language: "English" },
-    zh: { dashboard: "仪表盘", performance: "投资表现", language: "简体中文" },
-    ja: { dashboard: "ダッシュボード", performance: "パフォーマンス", language: "日本語" },
+  // Server-rendered header exposes exactly five locale-correct parents.
+  // Child URLs are kept in one typed map and verified in unit/browser tests
+  // because desktop dropdowns and mobile accordion are intentionally closed on SSR.
+  const navExpected={
+    ko:{dashboard:"대시보드",compare:"AI 비교",research:"리서치",journal:"일지",about:"소개",language:"한국어"},
+    en:{dashboard:"Dashboard",compare:"AI comparison",research:"Research",journal:"Journal",about:"About",language:"English"},
+    zh:{dashboard:"仪表盘",compare:"AI 对比",research:"研究",journal:"实验日志",about:"关于",language:"简体中文"},
+    ja:{dashboard:"ダッシュボード",compare:"AI 比較",research:"リサーチ",journal:"実験日誌",about:"概要",language:"日本語"},
   };
-  for (const [locale, labels] of Object.entries(navExpected)) {
-    const res = await req(`/${locale}`);
-    assert.equal(res.status, 200, `wrong locale HTTP status: ${locale}`);
-    const html = await res.text();
-    assert.ok(html.includes(`data-active-locale="${locale}"`),
-      `root app shell is not using ${locale}`);
-    assert.ok(html.includes(`lang="${locale === "zh" ? "zh-CN" : locale}"`),
-      `document <html lang> not ${locale}`);
-    assert.ok(html.includes(labels.language),
-      `missing selected language label ${labels.language}`);
-    assert.ok(html.includes(`href="/${locale}/performance"`),
-      `bottom/side navigation links leaked another locale: ${locale}`);
-    assert.ok(html.includes(`href="/${locale}/trades"`),
-      `trades links leaked another locale: ${locale}`);
-    assert.ok(html.includes(labels.dashboard), `missing translated navigation: ${locale}`);
-    assert.ok(html.includes(labels.performance), `missing translated performance: ${locale}`);
-    assert.ok(html.includes('aria-haspopup="dialog"'),"Mobile More entry must expose secondary pages");
-    assert.ok(html.includes('min-h-[61px]') || html.includes('min-h-\[61px\]'),
-      "Bottom navigation needs accessible tap targets");
-    for (const other of Object.keys(navExpected).filter((x) => x !== locale)) {
-      assert.ok(!html.includes(`href="/${other}/performance"`),
-        `mixed-language navigation in ${locale}: unexpected ${other}`);
+  for(const [locale,labels] of Object.entries(navExpected)){
+    const response=await req("/"+locale);
+    assert.equal(response.status,200,"wrong locale HTTP status: "+locale);
+    const html=await response.text();
+    assert.ok(html.includes('data-active-locale="'+locale+'"'),"app shell locale mismatch: "+locale);
+    assert.ok(html.includes('lang="'+(locale==="zh"?"zh-CN":locale)+'"'),
+      "document lang mismatch: "+locale);
+    assert.ok(html.includes(labels.language),"selected language missing: "+locale);
+    assert.ok(html.includes('data-header-nav="true"'),"five-group top nav missing");
+    for(const [id,label] of Object.entries(labels).filter(([key])=>key!=="language")){
+      assert.ok(html.includes('data-top-nav-item="'+id+'"'),"missing parent "+id);
+      assert.ok(html.includes(label),"untranslated parent "+id+": "+locale);
+    }
+    assert.ok(html.includes('data-mobile-menu-trigger="true"'),"mobile hamburger missing");
+    assert.ok(html.includes('aria-haspopup="dialog"'),"mobile drawer not accessible");
+    assert.ok(!html.includes('aria-label="Mobile navigation"'),"old bottom nav still rendered");
+    for(const other of Object.keys(navExpected).filter(x=>x!==locale)){
+      assert.ok(!html.includes('href="/'+other+'/performance"'),
+        "mixed-language nav in "+locale);
     }
   }
   await visible("/ko/about","AI는 실제로 주식투자를 잘할까?");
@@ -132,18 +130,18 @@ try{
       await visible("/"+locale+"/"+suffix,heading);
     }
   }
-  // Regression: only the selected nav item may have aria-current=page.
-  // Root /en must NOT activate on descendant /en/weekly or /en/consensus.
-  for (const locale of ["en","ko","zh","ja"]) {
-    for (const section of ["weekly","consensus","accuracy","historical","daily","outcomes","journal","patterns"]) {
-      const pathname="/"+locale+"/"+section;
-      const html=await (await req(pathname)).text();
-      const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
-      const selected=anchors.filter(a=>a.includes('aria-current="page"'))
-        .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
-      const direct=["daily","consensus","outcomes"].includes(section);
-      assert.deepEqual(selected,direct?[pathname,pathname]:[pathname],
-        "Mobile More menu must not mark hidden routes as a different tab: "+pathname);
+  // A child URL selects its parent group, never Dashboard.
+  const activeGroups={
+    weekly:"research",consensus:"compare",accuracy:"research",
+    historical:"research",daily:"journal",outcomes:"journal",
+    journal:"journal",patterns:"research",
+  };
+  for(const locale of ["en","ko","zh","ja"]){
+    for(const [suffix,group] of Object.entries(activeGroups)){
+      const html=await (await req("/"+locale+"/"+suffix)).text();
+      const active=[...html.matchAll(/data-active-group="([^"]+)"/g)].map(m=>m[1]);
+      assert.deepEqual(active,[group],
+        "incorrect active parent for "+locale+"/"+suffix);
     }
   }
   // Historical research is public in four languages but FAILS CLOSED if real
@@ -157,11 +155,8 @@ try{
     await visible("/"+locale+"/historical",headline);
     const html=await (await req("/"+locale+"/historical")).text();
     assert.ok(!html.includes("Simulated total return</"),"Data outage must not fabricate research returns");
-    const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
-    const selected=anchors.filter(a=>a.includes('aria-current="page"'))
-      .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
-    assert.deepEqual(selected,["/"+locale+"/historical"],
-      "Only historical nav should be selected: "+locale);
+    assert.ok(html.includes('data-active-group="research"'),
+      "Historical child page must highlight Research: "+locale);
   }
   // The Pattern Lab must be public in all four languages and must never
   // fabricate pattern statistics when quote credentials are absent.

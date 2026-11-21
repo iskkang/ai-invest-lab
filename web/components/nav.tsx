@@ -53,7 +53,7 @@ export function HeaderNav({locale}:{locale:Locale}) {
           chosen?"bg-accent/10 text-accent":"text-fg hover:bg-panel-2 hover:text-accent",
         );
         return <li key={group.id} className="relative"
-          data-top-nav-item={group.id}
+          data-top-nav-item={group.id} data-active-group={chosen?group.id:undefined}
           onMouseEnter={()=>{if(group.children.length)setOpenId(group.id);else setOpenId(null);}}
           onMouseLeave={()=>setOpenId(id=>id===group.id?null:id)}>
           {group.children.length===0?

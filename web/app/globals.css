@@ -218,3 +218,17 @@ body{
   .ms-card-hover,.hero-action{transition:none}
   .ms-card-hover:hover,.hero-action:hover{transform:none}
 }
+
+/* Mobile touch ergonomics: avoid iOS focus zoom and keep fixed controls reachable. */
+@media(max-width:1023px){
+  html{scroll-padding-top:70px;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  input[type="search"],select{font-size:16px}
+  /* The on-screen keyboard should not compete with bottom navigation. */
+  body:has(input[role="combobox"]:focus) nav[aria-label="Mobile navigation"]{
+    visibility:hidden;pointer-events:none;
+  }
+}
+@media(max-width:639px){
+  .ms-rank-card .tabular{overflow-wrap:anywhere}
+  .market-hero .hero-meta{font-size:10px}
+}

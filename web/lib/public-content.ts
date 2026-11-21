@@ -85,7 +85,7 @@ export const PUBLIC_COPY: Record<Locale, Copy> = {
     currentBody:"The private research dashboard may show a pre-first-session state until authentic decisions, hypothetical fills and valuations have been recorded. No demo performance is presented as real model results.",
     why:"What makes this comparison useful?",
     whyBody:"Instead of cherry-picking one AI answer, the experiment holds input data, starting capital, market timing and risk limits constant. Each participant keeps its own transaction history, allowing later comparison with SPY, equal-weight and cash benchmarks.",
-    footnote:"Published educational descriptions do not include licensed raw NH PLUG stock-price feeds. Live dashboards remain access-controlled pending data-redistribution rights and privacy/security review.",
+    footnote:"Published educational descriptions do not include licensed raw licensed market-data provider stock-price feeds. Live dashboards remain access-controlled pending data-redistribution rights and privacy/security review.",
     aboutMethod:"A reproducible comparison needs fixed rules, timestamped information and an audit trail. The study separates decisions from later hypothetical fills and valuations.",
     method:[
       {heading:"1. Comparable information",body:"For each eligible NYSE decision session, participants receive the same dated market snapshot containing only prices and computed technical indicators known by the cutoff. Each AI sees only its own prior holdings and transactions; it cannot inspect competitors."},
@@ -139,7 +139,7 @@ export const PUBLIC_COPY: Record<Locale, Copy> = {
     currentBody:"在首次真实验证的 AI 决策、模拟成交与估值产生前，AI 排行榜可能显示等待状态。演示收益不会冒充真实模型业绩。",
     why:"为什么这种比较有意义？",
     whyBody:"研究统一市场数据、起始资金、决策时点与风险限制，而不是挑选某一次漂亮的 AI 回答。每个模型保留独立交易历史，并与 SPY、等权重投资组合及现金基准比较。",
-    footnote:"公开研究页面不提供受许可限制的 NH PLUG 原始股价数据。AI 决策和模拟账户表现可公开查看，但未经授权不得重新发布原始行情或成交单价。",
+    footnote:"公开研究页面不提供受许可限制的 licensed market-data provider 原始股价数据。AI 决策和模拟账户表现可公开查看，但未经授权不得重新发布原始行情或成交单价。",
     aboutMethod:"可信的比较需要固定规则、时间戳和审计记录。本研究将决策、后续模拟成交与估值分开记录。",
     method:[
       {heading:"1. 一致的信息",body:"在符合条件的纽约证券交易所交易日，每个 AI 获取同一份截止时已知的历史价格和技术指标。每个模型只能读取自己的持仓与交易，不能查看竞争模型。"},
@@ -193,7 +193,7 @@ export const PUBLIC_COPY: Record<Locale, Copy> = {
     currentBody:"실제 AI 판단·가상 체결·평가 기록이 생성되기 전에는 AI 성과 대시보드에 시작 대기 상태가 표시될 수 있습니다. 예시 수익률을 실제 모델 성과인 것처럼 표시하지 않습니다.",
     why:"이 실험의 핵심은 무엇인가?",
     whyBody:"특정 AI의 유리한 답변만 골라 비교하지 않습니다. 동일한 데이터·초기 원금·판단 시점·위험 규칙을 유지하고, AI별 거래 내역을 SPY·동일비중 포트폴리오·현금과 비교합니다.",
-    footnote:"공개 페이지에는 NH PLUG의 원본 주가 데이터를 게시하지 않습니다. AI 투자 판단과 가상 수익률은 공개하되, 재배포 허가되지 않은 원본 주가와 체결 단가는 공개하지 않습니다.",
+    footnote:"공개 페이지에는 licensed market-data provider의 원본 주가 데이터를 게시하지 않습니다. AI 투자 판단과 가상 수익률은 공개하되, 재배포 허가되지 않은 원본 주가와 체결 단가는 공개하지 않습니다.",
     aboutMethod:"검증 가능한 비교를 위해 규칙·정보 기준 시각·감사 기록을 고정합니다. 투자 판단과 나중의 모의 체결·평가를 분리합니다.",
     method:[
       {heading:"1. 완전히 동일한 시장 데이터",body:"미국 거래소의 유효한 판단 시점마다 AI 네 개에 똑같은 과거 주가·기술적 지표 스냅샷을 제공합니다. 각 AI는 자신의 계좌·과거 거래만 볼 수 있으며 경쟁 AI의 정보는 받지 않습니다."},
@@ -247,7 +247,7 @@ export const PUBLIC_COPY: Record<Locale, Copy> = {
     currentBody:"有効な判断、仮想約定、評価記録が生成されるまではAIランキングが開始待ちとなる場合があります。デモ損益を実際のモデル成績として表示しません。",
     why:"この比較で分かること",
     whyBody:"都合のよい回答だけを採用せず、市場データ、初期資金、判断時刻、リスク条件を統一します。各AIの履歴をSPY、等ウェイト、現金と比較することで経過を検証できます。",
-    footnote:"公開ページではNH PLUGのライセンス対象となる株価原データを提供しません。再配布許諾・プライバシー・セキュリティの確認が終わるまで実験ダッシュボードは保護されます。",
+    footnote:"公開ページではlicensed market-data providerのライセンス対象となる株価原データを提供しません。再配布許諾・プライバシー・セキュリティの確認が終わるまで実験ダッシュボードは保護されます。",
     aboutMethod:"公平な検証には固定ルール、情報の基準時刻、監査記録が必要です。判断と後続の仮想約定・評価を区別しています。",
     method:[
       {heading:"1. 同じ市場情報",body:"米国取引所の対象営業日ごとに、締切時点までに確認された過去の株価とテクニカル指標を同じ形式で配布します。各AIは自分の残高・保有・取引のみ参照できます。"},

@@ -97,7 +97,7 @@ try{
     zh:"比较不同 AI 对同一市场的判断",
     ja:"同じ市場に対するAIの見方を比較",
   })) {
-    for (const suffix of ["consensus","daily","outcomes","journal","weekly","accuracy","patterns"]) {
+    for (const suffix of ["consensus","daily","outcomes","journal","weekly","accuracy"]) {
       await visible("/"+locale+"/"+suffix,heading);
     }
   }

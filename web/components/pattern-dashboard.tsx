@@ -6,7 +6,8 @@ import {
 import type { Locale } from "@/lib/public-content";
 import type { PatternId, PatternSummary, PatternStudy, HorizonStudy } from "@/lib/pattern-lab";
 import { PATTERNS } from "@/lib/pattern-lab";
-import type { PatternOverlap, PublicPatternLab } from "@/lib/pattern-server";
+import type { PatternOverlap } from "@/lib/pattern-compare";
+import type { PublicPatternLab } from "@/lib/pattern-server";
 import { patternCopy, patternDetail } from "@/lib/pattern-copy";
 import { localizedHref } from "@/lib/i18n";
 

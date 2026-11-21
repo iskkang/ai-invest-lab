@@ -23,7 +23,7 @@ export function MarketTickerTape(){
    const script=document.createElement("script");
    script.src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
    script.async=true;
-   script.textContent=JSON.stringify({symbols,showSymbolLogo:false,isTransparent:true,displayMode:"adaptive",colorTheme:theme,locale:"en"});
+   script.textContent=JSON.stringify({symbols,showSymbolLogo:false,isTransparent:false,displayMode:"adaptive",colorTheme:theme,locale:"en"});
    node.appendChild(script);
   };
   render();

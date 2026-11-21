@@ -7,7 +7,7 @@ export { BottomNav };
 
 export function Logo() {
   return (
-    <Link href="/" className="flex items-center gap-2.5" aria-label="AI Invest Lab 홈">
+    <Link href="/lab" className="flex items-center gap-2.5" aria-label="AI Invest Lab 홈">
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white">
         <ChartNoAxesColumnIncreasing size={18} strokeWidth={2.4} aria-hidden />
       </span>

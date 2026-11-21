@@ -96,9 +96,9 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
     </section>
     <section>
       <Title title={c.study} sub={c.studySub}/>
-      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0"
-        aria-label={c.study} tabIndex={0}>
-        {strategies.map(r=><article key={r.id} className="ms-card ms-card-hover w-[81vw] max-w-[315px] shrink-0 snap-start p-4 sm:w-auto sm:max-w-none sm:shrink">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"
+        aria-label={c.study}>
+        {strategies.map(r=><article key={r.id} className="ms-card ms-card-hover min-w-0 p-4">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full" style={{background:HISTORICAL_PROFILES.find(p=>p.id===r.id)?.color}}/>
             <h3 className="text-sm font-bold">{label[r.id]}</h3>

@@ -91,10 +91,10 @@ try{
   // Every locale must serve the same audited engine-derived numbers and model
   // IDs, without placeholder translation or fabricated live configuration.
   const methodologyLabels={
-    ko:"실제 엔진 설정과 검증 기준",
-    en:"Verified engine settings and methodology",
-    zh:"已核验的引擎设置与研究方法",
-    ja:"確認済みエンジン設定と研究方法",
+    ko:"엔진 설정(구성된 기본값)",
+    en:"Engine settings (configured defaults)",
+    zh:"引擎设置（已配置的默认值）",
+    ja:"エンジン設定（設定済みの既定値）",
   };
   for(const [locale,label] of Object.entries(methodologyLabels)){
     for(const suffix of ["about","methodology"]){

@@ -26,11 +26,11 @@ export function LanguageSwitcher({ locale }: { locale: Locale }) {
   };
 
   return (
-    <label className="flex shrink-0 items-center gap-1 rounded-lg border border-line bg-panel px-2 py-1.5 text-xs text-muted" aria-label="Display language">
-      <Globe2 size={15} aria-hidden />
+    <label className="flex shrink-0 items-center gap-1 rounded-lg border border-line bg-panel px-1.5 py-1.5 text-xs text-muted sm:px-2" aria-label="Display language">
+      <Globe2 size={15} className="hidden sm:block" aria-hidden />
       <select
         key={activeLocale}
-        className="max-w-[104px] cursor-pointer bg-transparent text-xs text-fg outline-none"
+        className="max-w-[68px] cursor-pointer bg-transparent text-[11px] text-fg outline-none sm:max-w-[104px] sm:text-xs"
         aria-label="Language / 언어 / 语言 / 言語"
         value={activeLocale}
         onChange={(e) => switchTo(e.target.value)}

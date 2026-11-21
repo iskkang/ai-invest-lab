@@ -4,6 +4,7 @@ import { isLocale, type Locale } from "@/lib/public-content";
 import { ReturnChart } from "@/components/charts";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { InsightTeasers } from "@/components/insight-panels";
+import { DashboardHero } from "@/components/dashboard-hero";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
 import { Badge } from "@/components/ui/badge";
@@ -47,11 +48,13 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const sells = todays.length - buys;
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
-    <div className="min-w-0 space-y-4">
-      <div className="flex flex-wrap items-end justify-between gap-2">
+    <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
+    <div className="min-w-0 space-y-5">
+      <DashboardHero d={d} />
+      <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t(d.locale, "AI 투자 리더보드")}</h1>
+          <p className="ms-kicker mb-2">PERFORMANCE / SEASON 01</p>
+          <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">{t(d.locale, "AI 투자 리더보드")}</h2>
           <p className="mt-1 text-sm text-muted">
             {t(d.locale, "같은 시장 데이터, 같은 규칙, 각자")} ${d.experiment.initialCash.toLocaleString()} {t(d.locale, "로 시작 · 시작일")} {d.experiment.startSession}
           </p>

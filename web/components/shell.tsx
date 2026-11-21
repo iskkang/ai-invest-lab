@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { ChartNoAxesColumnIncreasing } from "lucide-react";
-import { BottomNav, SideNav, StockSearch } from "./nav";
+import { Activity } from "lucide-react";
+import { BottomNav, SideNav, StockSearch, MobileSearch } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 import { localizedHref, t } from "@/lib/i18n";
@@ -10,27 +10,46 @@ export { BottomNav };
 
 export function Logo({locale="ko"}:{locale?:Locale}) {
   return (
-    <Link href={localizedHref(locale,"/")} className="flex items-center gap-2.5" aria-label="MarketSights home">
-      <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white">
-        <ChartNoAxesColumnIncreasing size={18} strokeWidth={2.4} aria-hidden />
+    <Link href={localizedHref(locale,"/")}
+      className="group inline-flex items-center gap-2.5" aria-label="MarketSights home">
+      <svg width="35" height="35" viewBox="0 0 35 35" fill="none" aria-hidden="true"
+        className="shrink-0 drop-shadow-sm">
+        <rect width="35" height="35" rx="11" fill="#333B91"/>
+        <circle cx="17.5" cy="17.5" r="10.25" stroke="#B8C8FF" strokeOpacity=".6" strokeWidth="1.2"/>
+        <circle cx="17.5" cy="17.5" r="5.75" stroke="#D2FB91" strokeWidth="1.6"/>
+        <path d="M5.7 23.8l8.4-7.4 5.1 3.6 9.8-11" stroke="#D2FB91" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+        <circle cx="28.9" cy="9.2" r="2.35" fill="#D2FB91"/>
+      </svg>
+      <span className="flex flex-col">
+        <span className="text-[14px] font-extrabold leading-[1.1] tracking-[-.045em] sm:text-[17px]">
+          Market<span className="text-accent group-hover:opacity-75">Sights</span>
+        </span>
+        <span className="mt-[3px] hidden text-[8px] font-extrabold tracking-[.17em] text-muted sm:block">INTELLIGENCE LAB</span>
       </span>
-      <span className="text-[17px] font-bold tracking-tight">MarketSights</span>
     </Link>
   );
 }
 
 export function Sidebar({locale}:{locale:Locale}) {
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-line bg-panel lg:block">
-      <div className="sticky top-0 flex h-dvh flex-col px-4 py-5">
-        <div className="mb-7 px-2"><Logo locale={locale}/></div>
+    <aside className="hidden w-[250px] shrink-0 border-r border-white/10 bg-[#101a35] text-[#f3f6ff] lg:block">
+      <div className="sticky top-0 flex h-dvh flex-col px-4 py-6">
+        <div className="mb-10 px-2 [&_.text-accent]:!text-[#c9f58a] [&_.text-muted]:!text-[#a6b9db]">
+          <Logo locale={locale}/>
+        </div>
+        <p className="mb-3 px-3 text-[10px] font-bold tracking-[.19em] text-[#8299c4]">RESEARCH DESK / 01</p>
         <SideNav locale={locale}/>
-        <p className="mt-auto px-2 text-[11px] leading-relaxed text-muted">
+        <div className="mt-auto rounded-2xl border border-white/10 bg-white/[.055] px-3 py-3">
+          <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold tracking-[.12em] text-[#d0f9a0]">
+            <Activity size={14} aria-hidden/> MARKET RESEARCH
+          </div>
+          <p className="text-[11px] leading-relaxed text-[#b4c2dd]">
           {({ko:"교육·연구용 모의투자 실험입니다. 실제 주문·투자 권유 없음.",
           en:"Educational paper trading only. No real orders or investment advice.",
           zh:"仅供教育研究的模拟投资，无真实订单或投资建议。",
           ja:"教育・研究用の模擬投資であり、実際の注文・投資助言ではありません。" } as Record<Locale,string>)[locale]}
-        </p>
+          </p>
+        </div>
       </div>
     </aside>
   );
@@ -41,11 +60,12 @@ export function TopBar({asOf,symbols,locale}:{
 }) {
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-line bg-panel/90 backdrop-blur">
-        <div className="flex h-14 items-center gap-4 px-4 lg:h-16 lg:px-6">
+      <header className="sticky top-0 z-30 border-b border-line bg-panel/92 backdrop-blur-xl">
+        <div className="mx-auto flex h-[62px] max-w-[1640px] items-center gap-2 px-3 sm:gap-4 sm:px-4 lg:h-[70px] lg:px-8">
           <div className="lg:hidden"><Logo locale={locale}/></div>
-          <div className="hidden max-w-xl flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
+          <div className="hidden w-full max-w-md flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <div className="lg:hidden"><MobileSearch symbols={symbols} locale={locale}/></div>
             <span className="hidden rounded-md bg-panel-2 px-2.5 py-1.5 text-xs text-muted sm:inline">
               {t(locale,"데이터 기준일")} {asOf || "—"}
             </span>
@@ -54,22 +74,21 @@ export function TopBar({asOf,symbols,locale}:{
           </div>
         </div>
       </header>
-      <div className="border-b border-line bg-panel px-4 py-3 lg:hidden">
-        <StockSearch symbols={symbols} locale={locale}/>
-      </div>
     </>
   );
 }
 
 export function Footer({locale}:{locale:Locale}) {
   const disclaimers:Record<Locale,string>={
-    ko:"MarketSights은 교육·연구 목적의 모의투자 실험입니다. 실제 주식 주문을 실행하지 않으며 개인별 투자 권유가 아닙니다. 표시된 가상 체결 수익은 실제 투자 성과와 다를 수 있고 과거 성과는 미래 결과를 보장하지 않습니다.",
+    ko:"MarketSights는 교육·연구 목적의 모의투자 실험입니다. 실제 주식 주문을 실행하지 않으며 개인별 투자 권유가 아닙니다. 표시된 가상 체결 수익은 실제 투자 성과와 다를 수 있고 과거 성과는 미래 결과를 보장하지 않습니다.",
     en:"MarketSights is an educational paper-trading experiment. It never places real stock orders or provides personalized investment advice. Simulated fills and returns may differ from actual trading results. Past outcomes do not predict future performance.",
     zh:"MarketSights 是教育研究性质的模拟投资实验，不会下达真实证券订单，也不提供个性化投资建议。模拟成交与收益可能不同于实际交易结果，历史表现不代表未来收益。",
     ja:"MarketSightsは教育・研究目的の模擬投資実験です。実際の発注や個別の投資助言は行いません。仮想約定とリターンは実際の運用成績とは異なり、過去の結果は将来を保証しません。",
   };
   return (
-    <footer className="px-4 pb-28 pt-8 text-xs leading-relaxed text-muted lg:px-6 lg:pb-8">
+    <footer className="mx-auto mt-8 max-w-[1580px] px-4 pb-28 pt-9 text-xs leading-relaxed text-muted lg:px-8 lg:pb-10">
+      <div className="ms-divider mb-5"/>
+      <p className="mb-2 text-[11px] font-extrabold tracking-[.17em] text-fg">MARKETSIGHTS <span className="text-accent">/</span> RESEARCH TERMINAL</p>
       <p className="max-w-4xl">{disclaimers[locale]}</p>
       <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs" aria-label="Research information">
         <Link href={localizedHref(locale,"/methodology")} className="hover:text-accent">{t(locale,"실험 방식")}</Link>

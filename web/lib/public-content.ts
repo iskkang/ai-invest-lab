@@ -1,6 +1,6 @@
 /** Public-facing localized editorial content. This never includes private NH prices. */
 // Keep archived translations available for a future multilingual relaunch.
-// Only ACTIVE_LOCALES participate in routing, prerendering and SEO.
+// Only LOCALES participates in routing, prerendering and SEO.
 export const SUPPORTED_LOCALES = ["ko", "en", "zh", "ja"] as const;
 export type Locale = (typeof SUPPORTED_LOCALES)[number];
 export const LOCALES = ["en"] as const;
@@ -16,7 +16,7 @@ export const LANG_LABELS: Record<Locale, string> = {
 };
 
 export function isLocale(value: string): value is Locale {
-  return LOCALES.includes(value as "en");
+  return value === "en";
 }
 export function isPublicSection(value: string): value is PublicSection {
   return PUBLIC_SECTIONS.includes(value as PublicSection);

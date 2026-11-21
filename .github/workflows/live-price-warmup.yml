@@ -18,6 +18,13 @@ jobs:
   warmup:
     if: github.repository == 'iskkang/ai-invest-lab'
     runs-on: ubuntu-latest
+    # Sequential batches persist completed NH symbols before starting the next.
+    # No simultaneous jobs should stress the same NH PLUG session or DB.
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        batch: [1, 2, 3]
     timeout-minutes: 48
     environment: production
     env:
@@ -26,9 +33,9 @@ jobs:
       NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
       AIL_EXPERIMENT: "season-1"
       AIL_MODE: live
-      AIL_HISTORY_BARS: "230"
-      AIL_WARMUP_MAX_SYMBOLS: "31"
-      AIL_WARMUP_SYMBOL_TIMEOUT: "70"
+      AIL_HISTORY_BARS: "215"
+      AIL_WARMUP_MAX_SYMBOLS: "12"
+      AIL_WARMUP_SYMBOL_TIMEOUT: "140"
       NHPLUG_TOKEN_CACHE: "0"
     steps:
       - uses: actions/checkout@v4
@@ -38,5 +45,5 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install ./engine
-      - name: Fetch real historical quotes only, without orders
-        run: python engine/scripts/live_price_warmup.py
+      - name: Fetch verified historical NH prices, batch ${{ matrix.batch }} of 3
+        run: python -u engine/scripts/live_price_warmup.py

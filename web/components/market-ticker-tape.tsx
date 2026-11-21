@@ -12,7 +12,7 @@ export function MarketTickerTape(){
    {proName:"NASDAQ:QQQ",title:"QQQ (Nasdaq 100)"},
    {proName:"AMEX:DIA",title:"DIA (Dow)"},
    {proName:"AMEX:IWM",title:"IWM (Russell 2000)"},
-   {proName:"TVC:VIX",title:"VIX"}
+   {proName:"CAPITALCOM:VIX",title:"VIX (CFD)"}
   ],showSymbolLogo:false,isTransparent:true,displayMode:"adaptive",colorTheme:"dark",locale:"en"});
   node.appendChild(script);
   return()=>{node.replaceChildren()};

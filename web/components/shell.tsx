@@ -50,7 +50,7 @@ export function TopBar({asOf,symbols,locale}:{
         <div className="hidden w-full max-w-md min-w-0 flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
         <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
           <div className="lg:hidden"><MobileSearch symbols={symbols} locale={locale}/></div>
-          <div className="hidden items-center gap-3 sm:flex">
+          <div className="hidden items-center gap-3 sm:mr-2 sm:flex">
             <DataAsOfStatus asOf={asOf} locale={locale}/>
           </div>
           <LanguageSwitcher locale={locale}/>

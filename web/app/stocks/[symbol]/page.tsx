@@ -14,10 +14,6 @@ import { localizedHref,t } from "@/lib/i18n";
 
 export const revalidate = 300;
 
-export async function generateStaticParams() {
-  const d = await getData();
-  return d.universe.map((u) => ({ symbol: u.symbol }));
-}
 
 export async function generateMetadata({ params }: { params: Promise<{ symbol: string }> }) {
   return { title: (await params).symbol.toUpperCase() };

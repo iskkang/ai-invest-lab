@@ -1,63 +1,59 @@
-# Public multilingual website / worldwide discovery / advertising rollout
+# Public multilingual AI Invest Lab: the original dashboard design
 
-## Shipped site architecture (November 2026)
+## Customer-facing UX (2026-11-21)
 
-- `/` redirects to the public English research landing page at `/en`.
-- `/en`, `/zh` (Simplified Chinese), `/ko`, and `/ja` provide four human-readable language options in the header.
-- The four sections on every language route are `/methodology`, `/faq`, `/privacy`, `/advertise`: **20 indexable public editorial URLs total**.
-- `/lab` is the original **private** AI paper-trading dashboard. Its detailed portfolio, quote/price chart, /api, benchmark, orders, and trade paths remain password-gated. Do NOT expose them by setting `SITE_ACCESS=public`; `proxy.ts` independently protects them.
-- No market-price feed or Supabase secret is shipped to these public pages. Full public access to licensed stock data requires verified **redistribution rights** from the provider and an explicit least-privilege access design.
-- Incomplete experiment results are not converted to fake performance for marketing.
+The original AI leaderboard, return chart, portfolio / performance tables, model details and stock views are the main user experience. The former standalone marketing landing page and public "advertising plan" page were removed. No ads or promotional blanks appear until an approved advertising network and lawful consent workflow are configured.
 
-The new public layer does **not** translate every private dashboard chart, tooltip, and table yet. The `/lab` application remains the internal Korean research console while legal review for public reporting is underway.
+- `/` and legacy `/lab` redirect to `/ko`.
+- `/ko`, `/en`, `/zh`, `/ja` each render **the original full dashboard** with the language switcher inside the top toolbar.
+- Dashboard subpages are duplicated by language, using shared UI components: `/<locale>/portfolio`, `/<locale>/trades`, `/<locale>/performance`, `/<locale>/about`, `/<locale>/ai/{gpt,claude,gemini,deepseek}`, `/<locale>/stocks/{symbol}`, `/<locale>/trades/{id}`.
+- Secondary education/SEO: `/<locale>/methodology`, `/<locale>/faq`, `/<locale>/privacy`. These are shown inside the same dashboard shell, not a separate theme.
+- AI text such as historical generated rationales is stored in its source language (Korean in the current engine). UI labels and the educational articles have 4 native localizations; editorial translations of arbitrary historical AI-generated reasoning require a separate controlled translation job.
+- Public trading data are hypothetical educational results only, never real brokerage orders. A new real-data experiment may initially have **no outcomes**. Do not substitute synthetic DEMO returns and call them live.
 
-## SEO & AI search
+## Access control and quote-license separation
 
-Implemented:
-- Individual, server-rendered human content per language; a selectable language menu on every public URL.
-- Each page has language-specific `title`, `description`, canonical URL, reciprocal `hreflang` alternates, `x-default`, Open Graph metadata.
-- `/sitemap.xml` contains all 20 public pages. `/robots.txt` is public and lets ordinary search bots and recognized AI search bots crawl public pages only.
-- `/llms.txt` gives bots a public overview and methodology links. It is an informational convenience, **not** a ranking/indexing mechanism.
-- `WebSite` JSON-LD on language landing pages, and FAQ/WebPage JSON-LD on supporting pages. FAQ structured data does not guarantee a rich result.
-- HTTP `noindex, nofollow, noarchive` and the Basic auth check remain active on all protected paths.
+The public read-only pages use the server-rendered Supabase data projection, but the API/secret key remains server-side. Public live responses **redact** NH PLUG per-symbol OHLCV, original opening/fill prices and trade cash amounts. They may display independently generated AI decisions, simulated portfolio-level curves, and hypothetical positions; confirm provider-derived-data licensing separately before any further public feed.
+- Health endpoints, dashboard database operations and unlisted paths remain behind Basic authentication.
+- `SITE_ACCESS=public` is **not necessary**. The route allowlist in `web/proxy.ts` opens only named read-only localized routes and public SEO files.
+- The private secret must never be put in a `NEXT_PUBLIC_` variable.
+- Content requiring real-time prices needs a separate redistribution license, not merely crawler changes.
 
-Search visibility is not guaranteed by crawler permissions. A new domain, content quality, links, competitors, availability and search-provider policies determine whether/when a page is indexed or cited by ChatGPT, Claude, Gemini/Google, Bing, etc.
+## Global search and AI search
 
-After deployment:
-1. Visit `/`, `/en`, `/ko`, `/zh`, `/ja`, `/en/methodology`, `/sitemap.xml`, `/robots.txt`, `/llms.txt` anonymously and verify no Basic challenge. They should return 200 except `/`, which should redirect to `/en`.
-2. Visit `/lab`, `/portfolio`, `/api/health/db` without credentials. They MUST return 401 and must not expose data or API secrets.
-3. Confirm language selector works on mobile, including preservation of the current article section.
-4. For a **custom production domain**, first set `NEXT_PUBLIC_SITE_URL=https://your-domain.tld` in Vercel Production and redeploy, then submit the exact domain-specific `/sitemap.xml` in **Google Search Console**, **Bing Webmaster Tools**, and regionally relevant tools (Baidu/Yandex) if supported. The alternate domain should redirect to the canonical origin. Avoid indexing two domains with duplicate content.
-5. Check Google URL Inspection and Bing IndexNow/inspection as appropriate. Crawlable does **not** mean indexed or selected as an AI-search citation.
-6. Regularly publish useful original content beyond translations: dated market **methodology and experiment** reports, independent benchmark comparisons, error/limitations disclosures, and source references. Confirm licensing before publishing derived price tables or screenshots.
+- `/sitemap.xml` lists **48 public localized pages**: 4 languages × (dashboard + portfolio/trades/performance/about/methodology/faq/privacy + four AI detail pages).
+- Per-page HTML title, description, canonical, alternate `hreflang`, `x-default`, Open Graph metadata.
+- `/robots.txt` allows global search crawlers and AI-search crawlers on the public pages, blocks private legacy routes and APIs. `/llms.txt` is a nonbinding orientation file. No standard guarantees inclusion in ChatGPT, Claude, Gemini or other AI search results.
+- Stock/trade individual detail pages remain `noindex` until content quality and data license review. They are still accessible by users.
+- Publish useful regular original analysis that is clearly dated, not fabricated, spammy, or just duplicated across languages.
 
-Relevant official sources:
-- Google Search Central localizations: https://developers.google.com/search/docs/specialty/international/localized-versions
-- OpenAI search crawler: https://developers.openai.com/api/docs/bots
+After domain/production deploy, verify anonymous `/ko`, `/en`, `/zh`, `/ja`, detailed routes and 200 response on sitemap, robots and llms files. Verify `/api/health/db` and old `/portfolio` require credentials. Submit the exact canonical domain's sitemap via Google Search Console, Bing Webmaster Tools, and regionally relevant search engines. When selecting a custom domain, set `NEXT_PUBLIC_SITE_URL=https://yourdomain.example` and redeploy. Redirect other domains canonically.
 
-## Ads and monetization
+## Monetization foundations
 
-Shipped:
-- An optional **clearly identified sponsor** area on public pages. Only shows when both `NEXT_PUBLIC_SPONSOR_NAME` and a valid HTTPS `NEXT_PUBLIC_SPONSOR_URL` are configured. Sponsor link uses `rel="sponsored nofollow noopener noreferrer"`.
-- `/ads.txt` advertises no sellers unless `ADSENSE_PUBLISHER_ID=pub-1234567890123456` (your own *approved* publisher ID) is set; with a valid ID it emits Google's direct-seller declaration. Replace the example with the REAL approved ID, never invent one.
-- Advertising and privacy editorial pages in all four languages, with clear separation from AI model decisions and rankings.
+The **public advertising-plan page was deliberately withdrawn**. Advertising configuration belongs in deployment settings, not the reader-facing navigation.
 
-Not yet done / required before **actual programmatic ads**:
-1. Own a suitable domain, apply for a legitimate Google AdSense account, complete site verification and site/ad account approval; a hosted Vercel preview domain is not an advertising strategy.
-2. Create a real publisher contact/ownership disclosure and review the privacy page against your actual hosting, vendors, analytics and retention. The current wording is a preliminary technical disclosure, not finalized legal advice.
-3. Choose and implement a consent management platform (CMP) and consent flow complying with relevant regional regulations. Google requires a Google-certified TCF CMP for personalized ads to visitors in EEA/UK/Switzerland. **Do not inject Google ads/scripts or user tracking into public pages before this is configured.**
-4. Add the approved `ADSENSE_PUBLISHER_ID`, verify `/ads.txt`, then only conditionally load approved AdSense code and clearly labeled ad units after all consent/policy gates are met. No platform can guarantee display of a particular stock-category advertisement or specific RPM.
-5. Keep ad placements away from portfolio trade actions, AI research facts, navigation and misleading high-return claims. Explicitly label sponsored articles, prevent conflicts of interest and disclose paid placements.
-6. Monitor accessibility, Core Web Vitals, organic impressions, CTR, ad viewability, RPM and policy-center messages. Do not bulk-publish low-value AI filler for indexing/AdSense.
+- `/ads.txt`: returns "No advertising sellers..." until a real `ADSENSE_PUBLISHER_ID=pub-1234567890123456` belonging to the approved publisher is configured; emits Google's authorized seller line only with a valid ID.
+- If `ADSENSE_PUBLISHER_ID` is valid, the Next.js app adds the `google-adsense-account` ownership-verification meta tag. This **does not** activate ads.
+- The existing dashboard supports one **dormant** `DashboardAdSlot` below the cumulative-return chart. It never appears unless all of the following are configured at build/deploy time:
+  - `NEXT_PUBLIC_ADSENSE_ENABLED=true`
+  - `NEXT_PUBLIC_ADSENSE_CLIENT=ca-pub-<your-16-digit-publisher-id>`
+  - `NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD=<actual-numeric-ad-unit-id>`
+  - `NEXT_PUBLIC_ADSENSE_CMP_READY=true`
+  - A properly installed certified CMP returns affirmative consent via TCF `__tcfapi` for storage purpose 1 and Google vendor 755. Without this signal, no ad requests are triggered. The CMP integration itself has **not** been installed.
+- Until approval, regional policy review, ownership verification and the consent-management implementation are complete, leave `NEXT_PUBLIC_ADSENSE_ENABLED` unset/false and `NEXT_PUBLIC_ADSENSE_CMP_READY` false. Revisit the `/privacy` page with legal review before turning on trackers.
+- Ads must be labeled and must never impersonate AI decisions or rankings. Google chooses actual ad demand; "stock-related" ad inventory and RPM are not guaranteed.
 
-Official references:
-- AdSense CMP requirements: https://support.google.com/adsense/answer/13554116
-- Publisher policy and content requirements: https://support.google.com/adsense/answer/15689616
+Official guidance:
+- Google Search `hreflang`: https://developers.google.com/search/docs/specialty/international/localized-versions
+- OpenAI crawler policy: https://developers.openai.com/api/docs/bots
+- AdSense publisher policies: https://support.google.com/adsense/answer/10008391
+- AdSense CMP: https://support.google.com/adsense/answer/13554116
 
-## Deployment
+## CI and deployment
 
-The previously connected Vercel account does not contain the `ai-invest-lab` project, so GitHub updates may deploy through a different, unconnected Vercel team. Use **the Vercel account actually hosting the site** to inspect deployment status.
+GitHub Actions Web CI executes `npm ci`, tests, typecheck, secret checks, a production build, and an HTTP smoke suite for anonymous 4-language dashboards, sitemap and private API rejection.
 
-No setting or secret named `SITE_ACCESS=public` is necessary to open the editorial site. Public routes are explicitly allowlisted in `web/proxy.ts`, while the private lab remains gated. Do NOT disable the password for `/lab` merely for SEO.
+The connected Vercel tooling in this ChatGPT session currently lists only the unrelated `kformula` project. Changes are committed to `iskkang/ai-invest-lab` `main`, but a remote Vercel deploy must be verified through the **actual Vercel team/project**. Do not equate a green GitHub check with proof that the alias is serving that commit.
 
-For the public page to be discoverable under the existing alias, the code must be deployed to `https://ai-invest-lab-five.vercel.app`. The `NEXT_PUBLIC_SITE_URL` value defaults to this alias; update it only when the canonical production domain changes.
+Do not publish fictitious live returns. `DATA_MODE=demo` remains explicitly marked as synthetic; switching to `DATA_MODE=live` needs successful engine real-data ingestion and verified performance records.

@@ -38,7 +38,7 @@ type Copy = {
   title: string;
   description: string;
   tagline: string;
-  nav: Record<"home" | PublicSection | "dashboard", string>;
+  nav: Record<"home" | PublicSection | "dashboard" | "advertise", string>;
   hero: string;
   heroSub: string;
   actionLearn: string;

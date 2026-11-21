@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   description: "Four independent AI models compare simulated US-stock investment decisions under identical conditions. Educational research only.",
   // AdSense site verification metadata is emitted only after a real publisher
   // account is configured. This does not activate advertising.
-  ...( /^pub-\\d{16}$/.test(process.env.ADSENSE_PUBLISHER_ID ?? "") ? {
+  ...( /^pub-\d{16}$/.test(process.env.ADSENSE_PUBLISHER_ID ?? "") ? {
     other: {"google-adsense-account": (process.env.ADSENSE_PUBLISHER_ID ?? "").replace("pub-","ca-pub-")}
   } : {} ),
   // No global noindex: exact private routes are blocked by proxy.ts instead.

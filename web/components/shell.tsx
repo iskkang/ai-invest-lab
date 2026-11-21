@@ -30,11 +30,12 @@ export function Logo({locale="ko"}:{locale?:Locale}) {
 
 function DataAsOfStatus({ asOf, locale }: { asOf: string; locale: Locale }) {
   const status = dataAsOfLabel(asOf, locale);
+  const pending = !asOf.trim();
   return (
     <span data-home-data-status="true"
       className="inline-flex min-w-0 flex-wrap items-baseline gap-x-1.5 gap-y-0.5 rounded-lg bg-panel-2 px-2.5 py-1.5 text-xs text-muted">
-      <span>{t(locale, "데이터 기준일")}</span>
-      <strong className="font-semibold text-fg tabular">{status}</strong>
+      <span>{pending ? "Status:" : "Data as of"}</span>
+      <strong className="font-semibold text-fg tabular">{pending ? "Awaiting first round" : status}</strong>
     </span>
   );
 }

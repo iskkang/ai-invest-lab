@@ -10,6 +10,7 @@ export default function robots(): MetadataRoute.Robots {
   const publicPaths = [
     "/en", "/zh", "/ko", "/ja",
     "/sitemap.xml", "/robots.txt", "/llms.txt", "/ads.txt",
+    "/_next/static/", "/_next/image/", "/icon.svg",
   ];
   return {
     rules: [

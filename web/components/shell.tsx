@@ -21,10 +21,10 @@ export function Logo({locale="ko"}:{locale?:Locale}) {
         <circle cx="28.9" cy="9.2" r="2.35" fill="#D2FB91"/>
       </svg>
       <span className="flex flex-col">
-        <span className="text-[17px] font-extrabold leading-[1.1] tracking-[-.045em]">
+        <span className="text-[14px] font-extrabold leading-[1.1] tracking-[-.045em] sm:text-[17px]">
           Market<span className="text-accent group-hover:opacity-75">Sights</span>
         </span>
-        <span className="mt-[3px] text-[8px] font-extrabold tracking-[.17em] text-muted">INTELLIGENCE LAB</span>
+        <span className="mt-[3px] hidden text-[8px] font-extrabold tracking-[.17em] text-muted sm:block">INTELLIGENCE LAB</span>
       </span>
     </Link>
   );
@@ -61,7 +61,7 @@ export function TopBar({asOf,symbols,locale}:{
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-line bg-panel/92 backdrop-blur-xl">
-        <div className="mx-auto flex h-[62px] max-w-[1640px] items-center gap-4 px-4 lg:h-[70px] lg:px-8">
+        <div className="mx-auto flex h-[62px] max-w-[1640px] items-center gap-2 px-3 sm:gap-4 sm:px-4 lg:h-[70px] lg:px-8">
           <div className="lg:hidden"><Logo locale={locale}/></div>
           <div className="hidden w-full max-w-md flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
           <div className="ml-auto flex items-center gap-2 sm:gap-3">

@@ -1,12 +1,14 @@
 import type { MetadataRoute } from "next";
 import { LOCALES } from "@/lib/public-content";
 import { VISIBLE_SECTIONS, alternateRoutes, localizedRoute } from "@/lib/seo";
+import { PATTERNS } from "@/lib/pattern-lab";
 
 /** SEO targets the real chart-first AI dashboard and its translated subpages. */
 export default function sitemap(): MetadataRoute.Sitemap {
   const sections:string[] = [
     ...VISIBLE_SECTIONS,
     "/ai/gpt", "/ai/claude", "/ai/gemini", "/ai/deepseek",
+    ...PATTERNS.map(p=>"/patterns/"+p.id),
   ];
   return sections.flatMap((section)=>
     LOCALES.map(locale=>({

@@ -9,6 +9,7 @@ import { DailyBriefing, TopConflicts, FollowupsPreview } from "@/components/rete
 import { ReturnVisitPulse, DecisionRevisionPanel, PortfolioMovement, RoundJournalPanel } from "@/components/returning-panels";
 import { verifiedDecisions } from "@/lib/insight-analytics";
 import { MobileResearchShortcut } from "@/components/mobile-research-shortcut";
+import { PatternLabTeaser } from "@/components/pattern-dashboard";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     <div className="min-w-0 space-y-5">
       <ReturnVisitPulse d={d} />
       <DailyBriefing d={d} compact />
+      <PatternLabTeaser locale={d.locale}/>
       <DashboardHero d={d} />
       {pending && <MobileResearchShortcut locale={d.locale} />}
       <div className="flex flex-wrap items-end justify-between gap-3">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, Search, ShieldCheck } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, History, Search, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { isNavActive } from "@/lib/nav-active";
 import { t, localizedHref } from "@/lib/i18n";
@@ -12,6 +12,7 @@ import type { Locale } from "@/lib/public-content";
 export const NAV = [
   { href: "/", key: "대시보드", icon: LayoutDashboard },
   { href: "/consensus", key: "AI 비교", icon: GitCompareArrows },
+  { href: "/historical", key: "과거 전략 연구", icon: History },
   { href: "/weekly", key: "주간 리포트", icon: Newspaper },
   { href: "/accuracy", key: "판단 검증", icon: ShieldCheck },
   { href: "/performance", key: "성과", icon: BarChart3 },
@@ -20,7 +21,7 @@ export const NAV = [
   { href: "/about", key: "소개", icon: Info },
 ] as const;
 const MOBILE_NAV = NAV.filter(item =>
-  ["/","/consensus","/weekly","/accuracy","/portfolio"].includes(item.href));
+  ["/","/consensus","/historical","/weekly","/accuracy"].includes(item.href));
 
 const active = (path: string, target: string) => isNavActive(path, target);
 

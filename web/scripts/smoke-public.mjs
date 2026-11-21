@@ -111,6 +111,23 @@ try{
         "Exactly the desktop and mobile active links must match: "+pathname);
     }
   }
+  // Historical research is public in four languages but FAILS CLOSED if real
+  // NH PLUG market data is not configured. No synthetic returns in web mode.
+  for (const [locale,headline] of Object.entries({
+    ko:"과거 시장에서 어떤 투자 규칙이 유리했을까?",
+    en:"Which fixed rules worked in the historical market?",
+    zh:"哪些固定规则在历史行情中表现更好？",
+    ja:"過去の市場で有効だった固定ルールは？",
+  })){
+    await visible("/"+locale+"/historical",headline);
+    const html=await (await req("/"+locale+"/historical")).text();
+    assert.ok(!html.includes("Simulated total return</"),"Data outage must not fabricate research returns");
+    const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
+    const selected=anchors.filter(a=>a.includes('aria-current="page"'))
+      .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
+    assert.deepEqual(selected,["/"+locale+"/historical","/"+locale+"/historical"],
+      "Only historical nav should be selected: "+locale);
+  }
   const unpublished=await req("/ko/weekly/2026-W48");
   assert.ok([200,404].includes(unpublished.status),"Unexpected unpublished report status");
   if(unpublished.status===200) {
@@ -144,7 +161,7 @@ try{
   assert.equal(map.status,200);
   const sitemap=await map.text();
   for(const locale of ["en","zh","ko","ja"]){
-    for(const suffix of ["portfolio","trades","performance","consensus","weekly","accuracy","ai/gpt"]){
+    for(const suffix of ["portfolio","trades","performance","consensus","weekly","accuracy","historical","ai/gpt"]){
       assert.ok(sitemap.includes(`/${locale}/${suffix}`),`sitemap missing ${locale}/${suffix}`);
     }
   }

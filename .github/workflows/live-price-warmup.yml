@@ -3,6 +3,12 @@
 name: live-price-warmup
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "engine/scripts/live_price_warmup.py"
+      - "web/data/demo.json"
+      - ".github/workflows/live-price-warmup.yml"
 permissions:
   contents: read
 concurrency:
@@ -12,7 +18,7 @@ jobs:
   warmup:
     if: github.repository == 'iskkang/ai-invest-lab'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 48
     environment: production
     env:
       DATABASE_URL: ${{ secrets.DATABASE_URL }}
@@ -20,7 +26,9 @@ jobs:
       NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
       AIL_EXPERIMENT: "season-1"
       AIL_MODE: live
-      AIL_HISTORY_BARS: "300"
+      AIL_HISTORY_BARS: "230"
+      AIL_WARMUP_MAX_SYMBOLS: "31"
+      AIL_WARMUP_SYMBOL_TIMEOUT: "70"
       NHPLUG_TOKEN_CACHE: "0"
     steps:
       - uses: actions/checkout@v4

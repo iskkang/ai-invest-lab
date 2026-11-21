@@ -36,22 +36,15 @@ ai-invest-lab/
 └─ .github/workflows/      daily.yml(자동 실행) · ci.yml(테스트)
 ```
 
-## 빠른 시작 (키 없이 DEMO)
+## 개발 및 실행 (LIVE 전용)
 
-```bash
-# 1) DB: 로컬 Postgres 16 또는 Supabase 프로젝트
-export DATABASE_URL=postgresql://...
+실제 NH PLUG 시세와 OpenRouter 실제 AI 응답만 서비스합니다. 웹 합성 JSON과 공개 DEMO 화면, `ail demo` CLI는 제거되었습니다.
+시세·판단·모의 체결이 없으면 **실제 데이터 대기** 또는 연결 오류를 표시합니다. 수익률을 만들어내지 않습니다.
 
-# 2) 엔진 + DEMO 60거래일 시뮬레이션 → 웹용 JSON
-cd engine && pip install -e ".[dev]"
-python -m ail demo --sessions 60 --export ../web/data/demo.json
-
-# 3) 웹
-cd ../web && npm install
-SITE_PASSWORD=dev npm run dev       # http://localhost:3000 (아이디 lab)
-```
-
-DEMO는 화면 상단 주황색 띠, `[DEMO]` 표시, 별도 실험(`mode='demo'`)으로 실제 결과와 구분됩니다. 합성 시세와 고정 규칙 '가짜 AI'이며 실제 성과와 무관합니다.
+- 웹: `cd web && npm ci && npm run build` (운영 서버는 Supabase 비밀 환경변수가 필요)
+- 엔진: `pip install ./engine` (GitHub Actions 서버 측)
+- 매 방문 시 AI 호출 없음. 저장된 진짜 AI 판단 및 거래 기록만 읽습니다.
+- 원본 NH 시세 및 가상 체결 단가는 공급자 재배포 허가 확인 전 공개하지 않습니다.
 
 ## 실제 운영 (live)
 

@@ -19,21 +19,6 @@ export function Logo({locale="ko"}:{locale?:Locale}) {
   );
 }
 
-export function DemoBanner({mode,locale}:{mode:"live"|"demo";locale:Locale}) {
-  if(mode!=="demo")return null;
-  const messages:Record<Locale,string>={
-    ko:"DEMO — 합성 시세·규칙 기반 AI의 예시 화면입니다. 실제 투자 성과가 아닙니다.",
-    en:"DEMO — Synthetic prices and rule-based example AI. These are NOT actual investment results.",
-    zh:"演示模式 — 使用合成行情和规则型 AI 示例，不代表实际投资业绩。",
-    ja:"DEMO — 合成株価とルールベースのAIによる例示です。実際の運用成績ではありません。",
-  };
-  return (
-    <div className="bg-warn text-black">
-      <p className="px-4 py-1.5 text-center text-xs font-semibold">{messages[locale]}</p>
-    </div>
-  );
-}
-
 export function Sidebar({locale}:{locale:Locale}) {
   return (
     <aside className="hidden w-60 shrink-0 border-r border-line bg-panel lg:block">

@@ -3,7 +3,6 @@
   ail migrate                       로컬/테스트 DB 에 마이그레이션 적용 (운영은 supabase db push)
   ail run-daily                     08:30 ET 판단 작업 (스케줄러용)
   ail run-settle                    폐장 후 체결·평가 작업 (스케줄러용)
-  ail demo --sessions 60 --export ../web/data/demo.json
   ail verify                        읽기 전용 재검증
   ail costs                         API 비용 요약
   ail set-model gpt openai/gpt-4.1-mini --reason "..."
@@ -17,9 +16,9 @@ import argparse
 import json
 import os
 import sys
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
-from . import admin, export, market_calendar as mc
+from . import admin, export
 from .common import to_jsonable
 from .config import Settings
 from .db import apply_migrations, connect
@@ -40,35 +39,12 @@ def _print(obj):
     print(json.dumps(to_jsonable(obj), ensure_ascii=False, indent=2))
 
 
-def simulate_demo(conn, settings: Settings, sessions: int, end: date | None = None) -> list[dict]:
-    """DEMO: 실제 파이프라인(run_daily/run_settle)을 과거 날짜의 '가상 시계'로 반복 실행한다."""
-    from .llm import DemoProvider
-    from .sources import DemoSource
-    source, provider = DemoSource(), DemoProvider()
-    end = end or mc.previous_session(mc.ny_today())
-    days = mc.sessions_between(end - timedelta(days=sessions * 2 + 10), end)[-sessions:]
-    if not settings.start_session:
-        settings.start_session = days[0].isoformat()
-    from .pipeline import bootstrap
-    bootstrap(conn, settings, actor="demo")   # 데모 기업행동(가상)도 여기서 등록
-    log = []
-    for d in days:
-        morning = mc.ny_time(d, "08:30").astimezone(timezone.utc)
-        evening = mc.ny_time(d, "17:30").astimezone(timezone.utc)
-        log.append({"session": d.isoformat(), "daily": run_daily(conn, settings, source, provider, morning).get("status")})
-        run_settle(conn, settings, source, evening)
-    return log
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="ail")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("migrate")
     sub.add_parser("run-daily")
     sub.add_parser("run-settle")
-    d = sub.add_parser("demo")
-    d.add_argument("--sessions", type=int, default=60)
-    d.add_argument("--export")
     sub.add_parser("verify")
     sub.add_parser("costs")
     e = sub.add_parser("export")
@@ -93,8 +69,6 @@ def main(argv=None) -> int:
 
     settings = Settings()
     actor = os.environ.get("AIL_ACTOR", os.environ.get("GITHUB_ACTOR", "cli"))
-    if args.cmd == "demo":
-        settings.mode = "demo"
     settings.validate()
     conn = connect(settings.database_url)
     now = datetime.now(timezone.utc)
@@ -108,14 +82,6 @@ def main(argv=None) -> int:
     elif args.cmd == "run-settle":
         src, _ = _source_provider(settings)
         _print(run_settle(conn, settings, src, now))
-    elif args.cmd == "demo":
-        apply_migrations(conn)
-        log = simulate_demo(conn, settings, args.sessions)
-        problems = admin.verify(conn, settings.experiment_name, "demo")
-        _print({"sessions": len(log), "verify_problems": problems})
-        if args.export:
-            print("exported:", export.write(conn, settings.experiment_name, "demo", args.export))
-        return 1 if problems else 0
     elif args.cmd == "verify":
         problems = admin.verify(conn, settings.experiment_name, source_name)
         _print({"problems": problems})

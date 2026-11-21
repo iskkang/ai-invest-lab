@@ -9,9 +9,8 @@ import { localizedHref,t } from "@/lib/i18n";
 
 export const revalidate = 300;
 
-export async function generateStaticParams() {
-  const d = await getData();
-  return d.accounts.filter((a) => a.aiId).map((a) => ({ id: a.aiId! }));
+export function generateStaticParams() {
+  return ["gpt","claude","gemini","deepseek"].map(id=>({id}));
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {

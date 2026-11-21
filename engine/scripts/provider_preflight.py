@@ -144,7 +144,7 @@ def _nh_check() -> bool:
         # Previous completed NYSE session, including on weekends and holidays.
         end = mc.previous_session(mc.ny_today())
         # Retry only transient SDK rate-limit/network failures; no other API endpoints.
-        bars = NHQuoteSource(max_retries=2, sleep=lambda _: None).daily_bars("AAPL", end, 5)
+        bars = NHQuoteSource(max_retries=2).daily_bars("AAPL", end, 5)
         if not bars:
             print("FAIL NH PLUG: no AAPL daily bars returned")
             return False

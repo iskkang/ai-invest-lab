@@ -15,11 +15,11 @@ export function proxy(req: NextRequest) {
   const methodSafe = req.method === "GET" || req.method === "HEAD";
   const match = methodSafe ? PUBLIC_EDITORIAL.exec(pathname) : null;
 
-  if (match || (methodSafe && PUBLIC_FILES.has(pathname))) {
+  if ((methodSafe && pathname === "/") || match || (methodSafe && PUBLIC_FILES.has(pathname))) {
     const requestHeaders = new Headers(req.headers);
-    if (match) {
+    if (match || pathname === "/") {
       requestHeaders.set("x-ail-public", "1");
-      requestHeaders.set("x-ail-locale", match[1]);
+      requestHeaders.set("x-ail-locale", match?.[1] ?? "en");
     }
     return NextResponse.next({ request: { headers: requestHeaders } });
   }

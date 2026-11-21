@@ -115,6 +115,17 @@ try{
     assert.equal((prelaunchText.match(/2026-11-23/g)||[]).length,1,"start date must not be repeated");
     assert.ok(prelaunchText.includes("동일한 미국 주식 1종목의 시장 데이터"),"actual universe size from dataset, not an invented number");
     assert.ok(prelaunchText.includes("$100,000"),"experiment capital must come from real configuration");
+    const tierDisclosure=prelaunch.locator('[data-model-disclosure="true"]');
+    assert.equal(await tierDisclosure.count(),1,"home methodology must disclose unequal models");
+    assert.equal(await tierDisclosure.locator("tbody tr").count(),4,"four pinned models required");
+    for(const id of ["gpt","claude","gemini"]){
+      assert.ok((await tierDisclosure.locator('[data-tier="'+id+'"]').innerText()).trim(),
+        "manufacturer-backed model tier missing: "+id);
+    }
+    assert.equal((await tierDisclosure.locator('[data-tier="deepseek"]').innerText()).trim(),"",
+      "unverified DeepSeek tier must be left blank");
+    assert.equal(await tierDisclosure.locator('a[href^="https://"]').count(),4,
+      "official manufacturer citations missing");
     assert.equal(await prelaunch.locator('a[href$="/methodology"]').count(),1);
     assert.equal(await prelaunch.locator('a[href$="/historical"]').count(),1);
     assert.equal(await prelaunch.locator('a[href$="/patterns"]').count(),1);

@@ -339,9 +339,11 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
                  res.input_tokens, res.output_tokens, res.cost_usd, res.latency_ms, decision_ids[ai_id]))
             conn.execute(
                 "insert into api_usage(decision_id, ai_model_id, model, status, input_tokens, output_tokens,"
-                " estimated_cost_usd, cost_usd, is_demo) values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                " estimated_cost_usd, cost_usd, is_demo, invalid_response_count, retry_count)"
+                " values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
                 (decision_ids[ai_id], ai_id, p["model"], res.status, res.input_tokens, res.output_tokens,
-                 estimates[ai_id], res.cost_usd, provider.is_demo))
+                 estimates[ai_id], res.cost_usd, provider.is_demo,
+                 max(res.invalid_response_count, int(status == "invalid")), res.retry_count))
 
     if failures:
         return abort("PARTICIPANT_FAILURE: " + "; ".join(failures))

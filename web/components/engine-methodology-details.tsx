@@ -3,6 +3,7 @@ import { methodCopy } from "@/lib/methodology-copy";
 import type { ActiveMethodology } from "@/lib/methodology-runtime";
 import type { Locale } from "@/lib/public-content";
 import { Section } from "./blocks";
+import { ModelDisclosure } from "./model-disclosure";
 
 const fmtBp=(value:string|number)=> {
   const bp=Number(value);
@@ -98,18 +99,7 @@ export function EngineMethodologyDetails({locale,active}:{locale:Locale;active:A
       <p className="mt-3 text-xs leading-6 text-muted">{c.override}</p>
     </Section>
     <Section title={c.models}>
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[500px] text-left text-sm">
-          <thead className="border-b border-line text-xs text-muted"><tr>
-            <th className="px-3 py-3">AI</th><th className="px-3 py-3">{c.modelDefault}</th><th className="px-3 py-3">{c.modelActive}</th>
-          </tr></thead>
-          <tbody>{engine.models.map(m=><tr key={m.id} className="border-b border-line last:border-0">
-            <th scope="row" className="px-3 py-3 text-sm font-bold">{m.name}</th>
-            <td className="px-3 py-3 font-mono text-xs">{m.model}</td>
-            <td className="px-3 py-3 font-mono text-xs">{activeModels.get(m.id)??c.notAvailable}</td>
-          </tr>)}</tbody>
-        </table>
-      </div>
+      <ModelDisclosure locale={locale} activeModels={activeModels}/>
       <p className="mt-3 text-xs leading-6 text-muted">{c.modelsNote}</p>
     </Section>
     <Section title={c.inference}>

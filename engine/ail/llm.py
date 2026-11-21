@@ -32,6 +32,8 @@ class LLMResult:
     output_tokens: int | None = None
     cost_usd: Decimal | None = None
     latency_ms: int | None = None
+    retry_count: int = 0  # transient transport/429/5xx resends, max one
+    invalid_response_count: int = 0  # invalid reply; not retried
 
 
 @dataclass
@@ -131,7 +133,8 @@ class OpenRouterProvider:
                     self._sleep(3)
                     continue
                 return LLMResult("error", error="transport failure/timeout",
-                                 latency_ms=int((time.monotonic() - started) * 1000))
+                                 latency_ms=int((time.monotonic() - started) * 1000),
+                                 retry_count=attempts - 1)
             if r.status_code in (429, 500, 502, 503, 504) and attempts < 2:
                 self._sleep(5)
                 continue
@@ -152,11 +155,13 @@ class OpenRouterProvider:
                         category = " (model request rejected)"
                 except (ValueError, AttributeError, TypeError):
                     pass
-            return LLMResult("error", error=f"HTTP {r.status_code}{category}", latency_ms=latency)
+            return LLMResult("error", error=f"HTTP {r.status_code}{category}", latency_ms=latency,
+                             retry_count=attempts - 1)
         try:
             data = r.json()
         except ValueError:
-            return LLMResult("error", error="non-JSON provider response", latency_ms=latency)
+            return LLMResult("error", error="non-JSON provider response", latency_ms=latency,
+                             retry_count=attempts - 1, invalid_response_count=1)
         usage = data.get("usage") or {}
         cost = usage.get("cost")
         res = LLMResult(
@@ -166,22 +171,27 @@ class OpenRouterProvider:
             output_tokens=usage.get("completion_tokens"),
             cost_usd=D(cost) if cost is not None else None,
             latency_ms=latency,
+            retry_count=attempts - 1,
         )
         if data.get("error"):
             res.status, res.error = "error", "provider error payload"
+            res.invalid_response_count = 1
             return res
         if not res.returned_model or not str(res.returned_model).startswith(model):
             res.status, res.error = "error", f"model mismatch: requested {model}, got {res.returned_model}"
+            res.invalid_response_count = 1
             return res
         try:
             choice = data["choices"][0]
             content = choice["message"].get("content")
         except (KeyError, IndexError, TypeError):
             res.status, res.error = "error", "missing choices"
+            res.invalid_response_count = 1
             return res
         if choice.get("finish_reason") not in ("stop", None) or not isinstance(content, str):
             res.status, res.error = "error", f"incomplete output (finish_reason={choice.get('finish_reason')})"
             res.content = content if isinstance(content, str) else None
+            res.invalid_response_count = 1
             return res
         res.content = content
         return res

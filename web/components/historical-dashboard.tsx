@@ -18,18 +18,19 @@ const tone=(n:number)=>n>0?"text-up":n<0?"text-down":"text-fg";
 
 function Head({locale}:{locale:Locale}){
   const c=historicalCopy(locale);
-  return <header className="space-y-3">
-    <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">{c.strap}</p>
-    <h1 className="max-w-3xl text-2xl font-bold leading-tight tracking-tight sm:text-3xl">{c.headline}</h1>
-    <p className="max-w-3xl text-sm leading-7 text-muted">{c.sub}</p>
-    <span className="inline-flex items-center gap-2 rounded-lg border border-line bg-panel px-3 py-2 text-xs font-semibold">
-      <ShieldAlert size={15} className="text-accent" aria-hidden/>{c.notice}
+  return <header className="insight-banner space-y-4 px-5 py-7 sm:px-8 sm:py-10">
+    <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{c.strap}</p>
+    <h1 className="max-w-3xl text-[27px] font-extrabold leading-tight tracking-[-.04em] text-white sm:text-4xl">{c.headline}</h1>
+    <p className="max-w-3xl text-sm leading-7 text-[#c5d3ef]">{c.sub}</p>
+    <span className="inline-flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-xs font-semibold text-[#e5eefa]">
+      <ShieldAlert size={15} className="text-[#cbfa81]" aria-hidden/>{c.notice}
     </span>
   </header>;
 }
 function Title({title,sub}:{title:string;sub:string}){
   return <div className="mb-4">
-    <h2 className="text-lg font-bold tracking-tight">{title}</h2>
+    <p className="ms-kicker mb-2">HISTORICAL / RESEARCH</p>
+    <h2 className="text-xl font-extrabold tracking-tight">{title}</h2>
     <p className="mt-1 text-xs leading-6 text-muted">{sub}</p>
   </div>;
 }
@@ -76,7 +77,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
   }));
   return <div className="mx-auto max-w-6xl space-y-6 pb-12">
     <Head locale={locale}/>
-    <section className="rounded-2xl border border-line bg-panel p-4 sm:p-5">
+    <section className="ms-card p-4 sm:p-5">
       <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
         <Database size={17} className="text-accent" aria-hidden/>{c.status}
       </div>
@@ -96,7 +97,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
     <section>
       <Title title={c.study} sub={c.studySub}/>
       <div className="grid gap-3 sm:grid-cols-3">
-        {strategies.map(r=><article key={r.id} className="rounded-2xl border border-line bg-panel p-4">
+        {strategies.map(r=><article key={r.id} className="ms-card ms-card-hover p-4">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full" style={{background:HISTORICAL_PROFILES.find(p=>p.id===r.id)?.color}}/>
             <h3 className="text-sm font-bold">{label[r.id]}</h3>
@@ -115,7 +116,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
         {c.lead} <span className="font-semibold text-fg">{label[strongest.id]}</span> {c.leaderSuffix}
       </p>}
     </section>
-    <section className="rounded-2xl border border-line bg-panel p-4 sm:p-5">
+    <section className="ms-card p-4 sm:p-5">
       <Title title={c.curves} sub={c.curvesSub}/>
       <ReturnChart lines={lines} height={285} locale={locale}/>
       <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-muted">
@@ -147,7 +148,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
         </article>)}
       </div>
     </section>
-    <section className="rounded-2xl border border-line bg-panel p-4 sm:p-5">
+    <section className="ms-card p-4 sm:p-5">
       <Title title={c.comparison} sub={c.separate}/>
       <div className="overflow-x-auto">
         <table className="w-full min-w-[470px] text-sm">

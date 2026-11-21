@@ -17,39 +17,199 @@
   --color-warn: var(--warn);
 }
 
+/* MarketSights visual system — ink, ultraviolet and signal lime.
+   Original market data colors stay distinct from decorative signal colors. */
 :root {
-  --bg: #f4f6fa;
+  --bg: #f5f7fb;
   --panel: #ffffff;
-  --panel-2: #f2f4f8;
-  --line: #e4e8ef;
-  --fg: #101828;
-  --muted: #667085;
-  --accent: #1d6ff2;
-  --up: #16a34a;
-  --down: #dc2626;
-  --warn: #b45309;
+  --panel-2: #f2f5fb;
+  --line: #e4e9f3;
+  --fg: #142039;
+  --muted: #61718b;
+  --accent: #4845d6;
+  --up: #087d63;
+  --down: #ca3d56;
+  --warn: #a86a0a;
+  --ink: #0d1732;
+  --signal: #cbfa81;
   color-scheme: light;
 }
 
 .dark {
-  --bg: #0b0e13;
-  --panel: #12161d;
-  --panel-2: #181d26;
-  --line: #242b36;
-  --fg: #e7ebf0;
-  --muted: #8b95a5;
-  --accent: #4d8dff;
-  --up: #22c55e;
-  --down: #f05252;
-  --warn: #f59e0b;
+  --bg: #0a1121;
+  --panel: #121d32;
+  --panel-2: #182640;
+  --line: #2a3951;
+  --fg: #edf3ff;
+  --muted: #a8b5ca;
+  --accent: #b0a5ff;
+  --up: #6fe6c0;
+  --down: #ffa0a5;
+  --warn: #ffd086;
+  --ink: #080f23;
+  --signal: #cbfa81;
   color-scheme: dark;
 }
 
-html, body { background: var(--bg); color: var(--fg); }
-body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
-.tabular { font-variant-numeric: tabular-nums; }
-.scrollbar-none { scrollbar-width: none; }
-.scrollbar-none::-webkit-scrollbar { display: none; }
+html,body{background:var(--bg);color:var(--fg)}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-sans);
+  -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(ellipse 900px 420px at 85% -160px,rgba(101,92,230,.10),transparent 75%),
+    radial-gradient(ellipse 640px 400px at -160px 65%,rgba(63,160,166,.045),transparent 80%);
+}
+::selection{background:#8b8cef66}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.tabular{font-variant-numeric:tabular-nums}
+.scrollbar-none{scrollbar-width:none}
+.scrollbar-none::-webkit-scrollbar{display:none}
+.card-shadow{
+  box-shadow:0 1px 2px rgba(12,28,54,.024),0 10px 30px rgba(12,28,54,.025);
+}
+.dark .card-shadow{box-shadow:0 1px 0 rgba(255,255,255,.018)}
+.ms-card{
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:20px;
+  box-shadow:0 4px 16px rgba(17,30,57,.025);
+}
+.ms-card-hover{
+  transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease;
+}
+.ms-card-hover:hover{
+  transform:translateY(-3px);
+  border-color:rgba(94,92,201,.38);
+  box-shadow:0 16px 35px rgba(20,28,75,.075);
+}
+.dark .ms-card-hover:hover{box-shadow:0 18px 35px rgba(0,0,0,.19)}
 
-.card-shadow { box-shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 1px 3px rgb(16 24 40 / 0.04); }
-.dark .card-shadow { box-shadow: none; }
+/* The orbit is an abstract metaphor for four independent models.
+   It is intentionally NOT a graph of observed market signals. */
+.market-hero,.insight-banner{
+  position:relative;
+  isolation:isolate;
+  overflow:hidden;
+  color:#f8fbff;
+  background:
+    radial-gradient(ellipse 440px 320px at 87% 40%,rgba(97,100,216,.38),transparent 75%),
+    radial-gradient(ellipse 450px 250px at 5% 100%,rgba(42,140,147,.17),transparent 76%),
+    linear-gradient(125deg,#101a3a 0%,#111b3f 48%,#0c142f 100%);
+  border:1px solid rgba(151,170,220,.18);
+  border-radius:26px;
+  box-shadow:0 18px 40px rgba(19,34,77,.12);
+}
+.dark .market-hero,.dark .insight-banner{border-color:rgba(141,166,219,.16)}
+.market-hero::before,.insight-banner::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.28;
+  background-image:linear-gradient(rgba(190,207,245,.12) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(190,207,245,.12) 1px,transparent 1px);
+  background-size:38px 38px;
+  mask-image:linear-gradient(115deg,transparent 30%,black 100%);
+}
+.market-hero::after,.insight-banner::after{
+  content:"";position:absolute;pointer-events:none;z-index:-1;
+  width:430px;height:430px;border-radius:50%;right:-240px;top:-210px;
+  border:1px solid rgba(207,249,141,.18);
+  box-shadow:0 0 0 68px rgba(196,246,129,.025),0 0 0 145px rgba(196,246,129,.025);
+}
+.hero-eyebrow{
+  color:#c8fb8a;
+  font-size:10px;
+  line-height:16px;
+  letter-spacing:.2em;
+  font-weight:800;
+  text-transform:uppercase;
+}
+.hero-signal{
+  display:inline-block;width:7px;height:7px;margin-right:10px;border-radius:50%;
+  background:#c9f58a;box-shadow:0 0 0 5px rgba(201,245,138,.13);
+}
+.hero-title{font-size:clamp(31px,4.25vw,57px);line-height:1.13;letter-spacing:-.055em;font-weight:850}
+.hero-title-em{color:var(--signal);font-weight:850}
+.hero-action{
+  display:inline-flex;align-items:center;justify-content:center;gap:10px;
+  border-radius:11px;background:#c9f58a;padding:11px 15px;
+  color:#102039;font-size:12px;font-weight:800;transition:background .2s,transform .2s;
+}
+.hero-action:hover{background:#e5ffbd;transform:translateY(-2px)}
+.hero-meta{
+  border-top:1px solid rgba(214,228,255,.16);
+  color:#bfcce4;
+}
+.hero-orbit{
+  width:280px;height:280px;position:relative;
+  display:grid;place-items:center;
+  margin:12px auto;
+}
+.hero-orbit::before{
+  content:"";position:absolute;inset:14px;
+  border:1px dashed rgba(228,237,255,.27);border-radius:50%;
+  transform:rotate(18deg);
+}
+.hero-orbit::after{
+  content:"";position:absolute;inset:54px;
+  border:1px solid rgba(203,250,129,.3);border-radius:50%;
+  box-shadow:0 0 0 36px rgba(203,250,129,.02);
+}
+.hero-orbit-center{
+  position:relative;z-index:2;display:grid;place-items:center;
+  width:115px;height:115px;border-radius:50%;
+  border:1px solid rgba(215,233,255,.24);
+  background:radial-gradient(circle at 30% 15%,#354c80,#1a2856 85%);
+  box-shadow:0 20px 60px rgba(3,7,24,.32),inset 0 1px 0 rgba(255,255,255,.14);
+}
+.hero-orbit-label{
+  position:absolute;z-index:4;display:flex;align-items:center;gap:7px;
+  border-radius:999px;padding:7px 11px;
+  border:1px solid rgba(212,229,255,.24);
+  background:rgba(27,41,79,.88);
+  color:#f2f7ff;font-size:11px;font-weight:750;
+  box-shadow:0 12px 24px rgba(2,8,27,.2);
+  white-space:nowrap;
+}
+.hero-orbit-label::before{content:"";height:6px;width:6px;background:#c9f58a;border-radius:50%}
+.hero-orbit-label.p1{top:15px;left:84px}
+.hero-orbit-label.p2{top:94px;right:-8px}
+.hero-orbit-label.p3{bottom:27px;right:26px}
+.hero-orbit-label.p4{bottom:62px;left:-14px}
+
+/* Signature decorative element for headings and ranked cards. */
+.ms-kicker{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.ms-kicker::before{content:"";height:2px;width:23px;background:var(--accent);border-radius:10px}
+.ms-rank-card{position:relative;isolation:isolate;overflow:hidden}
+.ms-rank-card::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--agent-color,var(--accent));opacity:.85;
+}
+.ms-rank-card::after{
+  content:"";position:absolute;right:-45px;top:-70px;width:150px;height:150px;
+  border:1px solid var(--agent-color,var(--accent));border-radius:50%;opacity:.16;
+  box-shadow:0 0 0 30px var(--panel),0 0 0 31px var(--agent-color,var(--accent));
+  pointer-events:none;z-index:-1;
+}
+.ms-insight-card{position:relative;overflow:hidden;isolation:isolate}
+.ms-insight-card::after{
+  content:attr(data-index);position:absolute;right:10px;top:5px;
+  font-size:72px;font-weight:900;letter-spacing:-.09em;line-height:1;
+  color:var(--fg);opacity:.035;pointer-events:none;z-index:-1;
+}
+.ms-table-head{font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.ms-divider{height:1px;background:linear-gradient(90deg,var(--line),transparent)}
+@media(max-width:639px){
+  .market-hero,.insight-banner{border-radius:20px}
+  .market-hero::after{width:270px;height:270px;right:-190px;top:-90px}
+  .hero-title{font-size:clamp(29px,8.5vw,38px);line-height:1.17}
+  .ms-insight-card::after{font-size:58px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .ms-card-hover,.hero-action{transition:none}
+  .ms-card-hover:hover,.hero-action:hover{transform:none}
+}

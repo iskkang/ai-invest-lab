@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { CSSProperties } from "react";
 import type { Account, Dataset, Decision, Stats, Trade } from "@/lib/types";
 import { cn, fmtNum, fmtPct, fmtUsd, sideClass, sideLabel, toneClass } from "@/lib/utils";
 import { Badge } from "./ui/badge";
@@ -246,34 +247,47 @@ export function RoundBadge({ status, reason, locale = "ko" }: { status: string; 
 /** 참고 화면 스타일의 AI 성과 카드 (순위·수익률·핵심 위험지표) */
 export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "sharpe" }) {
   const rows = rankAccounts(d, sortKey);
-  const spy = d.accounts.find((a) => a.benchmarkCode === "SPY_BUY_HOLD");
+  const spy = d.accounts.find(a => a.benchmarkCode === "SPY_BUY_HOLD");
   const spyRet = spy ? d.stats[spy.id]?.cum_return ?? null : null;
-  return (
-    <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
-      {rows.map(({ a, s }, i) => (
-        <Link key={a.id} href={localizedHref(d.locale, `/ai/${a.aiId}`)} className="card-shadow rounded-2xl border border-line bg-panel p-4 transition-colors hover:border-accent/40">
-          <div className="flex items-center gap-3">
-            <Avatar name={a.name} color={a.color} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[17px] font-bold leading-tight">{a.name}</p>
-              <p className="truncate text-[11px] text-muted">{a.model}</p>
-            </div>
-            <span className="whitespace-nowrap rounded-md bg-panel-2 px-2 py-1 text-xs font-semibold text-muted">{i + 1} {translate(d.locale,"위")}</span>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-2xl font-bold tabular">{s ? fmtUsd(s.equity) : "—"}</p>
-            <span className={cn("rounded-lg px-2 py-1 text-sm font-bold tabular", (s?.cum_return ?? 0) >= 0 ? "bg-up/10 text-up" : "bg-down/10 text-down")}>
-              {fmtPct(s?.cum_return)}
-            </span>
-          </div>
-          <dl className="mt-2 grid grid-cols-4 gap-1 text-[11px]">
-            <div><dt className="text-muted">{translate(d.locale,"SPY 대비")}</dt><dd className={cn("font-semibold tabular", toneClass(s && spyRet !== null ? s.cum_return - spyRet : null))}>{s && spyRet !== null ? fmtPct(s.cum_return - spyRet, 1) : "—"}</dd></div>
-            <div><dt className="text-muted">{translate(d.locale,"MDD")}</dt><dd className="font-semibold tabular">{fmtPct(s?.max_drawdown, 1, false)}</dd></div>
-            <div><dt className="text-muted">{translate(d.locale,"샤프")}</dt><dd className="font-semibold tabular">{s?.sharpe == null ? translate(d.locale,"표본부족") : fmtNum(s.sharpe)}</dd></div>
-            <div><dt className="text-muted">{translate(d.locale,"현금")}</dt><dd className="font-semibold tabular">{fmtPct(s?.cash_weight, 0, false)}</dd></div>
-          </dl>
-        </Link>
-      ))}
-    </div>
-  );
+  return <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-4">
+    {rows.map(({a,s},i)=><Link key={a.id}
+      href={localizedHref(d.locale, "/ai/"+a.aiId)}
+      className="ms-card ms-card-hover ms-rank-card block p-4"
+      style={{"--agent-color":a.color} as CSSProperties}>
+      <div className="relative z-10 flex items-center gap-3">
+        <Avatar name={a.name} color={a.color} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-[16px] font-extrabold tracking-tight">{a.name}</p>
+          <p className="truncate text-[11px] text-muted">{a.model}</p>
+        </div>
+        <span className="grid h-8 min-w-8 place-items-center rounded-lg border border-line bg-panel-2 px-2 text-xs font-extrabold text-muted tabular"
+          aria-label={s?(i+1)+" "+translate(d.locale,"위"):translate(d.locale,"표본부족")}>
+          {s?String(i+1).padStart(2,"0"):"—"}
+        </span>
+      </div>
+      <div className="relative z-10 mt-5 flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
+        <div>
+          <p className="text-[10px] font-bold tracking-[.12em] text-muted uppercase">{translate(d.locale,"평가자산")}</p>
+          <p className="mt-1 text-[23px] font-extrabold leading-none tracking-tight tabular">{s?fmtUsd(s.equity):"—"}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[10px] font-bold tracking-[.08em] text-muted">{translate(d.locale,"누적 수익률")}</p>
+          <p className={cn("mt-1 text-xl font-extrabold leading-none tabular",toneClass(s?.cum_return))}>
+            {fmtPct(s?.cum_return)}
+          </p>
+        </div>
+      </div>
+      <dl className="relative z-10 mt-5 grid grid-cols-4 gap-2 border-t border-line pt-4">
+        <div><dt className="text-[10px] text-muted">{translate(d.locale,"SPY 대비")}</dt>
+          <dd className={cn("mt-1 text-xs font-bold tabular",toneClass(s&&spyRet!==null?s.cum_return-spyRet:null))}>
+            {s&&spyRet!==null?fmtPct(s.cum_return-spyRet,1):"—"}</dd></div>
+        <div><dt className="text-[10px] text-muted">{translate(d.locale,"MDD")}</dt>
+          <dd className="mt-1 text-xs font-bold tabular">{fmtPct(s?.max_drawdown,1,false)}</dd></div>
+        <div><dt className="text-[10px] text-muted">{translate(d.locale,"샤프")}</dt>
+          <dd className="mt-1 text-xs font-bold tabular">{s?.sharpe==null?translate(d.locale,"표본부족"):fmtNum(s.sharpe)}</dd></div>
+        <div><dt className="text-[10px] text-muted">{translate(d.locale,"현금")}</dt>
+          <dd className="mt-1 text-xs font-bold tabular">{fmtPct(s?.cash_weight,0,false)}</dd></div>
+      </dl>
+    </Link>)}
+  </div>;
 }

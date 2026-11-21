@@ -35,7 +35,7 @@ export function AppShell({
       <Sidebar locale={locale} />
       <div className="min-w-0 flex-1">
         <TopBar locale={locale} asOf={asOf} symbols={symbols} />
-        <main className="px-4 pt-5 lg:px-6">{children}</main>
+        <main className="mx-auto max-w-[1580px] px-4 pt-5 sm:px-6 lg:px-8 lg:pt-7">{children}</main>
         <Footer locale={locale} />
       </div>
       <BottomNav locale={locale} />

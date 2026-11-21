@@ -22,14 +22,16 @@ const signalText = (locale: Locale, dir: string) => {
 
 export function InsightsHeader({locale,title,sub}:{locale:Locale;title:string;sub:string}) {
   const c=insightCopy(locale);
-  return <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
-    <div>
-      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.2em] text-accent">MarketSights Intelligence</p>
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{title}</h1>
-      <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">{sub}</p>
+  return <header className="insight-banner mb-6 px-5 py-7 sm:px-8 sm:py-9">
+    <div className="relative z-10 flex flex-wrap items-end justify-between gap-5">
+      <div>
+        <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>MARKETSIGHTS / INTELLIGENCE</p>
+        <h1 className="mt-4 max-w-3xl text-[26px] font-extrabold leading-tight tracking-[-.04em] text-white sm:text-4xl">{title}</h1>
+        <p className="mt-3 max-w-2xl text-sm leading-7 text-[#c5d3ef]">{sub}</p>
+      </div>
+      <Badge variant="outline" className="border-white/25 px-3 py-2 !text-[#d6e6ff]">{c.dataMode}</Badge>
     </div>
-    <Badge variant="outline" className="px-2 py-1.5">{c.dataMode}</Badge>
-  </div>;
+  </header>;
 }
 
 export function InsightUnavailable({locale}:{locale:Locale}) {
@@ -56,22 +58,25 @@ export function InsightTeasers({d}:{d:Dataset}) {
     {title:historicalCopy(d.locale).nav,desc:historicalCopy(d.locale).sub,href:"/historical",icon:ChartNoAxesCombined},
   ];
   return <section aria-label={c.title}>
-    <div className="mb-3">
-      <h2 className="text-lg font-bold tracking-tight">{c.title}</h2>
-      <p className="mt-1 text-xs text-muted">{c.sub}</p>
+    <div className="mb-4">
+      <p className="ms-kicker mb-2">INTELLIGENCE / EXPLORE</p>
+      <h2 className="text-xl font-extrabold tracking-tight">{c.title}</h2>
+      <p className="mt-1 text-xs leading-6 text-muted">{c.sub}</p>
     </div>
     <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-      {cards.map(card=><Link key={card.href} href={localizedHref(d.locale,card.href)}
-        className="group rounded-2xl border border-line bg-panel p-4 transition hover:border-accent/70 hover:bg-panel-2">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <card.icon size={18} className="text-accent" aria-hidden/>
-            <h3 className="font-semibold">{card.title}</h3>
-          </div>
-          <ArrowRight size={16} className="text-muted group-hover:text-accent" aria-hidden/>
+      {cards.map((card,i)=><Link key={card.href}
+        href={localizedHref(d.locale,card.href)}
+        data-index={String(i+1).padStart(2,"0")}
+        className="ms-card ms-card-hover ms-insight-card group flex min-h-[171px] flex-col p-4 sm:p-5">
+        <div className="relative z-10 flex items-center justify-between gap-3">
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-accent/10 text-accent">
+            <card.icon size={19} strokeWidth={1.85} aria-hidden/>
+          </span>
+          <ArrowRight size={17} className="text-muted transition group-hover:translate-x-1 group-hover:text-accent" aria-hidden/>
         </div>
-        <p className="mt-3 text-xs leading-6 text-muted">{card.desc}</p>
-        <span className="mt-4 inline-flex text-xs font-semibold text-accent">{c.seeAll}</span>
+        <h3 className="relative z-10 mt-4 text-[15px] font-bold tracking-tight">{card.title}</h3>
+        <p className="relative z-10 mt-2 flex-1 text-xs leading-5 text-muted">{card.desc}</p>
+        <span className="relative z-10 mt-3 text-[11px] font-bold text-accent">{c.seeAll} →</span>
       </Link>)}
     </div>
   </section>;
@@ -141,11 +146,11 @@ function WeeklyEmptyState({d}:{d:Dataset}) {
     .toISOString().slice(0,10);
   const beforeStart=new Date().toISOString().slice(0,10)<start;
   const completed=new Set(verifiedDecisions(d).map(dec=>dec.roundId)).size;
-  return <section className="overflow-hidden rounded-2xl border border-line bg-panel"
-    aria-label={c.emptyTitle}>
-    <div className="border-b border-line px-5 py-5 sm:px-6">
+  return <section className="ms-card overflow-hidden" aria-label={c.emptyTitle}>
+    <div className="border-b border-line px-5 py-6 sm:px-6">
       <Badge variant="muted">{beforeStart?c.launchStatus:c.pendingStatus}</Badge>
-      <h2 className="mt-3 text-lg font-semibold tracking-tight">{c.emptyTitle}</h2>
+      <p className="ms-kicker mt-4 mb-2">RESEARCH / SCHEDULE</p>
+      <h2 className="mt-2 text-lg font-bold tracking-tight">{c.emptyTitle}</h2>
       <p className="mt-2 text-sm leading-6 text-muted">{c.noReport}</p>
     </div>
     <div className="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">

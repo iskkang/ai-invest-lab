@@ -1,5 +1,5 @@
 "use client";
-import {useEffect,useRef} from "react";
+import {useEffect,useState} from "react";
 const symbols=[
  {proName:"AMEX:SPY",title:"SPY (S&P 500)"},
  {proName:"NASDAQ:QQQ",title:"QQQ (Nasdaq 100)"},
@@ -7,29 +7,30 @@ const symbols=[
  {proName:"AMEX:IWM",title:"IWM (Russell 2000)"},
  {proName:"CAPITALCOM:VIX",title:"VIX (CFD)"}
 ];
-export function MarketTickerTape(){
- const ref=useRef<HTMLDivElement>(null);
+function TradingViewEmbed({theme}:{theme:"light"|"dark"}){
  useEffect(()=>{
-  const node=ref.current;if(!node)return;
-  let previous="";
-  const render=()=>{
-   const theme=document.documentElement.classList.contains("dark")?"dark":"light";
-   if(previous===theme)return;
-   previous=theme;
-   node.replaceChildren();
-   const host=document.createElement("div");
-   host.className="tradingview-widget-container__widget";
-   node.appendChild(host);
-   const script=document.createElement("script");
-   script.src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
-   script.async=true;
-   script.textContent=JSON.stringify({symbols,showSymbolLogo:false,isTransparent:false,displayMode:"adaptive",colorTheme:theme,locale:"en"});
-   node.appendChild(script);
-  };
-  render();
-  const observer=new MutationObserver(render);
+  const container=document.getElementById("tv-ticker-"+theme);
+  if(!container)return;
+  const script=document.createElement("script");
+  script.src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
+  script.async=true;
+  script.textContent=JSON.stringify({symbols,showSymbolLogo:false,isTransparent:true,displayMode:"adaptive",colorTheme:theme,locale:"en"});
+  container.appendChild(script);
+  return()=>{script.remove()};
+ },[theme]);
+ return <div id={"tv-ticker-"+theme} className="tradingview-widget-container h-[52px] w-full"><div className="tradingview-widget-container__widget"/></div>;
+}
+export function MarketTickerTape(){
+ const [theme,setTheme]=useState<"light"|"dark"|null>(null);
+ useEffect(()=>{
+  const update=()=>setTheme(document.documentElement.classList.contains("dark")?"dark":"light");
+  update();
+  const observer=new MutationObserver(update);
   observer.observe(document.documentElement,{attributes:true,attributeFilter:["class"]});
-  return()=>{observer.disconnect();node.replaceChildren()};
+  window.addEventListener("logicsight-theme-change",update);
+  return()=>{observer.disconnect();window.removeEventListener("logicsight-theme-change",update)};
  },[]);
- return <section aria-label="Market ETFs supplied by TradingView" data-market-ticker className="h-[52px] w-full overflow-hidden border-y border-line bg-panel"><div ref={ref} className="tradingview-widget-container h-[52px] w-full"/></section>;
+ return <section aria-label="Market ETFs supplied by TradingView" data-market-ticker className="h-[52px] w-full overflow-hidden border-y border-line bg-bg">
+ {theme&&<TradingViewEmbed key={theme} theme={theme}/>}
+ </section>;
 }

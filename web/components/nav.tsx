@@ -7,14 +7,14 @@ import { BarChart3, BriefcaseBusiness, Info, LayoutDashboard, ListOrdered, Searc
 import { cn } from "@/lib/utils";
 
 export const NAV = [
-  { href: "/", label: "Dashboard", ko: "대시보드", icon: LayoutDashboard },
+  { href: "/lab", label: "Dashboard", ko: "대시보드", icon: LayoutDashboard },
   { href: "/portfolio", label: "Portfolio", ko: "포트폴리오", icon: BriefcaseBusiness },
   { href: "/trades", label: "Trade History", ko: "거래내역", icon: ListOrdered },
   { href: "/performance", label: "Performance", ko: "성과", icon: BarChart3 },
   { href: "/about", label: "About", ko: "소개", icon: Info },
 ];
 
-const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
+const isActive = (path: string, href: string) => (href === "/lab" ? path === "/lab" : path.startsWith(href));
 
 export function SideNav() {
   const path = usePathname();

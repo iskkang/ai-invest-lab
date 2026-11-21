@@ -8,6 +8,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/model-smoke-test.yml"
+      - "engine/ail/llm.py"
       - "web/data/demo.json"
 permissions:
   contents: read

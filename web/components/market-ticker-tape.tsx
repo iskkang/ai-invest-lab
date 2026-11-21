@@ -11,7 +11,7 @@ export function MarketTickerTape(){
    {proName:"TVC:SPX",title:"S&P 500"},
    {proName:"NASDAQ:NDX",title:"Nasdaq 100"},
    {proName:"DJ:DJI",title:"Dow Jones"},
-   {proName:"RUSSELL:RUT",title:"Russell 2000"},
+   {proName:"TVC:RUT",title:"Russell 2000"},
    {proName:"CBOE:VIX",title:"VIX"}
   ],showSymbolLogo:false,isTransparent:false,displayMode:"adaptive",colorTheme:"light",locale:"en"});
   node.appendChild(script);

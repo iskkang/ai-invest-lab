@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { headers } from "next/headers";
+import { isLocale, type Locale } from "@/lib/public-content";
 import { BottomNav, DemoBanner, Footer, Sidebar, TopBar } from "@/components/shell";
 import { getData, lastSessionDate } from "@/lib/data";
 import { themeScript } from "@/lib/theme";
@@ -24,22 +26,34 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const d = await getData();
-  const symbols = d.universe.filter((u) => u.role === "investable").map((u) => ({ symbol: u.symbol, name: u.name }));
+  // Keep independent research pages available when the private dataset is offline.
+  // Never silently switch LIVE investment results to synthetic DEMO performance.
+  const req = await headers();
+  const candidate = req.get("x-ail-locale");
+  const fallbackLocale: Locale = isLocale(candidate ?? "") ? (candidate as Locale) : "ko";
+  let d: Awaited<ReturnType<typeof getData>> | null = null;
+  try {
+    d = await getData();
+  } catch {
+    console.error("[ail/web] market dataset unavailable; no fallback investment data was used");
+  }
+  const locale = d?.locale ?? fallbackLocale;
+  const mode = d?.mode ?? (process.env.DATA_MODE === "live" ? "live" : "demo");
+  const symbols = d?.universe.filter((u) => u.role === "investable").map((u) => ({ symbol: u.symbol, name: u.name })) ?? [];
   return (
-    <html lang={d.locale === "zh" ? "zh-CN" : d.locale} suppressHydrationWarning>
+    <html lang={locale === "zh" ? "zh-CN" : locale} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body className="min-h-dvh">
-        <DemoBanner mode={d.mode} locale={d.locale} />
+        <DemoBanner mode={mode} locale={locale} />
         <div className="flex">
-          <Sidebar locale={d.locale} />
+          <Sidebar locale={locale} />
           <div className="min-w-0 flex-1">
-            <TopBar asOf={lastSessionDate(d)} symbols={symbols} locale={d.locale} />
+            <TopBar asOf={d ? lastSessionDate(d) : ""} symbols={symbols} locale={locale} />
             <main className="px-4 pt-5 lg:px-6">{children}</main>
-            <Footer locale={d.locale} />
+            <Footer locale={locale} />
           </div>
         </div>
-        <BottomNav locale={d.locale} />
+        <BottomNav locale={locale} />
       </body>
     </html>
   );

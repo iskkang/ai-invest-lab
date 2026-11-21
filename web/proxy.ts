@@ -6,7 +6,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * Do not trust client-supplied x-ail-* headers.
  */
 const LOCALE_APP = /^\/(en|zh|ko|ja)(?:\/(?:portfolio|trades(?:\/\d+)?|performance|about|methodology|faq|privacy|ai\/(?:gpt|claude|gemini|deepseek)|stocks\/[A-Z0-9.-]+))?\/?$/i;
-const PUBLIC_FILES = new Set(["/robots.txt", "/sitemap.xml", "/llms.txt", "/ads.txt"]);
+const PUBLIC_FILES = new Set(["/robots.txt", "/sitemap.xml", "/llms.txt", "/ads.txt", "/status"]);
 
 export function proxy(req: NextRequest) {
   const pathname = req.nextUrl.pathname;

@@ -14,7 +14,25 @@ export const revalidate = 300;
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ sort?: string }> }) {
   const { sort } = await searchParams;
   const sortKey = sort === "sharpe" ? "sharpe" : "cum_return";
-  const d = await getData();
+  let d: Awaited<ReturnType<typeof getData>>;
+  try {
+    d = await getData();
+  } catch {
+    // A failed LIVE provider/DB read must not silently display synthetic demo returns.
+    return (
+      <section role="status" className="mx-auto my-12 max-w-2xl rounded-2xl border border-line bg-panel px-6 py-10 text-center">
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted">DATA UNAVAILABLE · 데이터 연결 오류</p>
+        <h1 className="text-xl font-bold">투자 데이터 화면을 불러오지 못했습니다.</h1>
+        <p className="mt-3 text-sm leading-7 text-muted">
+          실시간 실험 데이터가 연결되지 않았습니다. 확인되지 않은 투자 판단이나 임의의 수익률을 표시하지 않습니다.
+          The live research data is temporarily unavailable. No synthetic performance is substituted.
+        </p>
+        <Link href="/ko/methodology" className="mt-6 inline-flex rounded-lg border border-line px-4 py-2 text-sm font-semibold">
+          실험 방식 · Methodology
+        </Link>
+      </section>
+    );
+  }
   const pending = d.mode === "live" && d.snapshots.length === 0;
   const last = lastSessionDate(d);
   const todays = d.trades.filter((t) => t.tradeDate === last && d.accounts.find((a) => a.id === t.accountId)?.kind === "ai");

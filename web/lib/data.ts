@@ -1,5 +1,7 @@
 import "server-only";
 import { cache } from "react";
+import { headers } from "next/headers";
+import { isLocale, type Locale } from "./public-content";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Dataset, Stats } from "./types";
@@ -18,9 +20,30 @@ const n = (v: unknown) => (v === null || v === undefined || v === "" ? 0 : Numbe
 const nn = (v: unknown) => (v === null || v === undefined || v === "" ? null : Number(v));
 
 export const getData = cache(async (): Promise<Dataset> => {
+  const req = await headers();
+  const headerLocale = req.get("x-ail-locale") ?? "ko";
+  const locale: Locale = isLocale(headerLocale) ? headerLocale : "ko";
+  const publicPage = req.get("x-ail-public") === "1";
   const mode = process.env.DATA_MODE === "live" ? "live" : "demo";
   const raw = mode === "live" ? await loadSupabase() : await loadDemo();
-  return normalize(raw, mode);
+  const dataset = { ...normalize(raw, mode), locale };
+  // Do not redistribute the licensed NH PLUG per-ticker OHLCV bars or fill
+  // prices on anonymous public pages. Keep only model-generated results,
+  // simulated account-level returns, and portfolio composition at this stage.
+  // The private back office continues to have its full data internally.
+  if (publicPage && mode === "live") {
+    return {
+      ...dataset,
+      prices: {},
+      trades: [],
+      // Portfolio values are simulated account metrics, not raw quote tables.
+      snapshots: dataset.snapshots.map(s => ({
+        ...s,
+        holdings: s.holdings.map(h => ({ ...h, close: 0, avgCost: 0 })),
+      })),
+    };
+  }
+  return dataset;
 });
 
 async function loadDemo(): Promise<Raw> {

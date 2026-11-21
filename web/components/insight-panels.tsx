@@ -158,7 +158,7 @@ function WeeklyEmptyState({d}:{d:Dataset}) {
   return <section className="ms-card overflow-hidden" aria-label={c.emptyTitle}>
     <div className="border-b border-line px-5 py-6 sm:px-6">
       <Badge variant="muted">{beforeStart?c.launchStatus:c.pendingStatus}</Badge>
-      <p className="ms-kicker mt-4 mb-2">{sectionLabel(locale,"researchSchedule")}</p>
+      <p className="ms-kicker mt-4 mb-2">{sectionLabel(d.locale,"researchSchedule")}</p>
       <h2 className="mt-2 text-lg font-bold tracking-tight">{c.emptyTitle}</h2>
       <p className="mt-2 text-sm leading-6 text-muted">{c.noReport}</p>
     </div>

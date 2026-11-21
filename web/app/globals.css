@@ -205,8 +205,13 @@ body{
 @media(max-width:639px){
   .market-hero,.insight-banner{border-radius:20px}
   .market-hero::after{width:270px;height:270px;right:-190px;top:-90px}
-  .hero-title{font-size:clamp(29px,8.5vw,38px);line-height:1.17}
+  .hero-title{font-size:clamp(27px,7.3vw,34px);line-height:1.15}
   .ms-insight-card::after{font-size:58px}
+}
+/* Keep mobile carousels and anchored navigation within the viewport. */
+@media(max-width:639px){
+  body{overflow-x:clip}
+  .market-hero{box-shadow:0 8px 24px rgba(19,34,77,.10)}
 }
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}

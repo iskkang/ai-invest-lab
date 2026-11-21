@@ -96,8 +96,9 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
     </section>
     <section>
       <Title title={c.study} sub={c.studySub}/>
-      <div className="grid gap-3 sm:grid-cols-3">
-        {strategies.map(r=><article key={r.id} className="ms-card ms-card-hover p-4">
+      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 scrollbar-none sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0"
+        aria-label={c.study} tabIndex={0}>
+        {strategies.map(r=><article key={r.id} className="ms-card ms-card-hover w-[81vw] max-w-[315px] shrink-0 snap-start p-4 sm:w-auto sm:max-w-none sm:shrink">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full" style={{background:HISTORICAL_PROFILES.find(p=>p.id===r.id)?.color}}/>
             <h3 className="text-sm font-bold">{label[r.id]}</h3>
@@ -112,6 +113,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
           </div>
         </article>)}
       </div>
+      <p className="mt-1 text-right text-[11px] text-muted sm:hidden">{c.swipe}</p>
       {strongest&&<p className="mt-3 rounded-xl border border-line bg-panel-2 px-4 py-3 text-xs leading-6 text-muted">
         {c.lead} <span className="font-semibold text-fg">{label[strongest.id]}</span> {c.leaderSuffix}
       </p>}
@@ -128,8 +130,9 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
     </section>
     <section>
       <Title title={c.profiles} sub={c.profilesSub}/>
-      <div className="grid gap-3 lg:grid-cols-3">
-        {HISTORICAL_PROFILES.map(p=><article key={p.id} className="rounded-2xl border border-line bg-panel px-4 py-5">
+      <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 scrollbar-none lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0"
+        aria-label={c.profiles} tabIndex={0}>
+        {HISTORICAL_PROFILES.map(p=><article key={p.id} className="w-[81vw] max-w-[315px] shrink-0 snap-start rounded-2xl border border-line bg-panel px-4 py-5 lg:w-auto lg:max-w-none lg:shrink">
           <h3 className="font-semibold">{label[p.id]}</h3>
           <p className="mt-1 text-xs text-muted">
             {p.id==="balanced"?c.balancedDesc:p.id==="momentum"?c.momentumDesc:c.defensiveDesc}
@@ -147,10 +150,23 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
           </dl>
         </article>)}
       </div>
+      <p className="mt-1 text-right text-[11px] text-muted lg:hidden">{c.swipe}</p>
     </section>
     <section className="ms-card p-4 sm:p-5">
       <Title title={c.comparison} sub={c.separate}/>
-      <div className="overflow-x-auto">
+      <div className="space-y-2 sm:hidden">
+        {study.results.map(r=><article key={r.id} className="rounded-xl border border-line bg-panel-2 p-3">
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="text-sm font-bold">{label[r.id]}</h3>
+            <p className={"text-lg font-extrabold tabular "+tone(r.returnPct)}>{pct(r.returnPct)}</p>
+          </div>
+          <dl className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs">
+            <div><dt className="text-muted">{c.mdd}</dt><dd className="mt-1 font-semibold tabular">{pct(r.drawdownPct)}</dd></div>
+            <div><dt className="text-muted">{c.vol}</dt><dd className="mt-1 font-semibold tabular">{pct(r.volatilityPct)}</dd></div>
+          </dl>
+        </article>)}
+      </div>
+      <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[470px] text-sm">
           <thead><tr className="border-b border-line text-left text-xs text-muted">
             <th className="py-3 pr-3">{c.study}</th><th className="px-3 text-right">{c.total}</th>

@@ -201,7 +201,10 @@ def main() -> int:
                 f"{remaining} symbols remain; no AI calls or trades",
                 flush=True,
             )
-            return 0 if remaining == 0 else 1
+            batch_number = int(os.environ.get("AIL_WARMUP_BATCH", "3"))
+            if remaining and batch_number < 3:
+                print("PARTIAL: next sequential warmup batch will resume remaining symbols", flush=True)
+            return 0 if remaining == 0 or batch_number < 3 else 1
     except Exception as exc:
         print(f"FAIL NH warmup: {type(exc).__name__}", flush=True)
         return 1

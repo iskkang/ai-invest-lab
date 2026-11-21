@@ -1,0 +1,32 @@
+name: claude-json-schema-one-shot
+on:
+  push:
+    branches:
+      - feature/claude-json-schema-probe-20261122
+    paths:
+      - engine/scripts/claude_structured_output_probe.py
+      - .github/workflows/claude-json-schema-one-shot.yml
+permissions:
+  contents: read
+jobs:
+  probe:
+    if: github.repository == 'iskkang/ai-invest-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    environment: production
+    env:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
+      NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
+      NHPLUG_TOKEN_CACHE: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install engine (no PostgreSQL)
+        run: pip install ./engine
+      - name: Exactly one real Claude structured-output request (no database)
+        run: python engine/scripts/claude_structured_output_probe.py

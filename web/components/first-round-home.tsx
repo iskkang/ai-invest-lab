@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, BookOpenText, ChartNoAxesCombined, CalendarDays } from "lucide-react";
 import type { Dataset } from "@/lib/types";
 import { localizedHref } from "@/lib/i18n";
+import { ModelDisclosure } from "@/components/model-disclosure";
 
 const COPY = {
   ko: {
@@ -11,7 +12,7 @@ const COPY = {
     date:"설정된 실험 시작일",
     method:"어떻게 비교하나요?",
     detail:(models:number,stocks:number,cash:string)=>
-      `${models}개 AI가 동일한 미국 주식 ${stocks}종목의 시장 데이터와 매매 규칙을 사용합니다. 각 AI는 가상 ${cash}로 시작하며, 서로의 판단은 공유하지 않습니다.`,
+      `${models}개 AI가 같은 미국 주식 ${stocks}종목의 시장 데이터·가상 원금(${cash})·매매 규칙으로 판단합니다. 각자의 계좌 기록은 다르며 서로의 판단은 공유하지 않습니다.`,
     noRecords:"실제로 기록된 판단과 계좌 평가가 생기기 전에는 순위·수익률·매매 내역을 표시하지 않습니다.",
     methodology:"실험 방법 확인",historical:"과거 전략 연구",patterns:"패턴 검증 보기",
   },
@@ -22,7 +23,7 @@ const COPY = {
     date:"Configured experiment start date",
     method:"How does the comparison work?",
     detail:(models:number,stocks:number,cash:string)=>
-      `${models} AI models use the same market data and trading rules for ${stocks} US stocks. Each starts with ${cash} in virtual cash, without seeing the other models' decisions.`,
+      `${models} AI models use the same dated market data for ${stocks} US stocks, ${cash} each in virtual starting cash, and the same trading rules. They do not see each other's decisions.`,
     noRecords:"Rankings, return charts and trades appear only after real decisions and account valuations have been recorded.",
     methodology:"Research methodology",historical:"Historical research",patterns:"Pattern research",
   },
@@ -33,7 +34,7 @@ const COPY = {
     date:"实验设定的开始日期",
     method:"如何进行比较？",
     detail:(models:number,stocks:number,cash:string)=>
-      `${models} 个 AI 使用相同的 ${stocks} 只美股市场数据和交易规则。每个模型以虚拟资金 ${cash} 起步，彼此不会看到对方的决策。`,
+      `${models} 个 AI 使用 ${stocks} 只美股的相同市场数据、每个 ${cash} 的虚拟起始资金及相同交易规则。各自的账户记录会不同，也看不到其他模型的决策。`,
     noRecords:"在真实决策与账户估值记录出现之前，不展示排名、收益曲线或交易记录。",
     methodology:"实验方法",historical:"历史策略研究",patterns:"形态验证",
   },
@@ -44,7 +45,7 @@ const COPY = {
     date:"設定された実験開始日",
     method:"どのように比較するのか？",
     detail:(models:number,stocks:number,cash:string)=>
-      `${models}つのAIが米国株${stocks}銘柄の同じ市場データと売買ルールを使います。各AIは仮想資金${cash}から始め、他のAIの判断は共有されません。`,
+      `${models}つのAIが米国株${stocks}銘柄の同じ市場データ、各${cash}の仮想初期資金、同じ売買ルールで判断します。口座履歴はそれぞれ異なり、他のAIの判断は共有しません。`,
     noRecords:"実際の判断と口座評価が記録されるまで、ランキング・収益グラフ・取引履歴は表示しません。",
     methodology:"研究方法",historical:"過去の戦略研究",patterns:"パターン検証",
   },
@@ -87,6 +88,9 @@ export function FirstRoundHome({d}:{d:Dataset}) {
             <p className="mt-2 text-sm leading-6 text-[#e0e8f8]">
               {copy.detail(aiCount,stockCount,initialCash)}
             </p>
+            <div className="mt-4 border-t border-white/15 pt-4">
+              <ModelDisclosure locale={d.locale} dark/>
+            </div>
           </div>
         </div>
 

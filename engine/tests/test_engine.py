@@ -396,3 +396,46 @@ def test_model_change_is_recorded_and_env_mismatch_blocks(db, settings, source, 
         bootstrap(db, settings)          # env 는 아직 gpt-4.1-mini → 조용히 바뀌지 않고 중단
     with pytest.raises(LabError, match="alias"):
         admin.set_model(db, "gpt", "~openai/gpt-latest", "tester", "x")
+
+
+def test_model_response_quality_and_transient_retry_are_recorded(db, settings, source):
+    """One transport retry for GPT; one invalid Claude response; zero on the rest.
+    No model gets a second inference after a bad model reply.
+    """
+    tries = {}
+
+    def handler(request):
+        if request.url.path.endswith("/models"):
+            data=[{"id":model,"context_length":200000,
+                   "pricing":{"prompt":"0.0000001","completion":"0.0000001"}}
+                  for model in ("openai/gpt-4.1-mini","anthropic/claude-sonnet-5.5",
+                                "google/gemini-3.8-flash","deepseek/deepseek-v3.2")]
+            return httpx.Response(200,json={"data":data})
+        body=json.loads(request.content)
+        model=body["model"]
+        tries[model]=tries.get(model,0)+1
+        if model=="openai/gpt-4.1-mini" and tries[model]==1:
+            return httpx.Response(503,json={"error":{"message":"transient"}})
+        packet=json.loads(body["messages"][1]["content"])
+        content="{not valid json" if model.startswith("anthropic/") else hold_all(packet)
+        return httpx.Response(200,json={
+            "model":model,"choices":[{"finish_reason":"stop",
+                                      "message":{"content":content}}],
+            "usage":{"prompt_tokens":20,"completion_tokens":20,"cost":0.00001},
+        })
+
+    client=httpx.Client(base_url="https://openrouter.ai/api/v1",
+                       transport=httpx.MockTransport(handler))
+    provider=OpenRouterProvider(api_key="sk-or-test-SECRET",client=client,
+                                sleep=lambda _seconds:None)
+    day(db,settings,source,provider,START)
+    rows={r["ai_model_id"]:r for r in
+          db.execute("select ai_model_id,status,invalid_response_count,retry_count from api_usage").fetchall()}
+    assert len(rows)==4
+    assert rows["gpt"]["retry_count"]==1 and rows["gpt"]["invalid_response_count"]==0
+    assert rows["claude"]["retry_count"]==0 and rows["claude"]["invalid_response_count"]==1
+    assert rows["gemini"]["retry_count"]==0 and rows["gemini"]["invalid_response_count"]==0
+    assert rows["deepseek"]["retry_count"]==0 and rows["deepseek"]["invalid_response_count"]==0
+    assert tries["openai/gpt-4.1-mini"]==2
+    assert tries["anthropic/claude-sonnet-5.5"]==1
+    assert db.execute("select status from experiment_rounds").fetchone()["status"]=="aborted"

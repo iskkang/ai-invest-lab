@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: { default: "MarketSights — AI Paper-Trading Leaderboard", template: "%s · MarketSights" },
-  description: "Four independent AI models compare simulated US-stock investment decisions under identical conditions. Educational research only.",
+  description: "Compare four specific AI models using the same dated US-stock data, virtual starting capital and trading rules. Different model tiers; educational paper trading only.",
   // AdSense site verification metadata is emitted only after a real publisher
   // account is configured. This does not activate advertising.
   ...( /^pub-\d{16}$/.test(process.env.ADSENSE_PUBLISHER_ID ?? "") ? {

@@ -13,6 +13,7 @@ const COPY={
     agents:"비교 대상 AI",start:"실험 시작일",
     scheduled:"첫 투자 실험 준비 중",tracking:"검증된 판단 기록 축적 중",
     note:"각 모델의 의견과 수익률은 실제 기록이 생긴 후 공개됩니다.",
+    modelCaveat:"같은 데이터·가상 원금·매매 규칙으로 비교하지만, 모델의 규모와 가격대는 다릅니다. 회사 간 우열을 뜻하지 않습니다.",
   },
   en:{
     mobileIntro:"Explore historical research now. AI comparisons will follow verified decisions.",
@@ -22,6 +23,7 @@ const COPY={
     agents:"Independent AI models",start:"Experiment starts",
     scheduled:"First research round scheduled",tracking:"Accumulating verified decisions",
     note:"Performance rankings appear only after real decision and valuation records exist.",
+    modelCaveat:"Market data, virtual starting capital and trading rules are shared; model size and price tier differ. Results are not company rankings.",
   },
   zh:{
     mobileIntro:"现在可查看真实历史研究；AI 对比将在判断记录累积后开放。",
@@ -31,6 +33,7 @@ const COPY={
     agents:"独立 AI 模型",start:"实验开始日",
     scheduled:"首轮实验准备中",tracking:"正在积累已核实的判断",
     note:"只有产生真实决策与账户估值记录后才公布收益率排名。",
+    modelCaveat:"模型使用相同的数据、虚拟起始资金及交易规则，但规模与价格档次不同。结果不代表厂商优劣。",
   },
   ja:{
     mobileIntro:"過去の市場分析は今すぐ確認できます。AI比較は判断記録の蓄積後に公開します。",
@@ -40,6 +43,7 @@ const COPY={
     agents:"独立AIモデル",start:"実験開始日",
     scheduled:"初回の実験準備中",tracking:"検証済み判断を蓄積中",
     note:"実際の判断と評価が記録されてからランキングを表示します。",
+    modelCaveat:"同じデータ・仮想初期資金・売買ルールで比較しますが、モデルの規模と価格帯は異なります。企業の優劣ではありません。",
   },
 } as const;
 
@@ -63,6 +67,7 @@ export function DashboardHero({d}:{d:Dataset}){
         <p className="mt-4 hidden max-w-xl text-[13px] leading-6 text-[#d4ddf0] sm:block sm:text-sm sm:leading-7">
           {c.intro}
         </p>
+        <p className="mt-2 hidden max-w-xl text-xs leading-6 text-[#c7d7f0] sm:block">{c.modelCaveat}</p>
         <div className="mt-4 flex flex-wrap items-center gap-x-3 gap-y-2 sm:mt-5 sm:gap-x-4">
           <Link href={localizedHref(d.locale,primary)} className="hero-action min-h-11">
             <GitCompareArrows size={16} aria-hidden/>

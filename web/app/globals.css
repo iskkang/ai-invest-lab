@@ -271,3 +271,14 @@ body{
   .model-disclosure-table td:nth-child(4)::before { content: "Official source"; }
   .model-disclosure-table td:nth-child(5)::before { content: "Active model"; }
 }
+
+/* Compact TradingView tape on narrow screens; iframe text cannot be styled directly. */
+.ticker-inner{height:52px;width:100%;background:transparent}
+@media (max-width:767px){
+  .ticker-inner{
+    width:125%;
+    height:57.5px;
+    transform:scale(.8);
+    transform-origin:top left;
+  }
+}

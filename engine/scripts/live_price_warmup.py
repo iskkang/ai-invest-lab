@@ -1,14 +1,18 @@
-"""Manual market-data warmup for the live paper-trading experiment.
+"""Real NH PLUG price ingestion before the first paper-trading session.
 
-Fetches historical daily quotes for the configured 30 US stocks and SPY using
-NH PLUG. Stores verified market prices only; NEVER invokes AI, creates rounds,
-places paper orders, or executes real brokerage orders.
+Provider calls run in isolated child processes: a timed-out NH request cannot
+interrupt or poison an in-flight psycopg transaction. Each verified ticker is
+committed independently, making the warmup resumable without fabricated bars.
+
+No AI inference, no simulated orders, and no real brokerage orders.
 """
 from __future__ import annotations
 
+import multiprocessing as mp
 import os
 import sys
-from datetime import datetime, timezone, timedelta
+import time
+from datetime import datetime, timedelta, timezone
 
 from ail import market_calendar as mc
 from ail.config import Settings
@@ -17,20 +21,74 @@ from ail.market_data import active_universe, ingest, sync_sessions
 from ail.sources import NHQuoteSource
 
 
-def main() -> int:
-    """Fetch actual NH PLUG quotes; commit each verified symbol independently."""
-    import signal
-    import time
+def _fetch_in_child(symbol, through, count, sender):
+    """Fetch one genuine NH PLUG series without touching a database connection."""
+    try:
+        bars = NHQuoteSource().daily_bars(symbol, through, count)
+        sender.send(("ok", bars))
+    except Exception as exc:
+        try:
+            sender.send(("error", type(exc).__name__))
+        except Exception:
+            pass
+    finally:
+        sender.close()
 
+
+def fetch_with_deadline(symbol, through, count, seconds):
+    """Isolate NH network calls from the caller's PostgreSQL connection."""
+    context = mp.get_context("spawn")
+    receiver, sender = context.Pipe(duplex=False)
+    child = context.Process(target=_fetch_in_child, args=(symbol, through, count, sender))
+    try:
+        child.start()
+        sender.close()
+        if not receiver.poll(seconds):
+            raise TimeoutError("NH period endpoint exceeded per-symbol deadline")
+        try:
+            status, value = receiver.recv()
+        except EOFError:
+            raise RuntimeError("NH subprocess ended without an outcome") from None
+        if status != "ok":
+            raise RuntimeError("NH quote request failed: " + str(value))
+        return value
+    finally:
+        receiver.close()
+        sender.close()
+        if child.pid is not None:
+            if child.is_alive():
+                child.terminate()
+                child.join(timeout=3)
+                if child.is_alive():
+                    child.kill()
+            child.join(timeout=3)
+
+
+class RetrievedNHSource:
+    """An in-memory quote source: DB ingestion never waits on a provider call."""
+    name = "nh_plug"
+
+    def __init__(self, symbol, bars):
+        self.symbol = symbol
+        self.bars = bars
+
+    def daily_bars(self, symbol, end, count):
+        if symbol != self.symbol:
+            raise ValueError("Unexpected ticker in NH ingestion")
+        return self.bars
+
+
+def main() -> int:
     required = ("DATABASE_URL", "NHPLUG_APP_KEY", "NHPLUG_APP_SECRET")
-    missing = [k for k in required if not os.environ.get(k)]
+    missing = [key for key in required if not os.environ.get(key)]
     if missing:
         print("MISSING secrets: " + ", ".join(missing), flush=True)
         return 2
+
     settings = Settings()
     settings.mode = "live"
-    max_symbols = max(1, min(31, int(os.environ.get("AIL_WARMUP_MAX_SYMBOLS", "31"))))
-    symbol_timeout = max(15, min(300, int(os.environ.get("AIL_WARMUP_SYMBOL_TIMEOUT", "70"))))
+    max_symbols = max(1, min(31, int(os.environ.get("AIL_WARMUP_MAX_SYMBOLS", "12"))))
+    symbol_timeout = max(15, min(300, int(os.environ.get("AIL_WARMUP_SYMBOL_TIMEOUT", "140"))))
 
     try:
         with connect(settings.database_url) as conn:
@@ -48,77 +106,73 @@ def main() -> int:
                 return 1
             through = mc.previous_session(mc.ny_today())
             if through >= exp["start_session"]:
-                print("STOP: warmup is restricted to before the first live session", flush=True)
+                print("STOP: warmup cannot backdate official investment history", flush=True)
                 return 1
 
             with conn.transaction():
                 sync_sessions(conn, through - timedelta(days=550), through + timedelta(days=10))
 
             rows = conn.execute(
-                "select symbol,count(*) n,max(trade_date) latest"
-                " from stock_prices where source='nh_plug' group by symbol"
+                "select symbol,count(*) n,max(trade_date) latest "
+                "from stock_prices where source='nh_plug' group by symbol"
             ).fetchall()
-            complete = {r["symbol"] for r in rows if r["n"] >= 200 and r["latest"] >= through}
-            pending = [sym for sym in symbols if sym not in complete]
+            complete = {
+                r["symbol"] for r in rows
+                if r["n"] >= 200 and r["latest"] >= through
+            }
+            pending = [symbol for symbol in symbols if symbol not in complete]
             print(
-                f"NH real quote warmup: through={through}, "
-                f"complete={len(complete)}/{len(symbols)}, "
-                f"pending={len(pending)}, requested_bars={settings.history_bars}",
+                f"NH live prices through={through}: complete={len(complete)}/31, "
+                f"pending={len(pending)}, bars={settings.history_bars}",
                 flush=True,
             )
             if not pending:
-                print("COMPLETE: verified real prices available for all symbols", flush=True)
+                print("PASS: all 31 genuine price series already saved", flush=True)
                 return 0
 
-            src = NHQuoteSource()
-            ok = 0
-            failed = 0
-
-            def alarm_handler(signum, frame):
-                raise TimeoutError("NH symbol request exceeded deadline")
-
-            previous_handler = signal.signal(signal.SIGALRM, alarm_handler)
-            try:
-                for symbol in pending[:max_symbols]:
-                    start = time.monotonic()
-                    signal.alarm(symbol_timeout)
-                    try:
-                        with conn.transaction():
-                            report = ingest(
-                                conn, src, [symbol], through,
-                                datetime.now(timezone.utc), settings.history_bars,
-                            )
-                        ok += 1
-                        print(
-                            f"OK {symbol}: saved {report['inserted']} verified bars "
-                            f"in {time.monotonic()-start:.1f}s",
-                            flush=True,
+            succeeded, failed = 0, 0
+            for symbol in pending[:max_symbols]:
+                started = time.monotonic()
+                try:
+                    # Fetch and timeout isolated from DB write transactions.
+                    bars = fetch_with_deadline(
+                        symbol, through, settings.history_bars, symbol_timeout
+                    )
+                    with conn.transaction():
+                        report = ingest(
+                            conn, RetrievedNHSource(symbol, bars), [symbol],
+                            through, datetime.now(timezone.utc), settings.history_bars,
                         )
-                    except Exception as exc:
-                        failed += 1
-                        # Never emit credentials, SQL connection strings or provider payloads.
-                        print(f"FAILED {symbol}: {type(exc).__name__}; continuing", flush=True)
-                    finally:
-                        signal.alarm(0)
-            finally:
-                signal.signal(signal.SIGALRM, previous_handler)
+                    succeeded += 1
+                    print(
+                        f"OK {symbol}: committed {report['inserted']} genuine bars "
+                        f"in {time.monotonic()-started:.1f}s",
+                        flush=True,
+                    )
+                except Exception as exc:
+                    failed += 1
+                    # Sanitized errors, no response bodies, tokens or connection strings.
+                    print(
+                        f"FAILED {symbol}: {type(exc).__name__}; continuing",
+                        flush=True,
+                    )
 
-            new_rows = conn.execute(
-                "select symbol,count(*) n,max(trade_date) latest"
-                " from stock_prices where source='nh_plug' group by symbol"
+            check = conn.execute(
+                "select symbol,count(*) n,max(trade_date) latest "
+                "from stock_prices where source='nh_plug' group by symbol"
             ).fetchall()
-            completed = {r["symbol"] for r in new_rows if r["n"] >= 200 and r["latest"] >= through}
-            remaining = len(set(symbols) - completed)
+            complete = {r["symbol"] for r in check if r["n"] >= 200 and r["latest"] >= through}
+            remaining = len(set(symbols) - complete)
             print(
-                f"RESULT: succeeded={ok}, failed={failed}, remaining={remaining}; "
-                "NO AI decisions, NO orders, NO brokerage trades",
+                f"RESULT: {succeeded} succeeded, {failed} failed in this run, "
+                f"{remaining} symbols remain; no AI calls or trades",
                 flush=True,
             )
-            # Mark partial runs non-successful; successful per-symbol rows are safely committed.
             return 0 if remaining == 0 else 1
     except Exception as exc:
-        print(f"FAIL live NH price warmup: {type(exc).__name__}", flush=True)
+        print(f"FAIL NH warmup: {type(exc).__name__}", flush=True)
         return 1
+
 
 if __name__ == "__main__":
     sys.exit(main())

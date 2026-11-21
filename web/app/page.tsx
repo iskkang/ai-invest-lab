@@ -13,6 +13,57 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const { sort } = await searchParams;
   const sortKey = sort === "sharpe" ? "sharpe" : "cum_return";
   const d = await getData();
+  // A newly initialized real-data experiment has no performance results.
+  // Never fabricate rankings from accounts with zero valuation snapshots.
+  if (d.mode === "live" && d.snapshots.length === 0) {
+    const round = d.rounds[0];
+    const roundDecisions = round ? d.decisions.filter((x) => x.roundId === round.id) : [];
+    return (
+      <div className="space-y-5">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">AI 모의투자 실험 — LIVE</h1>
+          <p className="mt-1 text-sm text-muted">
+            실제 시장 데이터 기반 가상 투자 실험 · 시작 거래일 {d.experiment.startSession}
+          </p>
+        </div>
+        <Section title={round ? "첫 투자 회차 진행 중" : "첫 투자 회차 대기"}>
+          <div className="space-y-2 text-sm leading-6">
+            <p className="font-medium">
+              {round
+                ? "AI의 첫 투자 회차가 기록됐습니다. 포트폴리오 평가는 정규장 종가 확정 후 생성됩니다."
+                : "실험과 초기 가상 계좌가 준비됐습니다. 아직 투자 판단이나 체결 기록은 없습니다."}
+            </p>
+            <p className="text-muted">
+              초기 원금 ${d.experiment.initialCash.toLocaleString("en-US")} ·
+              투자 대상 {d.universe.filter((u) => u.role === "investable").length}종목 ·
+              시작일 {d.experiment.startSession} (NYSE)
+            </p>
+            <p className="text-muted">실제 돈의 주문은 실행하지 않습니다. 첫 평가 전에는 수익률과 순위를 표시하지 않습니다.</p>
+            {round && <RoundBadge status={round.status} reason={round.abortReason} />}
+          </div>
+        </Section>
+        <Section title="참가 AI 및 초기 가상 계좌">
+          <div className="grid gap-3 md:grid-cols-2">
+            {aiAccounts(d).map((a) => (
+              <div key={a.id} className="rounded-lg border border-line p-4">
+                <div className="flex items-center gap-2 font-semibold"><Dot color={a.color}/>{a.name}</div>
+                <p className="mt-1 text-xs text-muted">{a.model}</p>
+                <p className="mt-3 font-semibold tabular">${a.initialCash.toLocaleString("en-US")}</p>
+                <p className="mt-1 text-xs text-muted">최초 자금 · 평가 및 순위 집계 전</p>
+              </div>
+            ))}
+          </div>
+        </Section>
+        {roundDecisions.length > 0 && (
+          <Section title="실제 AI 투자 판단">
+            <div className="grid gap-3 md:grid-cols-2">
+              {roundDecisions.map((dec) => <DecisionCard key={dec.id} d={d} dec={dec} />)}
+            </div>
+          </Section>
+        )}
+      </div>
+    );
+  }
   const last = lastSessionDate(d);
   const todays = d.trades.filter((t) => t.tradeDate === last && d.accounts.find((a) => a.id === t.accountId)?.kind === "ai");
   const lastRound = d.rounds[0];

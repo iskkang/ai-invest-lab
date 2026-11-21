@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { headers } from "next/headers";
+import { unstable_cache } from "next/cache";
 import { isLocale, type Locale } from "./public-content";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
@@ -25,7 +26,7 @@ export const getData = cache(async (): Promise<Dataset> => {
   const locale: Locale = isLocale(headerLocale) ? headerLocale : "ko";
   const publicPage = req.get("x-ail-public") === "1";
   const mode = process.env.DATA_MODE === "live" ? "live" : "demo";
-  const raw = mode === "live" ? await loadSupabase() : await loadDemo();
+  const raw = mode === "live" ? await (publicPage ? loadCachedPublicRaw() : loadSupabase(false)) : await loadDemo();
   const dataset = { ...normalize(raw, mode), locale, publicQuotesRedacted: publicPage && mode === "live" };
   // Do not redistribute the licensed NH PLUG per-ticker OHLCV bars or fill
   // prices on anonymous public pages. Keep only model-generated results,
@@ -54,7 +55,15 @@ async function loadDemo(): Promise<Raw> {
   return JSON.parse(await readFile(file, "utf8"));
 }
 
-async function loadSupabase(): Promise<Raw> {
+// Public pages share the same 5-minute server-side read cache across languages.
+// The cached projection is quote-free and never contains API credentials.
+const loadCachedPublicRaw = unstable_cache(
+  () => loadSupabase(true),
+  ["ail-public-results-v2"],
+  { revalidate: 300 }
+);
+
+async function loadSupabase(publicView = false): Promise<Raw> {
   const { serverSupabase } = await import("./server-supabase");
   const sb = serverSupabase();
   const name = process.env.AIL_EXPERIMENT ?? "season-1";
@@ -84,7 +93,7 @@ async function loadSupabase(): Promise<Raw> {
     all("portfolio_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("benchmark_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("performance_stats", "*", (q) => q.in("account_id", ids).order("as_of", { ascending: false })),
-    all("trades", "*", (q) => q.in("account_id", ids).order("trade_date", { ascending: false })),
+    all("trades", publicView ? "id,order_id,account_id,symbol,side,quantity,trade_date,executed_at" : "*", (q) => q.in("account_id", ids).order("trade_date", { ascending: false })),
     all("orders", "*", (q) => q.in("account_id", ids)),
     all("experiment_rounds", "*", (q) => q.eq("experiment_id", exp.id).order("session_date", { ascending: false })),
     all("ai_decisions", "id,round_id,ai_model_id,requested_model,status,error,parsed,market_hash,completed_at"),
@@ -107,14 +116,19 @@ async function loadSupabase(): Promise<Raw> {
   coveredDates.push(...rounds.map((r: Raw) => String(r.data_as_of)));
   const through = coveredDates.sort().at(-1) ?? new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
-  // Multiple price sources may contain identical ticker/date pairs: filter at DB level.
-  const prices = await all<PriceRow>("stock_prices", "symbol,trade_date,open,high,low,close,volume", (q) =>
-    q.in("symbol", symbols).eq("source", "nh_plug").gte("trade_date", since)
-     .lte("trade_date", through).order("trade_date").order("symbol"));
-  const actions = await all<SplitRow>("corporate_actions", "symbol,kind,ex_date,ratio", (q) =>
-    q.in("symbol", symbols).eq("price_source", "nh_plug").eq("kind", "split")
-     .lte("ex_date", through).lte("created_at", now).order("ex_date").order("symbol"));
-  const priceMap = makeAdjustedPriceMap(prices, actions, through);
+  // Anonymous visitors never fetch licensed per-ticker OHLCV, splits or raw
+  // brokerage transaction amounts from Supabase. The private console can.
+  let priceMap: Record<string, unknown> = {};
+  if (!publicView) {
+    // Multiple price sources may contain identical ticker/date pairs: filter at DB level.
+      const prices = await all<PriceRow>("stock_prices", "symbol,trade_date,open,high,low,close,volume", (q) =>
+        q.in("symbol", symbols).eq("source", "nh_plug").gte("trade_date", since)
+         .lte("trade_date", through).order("trade_date").order("symbol"));
+      const actions = await all<SplitRow>("corporate_actions", "symbol,kind,ex_date,ratio", (q) =>
+        q.in("symbol", symbols).eq("price_source", "nh_plug").eq("kind", "split")
+         .lte("ex_date", through).lte("created_at", now).order("ex_date").order("symbol"));
+      priceMap = makeAdjustedPriceMap(prices, actions, through);
+  }
   const latest = new Map<number, Raw>();
   for (const s of stats) if (!latest.has(s.account_id)) latest.set(s.account_id, s);
   const modelById = new Map(models.map((m: Raw) => [m.id, m]));

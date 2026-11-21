@@ -1,0 +1,34 @@
+# Manual and safe to run before first real-market session only.
+# Fetch verified NH PLUG historical daily prices; no AI inference or paper orders.
+name: live-price-warmup
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ail-live-price-warmup
+  cancel-in-progress: false
+jobs:
+  warmup:
+    if: github.repository == 'iskkang/ai-invest-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
+      NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
+      AIL_EXPERIMENT: "season-1"
+      AIL_MODE: live
+      AIL_HISTORY_BARS: "300"
+      NHPLUG_TOKEN_CACHE: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ./engine
+      - name: Fetch real historical quotes only, without orders
+        run: python engine/scripts/live_price_warmup.py

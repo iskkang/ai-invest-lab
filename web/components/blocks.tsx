@@ -5,7 +5,7 @@ import { Badge } from "./ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Table, Td, Th } from "./ui/table";
 import { Avatar } from "./ai-compare";
-import { localizedHref, t } from "@/lib/i18n";
+import { localizedHref, t as translate } from "@/lib/i18n";
 
 export function Dot({ color }: { color: string }) {
   return <span className="inline-block h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: color }} aria-hidden />;
@@ -47,9 +47,9 @@ export function Leaderboard({ d, sortKey }: { d: Dataset; sortKey: "cum_return" 
         <Table>
           <thead>
             <tr>
-              <Th>#</Th><Th>AI</Th><Th className="text-right">{t(d.locale,"평가자산")}</Th><Th className="text-right">{t(d.locale,"누적")}</Th>
-              <Th className="text-right">{t(d.locale,"SPY 대비")}</Th><Th className="text-right">{t(d.locale,"일간")}</Th><Th className="text-right">{t(d.locale,"MDD")}</Th>
-              <Th className="text-right">{t(d.locale,"샤프")}</Th><Th className="text-right">{t(d.locale,"현금비중")}</Th><Th className="text-right">{t(d.locale,"거래")}</Th>
+              <Th>#</Th><Th>AI</Th><Th className="text-right">{translate(d.locale,"평가자산")}</Th><Th className="text-right">{translate(d.locale,"누적")}</Th>
+              <Th className="text-right">{translate(d.locale,"SPY 대비")}</Th><Th className="text-right">{translate(d.locale,"일간")}</Th><Th className="text-right">{translate(d.locale,"MDD")}</Th>
+              <Th className="text-right">{translate(d.locale,"샤프")}</Th><Th className="text-right">{translate(d.locale,"현금비중")}</Th><Th className="text-right">{translate(d.locale,"거래")}</Th>
             </tr>
           </thead>
           <tbody>
@@ -81,22 +81,22 @@ export function Leaderboard({ d, sortKey }: { d: Dataset; sortKey: "cum_return" 
 }
 
 export function StatGrid({ s, initial, locale = "ko" }: { s: Stats | undefined; initial: number; locale?: Dataset["locale"] }) {
-  if (!s) return <p className="text-sm text-muted">{t(locale,"아직 평가 기록이 없습니다.")}</p>;
+  if (!s) return <p className="text-sm text-muted">{translate(locale,"아직 평가 기록이 없습니다.")}</p>;
   const items: [string, string, number | null | undefined][] = [
-    [t(locale,"최초 투자금"), fmtUsd(initial), null],
-    [t(locale,"현재 평가자산"), fmtUsd(s.equity), null],
-    [t(locale,"누적 수익률"), fmtPct(s.cum_return), s.cum_return],
-    [t(locale,"주간 / 월간"), `${fmtPct(s.weekly_return)} / ${fmtPct(s.monthly_return)}`, s.weekly_return],
-    [t(locale,"현금 비중"), fmtPct(s.cash_weight, 1, false), null],
-    [t(locale,"최대 낙폭(MDD)"), fmtPct(s.max_drawdown, 2, false), -1],
-    [t(locale,"변동성(연환산)"), s.volatility_ann === null ? t(locale,"표본 부족") : fmtPct(s.volatility_ann, 1, false), null],
-    [t(locale,"샤프 비율"), s.sharpe === null ? t(locale,"표본 부족") : fmtNum(s.sharpe), null],
-    [t(locale,"실현손익"), fmtUsd(s.realized_pnl, 2), s.realized_pnl],
-    [t(locale,"미실현손익"), fmtUsd(s.unrealized_pnl, 2), s.unrealized_pnl],
-    [t(locale,"거래 승률"), s.win_rate === null ? t(locale,"표본 부족") : fmtPct(s.win_rate, 1, false), null],
-    [t(locale,"거래 횟수 / 보유 종목"), `${s.trade_count} / ${s.positions}`, null],
-    [t(locale,"최대 종목 비중"), fmtPct(s.max_position_weight, 1, false), null],
-    [t(locale,"집중도(HHI)"), fmtNum(s.hhi, 3), null],
+    [translate(locale,"최초 투자금"), fmtUsd(initial), null],
+    [translate(locale,"현재 평가자산"), fmtUsd(s.equity), null],
+    [translate(locale,"누적 수익률"), fmtPct(s.cum_return), s.cum_return],
+    [translate(locale,"주간 / 월간"), `${fmtPct(s.weekly_return)} / ${fmtPct(s.monthly_return)}`, s.weekly_return],
+    [translate(locale,"현금 비중"), fmtPct(s.cash_weight, 1, false), null],
+    [translate(locale,"최대 낙폭(MDD)"), fmtPct(s.max_drawdown, 2, false), -1],
+    [translate(locale,"변동성(연환산)"), s.volatility_ann === null ? translate(locale,"표본 부족") : fmtPct(s.volatility_ann, 1, false), null],
+    [translate(locale,"샤프 비율"), s.sharpe === null ? translate(locale,"표본 부족") : fmtNum(s.sharpe), null],
+    [translate(locale,"실현손익"), fmtUsd(s.realized_pnl, 2), s.realized_pnl],
+    [translate(locale,"미실현손익"), fmtUsd(s.unrealized_pnl, 2), s.unrealized_pnl],
+    [translate(locale,"거래 승률"), s.win_rate === null ? translate(locale,"표본 부족") : fmtPct(s.win_rate, 1, false), null],
+    [translate(locale,"거래 횟수 / 보유 종목"), `${s.trade_count} / ${s.positions}`, null],
+    [translate(locale,"최대 종목 비중"), fmtPct(s.max_position_weight, 1, false), null],
+    [translate(locale,"집중도(HHI)"), fmtNum(s.hhi, 3), null],
   ];
   return (
     <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-line bg-line sm:grid-cols-3 lg:grid-cols-4">
@@ -112,12 +112,12 @@ export function StatGrid({ s, initial, locale = "ko" }: { s: Stats | undefined; 
 
 export function HoldingsTable({ d, account }: { d: Dataset; account: Account }) {
   const snap = d.snapshots.filter((s) => s.accountId === account.id).sort((a, b) => a.date.localeCompare(b.date)).at(-1);
-  if (!snap) return <p className="text-sm text-muted">{t(d.locale,"보유 종목 없음")}</p>;
+  if (!snap) return <p className="text-sm text-muted">{translate(d.locale,"보유 종목 없음")}</p>;
   const rows = snap.holdings.slice().sort((a, b) => b.marketValue - a.marketValue);
   return (
     <Table>
-      <thead><tr><Th>{t(d.locale,"종목")}</Th><Th className="text-right">{t(d.locale,"수량")}</Th><Th className="text-right">{t(d.locale,"평단")}</Th><Th className="text-right">{t(d.locale,"종가")}</Th>
-        <Th className="text-right">{t(d.locale,"평가액")}</Th><Th className="text-right">{t(d.locale,"비중")}</Th><Th className="text-right">{t(d.locale,"미실현")}</Th></tr></thead>
+      <thead><tr><Th>{translate(d.locale,"종목")}</Th><Th className="text-right">{translate(d.locale,"수량")}</Th><Th className="text-right">{translate(d.locale,"평단")}</Th><Th className="text-right">{translate(d.locale,"종가")}</Th>
+        <Th className="text-right">{translate(d.locale,"평가액")}</Th><Th className="text-right">{translate(d.locale,"비중")}</Th><Th className="text-right">{translate(d.locale,"미실현")}</Th></tr></thead>
       <tbody>
         {rows.map((h) => (
           <tr key={h.symbol}>
@@ -131,7 +131,7 @@ export function HoldingsTable({ d, account }: { d: Dataset; account: Account }) 
           </tr>
         ))}
         <tr>
-          <Td className="text-muted">{t(d.locale,"현금")}</Td><Td /><Td /><Td />
+          <Td className="text-muted">{translate(d.locale,"현금")}</Td><Td /><Td /><Td />
           <Td className="text-right">{fmtUsd(snap.cash)}</Td>
           <Td className="text-right">{fmtPct(snap.cash / snap.equity, 1, false)}</Td><Td />
         </tr>
@@ -149,22 +149,22 @@ export function AllocationBar({ d, account }: { d: Dataset; account: Account }) 
   parts.push({ k: "현금", w: snap.cash / snap.equity, o: 0 });
   return (
     <div>
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-panel-2" role="img" aria-label={t(d.locale,"포트폴리오 구성")}>
+      <div className="flex h-3 w-full overflow-hidden rounded-full bg-panel-2" role="img" aria-label={translate(d.locale,"포트폴리오 구성")}>
         {parts.map((p) => (
           <div key={p.k} style={{ width: `${p.w * 100}%`, background: p.k === "현금" ? "var(--line)" : account.color, opacity: p.k === "현금" ? 1 : Math.max(0.25, p.o) }} title={`${p.k} ${fmtPct(p.w, 1, false)}`} />
         ))}
       </div>
       <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">
-        {parts.map((p) => <span key={p.k} className="tabular">{p.k==="현금"?t(d.locale,"현금"):p.k} {fmtPct(p.w, 1, false)}</span>)}
+        {parts.map((p) => <span key={p.k} className="tabular">{p.k==="현금"?translate(d.locale,"현금"):p.k} {fmtPct(p.w, 1, false)}</span>)}
       </div>
     </div>
   );
 }
 
 export function TradeList({ d, trades, compact = false }: { d: Dataset; trades: Trade[]; compact?: boolean }) {
-  const tFn = (side: "BUY"|"SELL") => t(d.locale, sideLabel(side));
+  const tFn = (side: "BUY"|"SELL") => translate(d.locale, sideLabel(side));
   const acc = new Map(d.accounts.map((a) => [a.id, a]));
-  if (!trades.length) return <p className="py-4 text-sm text-muted">{t(d.locale,"거래 없음")}</p>;
+  if (!trades.length) return <p className="py-4 text-sm text-muted">{translate(d.locale,"거래 없음")}</p>;
   return (
     <ul className="divide-y divide-line">
       {trades.map((t) => {
@@ -176,7 +176,7 @@ export function TradeList({ d, trades, compact = false }: { d: Dataset; trades: 
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 text-sm">
                   <span className="font-semibold">{t.symbol}</span>
-                  <span className="text-muted tabular">{t.quantity} {tFn("BUY")==="Buy"?"shares":t(d.locale,"주")}{!d.publicQuotesRedacted&&<> @ {fmtNum(t.price)}</>}</span>
+                  <span className="text-muted tabular">{t.quantity} {tFn("BUY")==="Buy"?"shares":translate(d.locale,"주")}{!d.publicQuotesRedacted&&<> @ {fmtNum(t.price)}</>}</span>
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px] text-muted"><Dot color={a.color} />{a.name}{!compact && <> · {t.tradeDate}</>}</div>
               </div>
@@ -198,8 +198,8 @@ export function DecisionCard({ d, dec }: { d: Dataset; dec: Decision }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2"><Avatar name={a?.name ?? "?"} color={a?.color ?? "#888"} size={26} />{a?.name}<span className="text-xs font-normal text-muted">{dec.sessionDate} {t(d.locale,"체결분")}</span></CardTitle>
-        <Badge variant={dec.status === "valid" ? "muted" : "warn"}>{dec.status === "valid" ? `${t(d.locale,"데이터")} ${dec.dataAsOf}` : t(d.locale,"무효 응답")}</Badge>
+        <CardTitle className="flex items-center gap-2"><Avatar name={a?.name ?? "?"} color={a?.color ?? "#888"} size={26} />{a?.name}<span className="text-xs font-normal text-muted">{dec.sessionDate} {translate(d.locale,"체결분")}</span></CardTitle>
+        <Badge variant={dec.status === "valid" ? "muted" : "warn"}>{dec.status === "valid" ? `${translate(d.locale,"데이터")} ${dec.dataAsOf}` : translate(d.locale,"무효 응답")}</Badge>
       </CardHeader>
       <CardContent className="space-y-3 text-sm">
         {dec.status !== "valid" ? <p className="text-warn">{dec.error}</p> : <p className="leading-relaxed">{dec.summary}</p>}
@@ -208,18 +208,18 @@ export function DecisionCard({ d, dec }: { d: Dataset; dec: Decision }) {
             {trades.slice(0, 6).map((x) => (
               <li key={x.symbol} className="rounded-lg bg-panel-2 p-2.5">
                 <div className="flex items-center gap-2">
-                  <Badge variant={x.action === "BUY" ? "up" : "down"}>{t(d.locale,sideLabel(x.action))}</Badge>
+                  <Badge variant={x.action === "BUY" ? "up" : "down"}>{translate(d.locale,sideLabel(x.action))}</Badge>
                   <Link href={localizedHref(d.locale, `/stocks/${x.symbol}`)} className="font-semibold hover:underline">{x.symbol}</Link>
-                  <span className="text-muted tabular">{x.quantity} {t(d.locale,"주")}</span>
+                  <span className="text-muted tabular">{x.quantity} {translate(d.locale,"주")}</span>
                 </div>
                 <p className="mt-1 text-[13px] leading-relaxed text-fg/90">{x.reason}</p>
-                {x.risks?.length > 0 && <p className="mt-1 text-[12px] text-muted">{t(d.locale,"위험:")} {x.risks.join(" · ")}</p>}
+                {x.risks?.length > 0 && <p className="mt-1 text-[12px] text-muted">{translate(d.locale,"위험:")} {x.risks.join(" · ")}</p>}
               </li>
             ))}
-            {trades.length > 6 && <li className="text-xs text-muted">{t(d.locale,"외")} {trades.length - 6} {t(d.locale,"건")}</li>}
+            {trades.length > 6 && <li className="text-xs text-muted">{translate(d.locale,"외")} {trades.length - 6} {translate(d.locale,"건")}</li>}
           </ul>
         )}
-        {trades.length === 0 && dec.status === "valid" && <p className="text-muted">{t(d.locale,"이번 회차 매매 없음(보유 유지)")}</p>}
+        {trades.length === 0 && dec.status === "valid" && <p className="text-muted">{translate(d.locale,"이번 회차 매매 없음(보유 유지)")}</p>}
       </CardContent>
     </Card>
   );
@@ -239,7 +239,7 @@ export function RoundBadge({ status, reason, locale = "ko" }: { status: string; 
     settled: ["체결 완료", "muted"], decided: ["체결 대기", "up"], aborted: ["회차 보류", "warn"], skipped: ["건너뜀", "muted"],
   };
   const [label, v] = map[status] ?? [status, "muted"];
-  return <Badge variant={v} title={reason ?? undefined}>{t(locale,label)}{reason ? ` · ${reason.split(":")[0]}` : ""}</Badge>;
+  return <Badge variant={v} title={reason ?? undefined}>{translate(locale,label)}{reason ? ` · ${reason.split(":")[0]}` : ""}</Badge>;
 }
 
 
@@ -258,7 +258,7 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
               <p className="truncate text-[17px] font-bold leading-tight">{a.name}</p>
               <p className="truncate text-[11px] text-muted">{a.model}</p>
             </div>
-            <span className="whitespace-nowrap rounded-md bg-panel-2 px-2 py-1 text-xs font-semibold text-muted">{i + 1} {t(d.locale,"위")}</span>
+            <span className="whitespace-nowrap rounded-md bg-panel-2 px-2 py-1 text-xs font-semibold text-muted">{i + 1} {translate(d.locale,"위")}</span>
           </div>
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
             <p className="text-2xl font-bold tabular">{s ? fmtUsd(s.equity) : "—"}</p>
@@ -267,10 +267,10 @@ export function AiCards({ d, sortKey }: { d: Dataset; sortKey: "cum_return" | "s
             </span>
           </div>
           <dl className="mt-2 grid grid-cols-4 gap-1 text-[11px]">
-            <div><dt className="text-muted">{t(d.locale,"SPY 대비")}</dt><dd className={cn("font-semibold tabular", toneClass(s && spyRet !== null ? s.cum_return - spyRet : null))}>{s && spyRet !== null ? fmtPct(s.cum_return - spyRet, 1) : "—"}</dd></div>
-            <div><dt className="text-muted">{t(d.locale,"MDD")}</dt><dd className="font-semibold tabular">{fmtPct(s?.max_drawdown, 1, false)}</dd></div>
-            <div><dt className="text-muted">{t(d.locale,"샤프")}</dt><dd className="font-semibold tabular">{s?.sharpe == null ? "표본부족" : fmtNum(s.sharpe)}</dd></div>
-            <div><dt className="text-muted">{t(d.locale,"현금")}</dt><dd className="font-semibold tabular">{fmtPct(s?.cash_weight, 0, false)}</dd></div>
+            <div><dt className="text-muted">{translate(d.locale,"SPY 대비")}</dt><dd className={cn("font-semibold tabular", toneClass(s && spyRet !== null ? s.cum_return - spyRet : null))}>{s && spyRet !== null ? fmtPct(s.cum_return - spyRet, 1) : "—"}</dd></div>
+            <div><dt className="text-muted">{translate(d.locale,"MDD")}</dt><dd className="font-semibold tabular">{fmtPct(s?.max_drawdown, 1, false)}</dd></div>
+            <div><dt className="text-muted">{translate(d.locale,"샤프")}</dt><dd className="font-semibold tabular">{s?.sharpe == null ? "표본부족" : fmtNum(s.sharpe)}</dd></div>
+            <div><dt className="text-muted">{translate(d.locale,"현금")}</dt><dd className="font-semibold tabular">{fmtPct(s?.cash_weight, 0, false)}</dd></div>
           </dl>
         </Link>
       ))}

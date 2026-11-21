@@ -129,7 +129,7 @@ try{
     const anchors=[...html.matchAll(/<a\b[^>]*>/g)].map(match=>match[0]);
     const selected=anchors.filter(a=>a.includes('aria-current="page"'))
       .map(a=>a.match(/href="([^"]+)"/)?.[1]).filter(Boolean);
-    assert.deepEqual(selected,["/"+locale+"/historical","/"+locale+"/historical"],
+    assert.deepEqual(selected,["/"+locale+"/historical"],
       "Only historical nav should be selected: "+locale);
   }
   const unpublished=await req("/ko/weekly/2026-W48");

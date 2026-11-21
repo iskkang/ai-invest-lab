@@ -73,7 +73,7 @@ export function InsightTeasers({d}:{d:Dataset}) {
       {cards.map((card,i)=><Link key={card.href}
         href={localizedHref(d.locale,card.href)}
         data-index={String(i+1).padStart(2,"0")}
-        className="ms-card ms-card-hover ms-insight-card group flex min-h-[134px] flex-col p-3 sm:min-h-[171px] sm:p-5">
+        className="ms-card ms-card-hover ms-insight-card group flex min-h-[157px] flex-col p-3 sm:min-h-[171px] sm:p-5">
         <div className="relative z-10 flex items-center justify-between gap-3">
           <span className="grid h-8 w-8 place-items-center rounded-xl bg-accent/10 text-accent sm:h-10 sm:w-10">
             <card.icon size={19} strokeWidth={1.85} aria-hidden/>
@@ -81,7 +81,7 @@ export function InsightTeasers({d}:{d:Dataset}) {
           <ArrowRight size={17} className="text-muted transition group-hover:translate-x-1 group-hover:text-accent" aria-hidden/>
         </div>
         <h3 className="relative z-10 mt-3 text-[13px] font-bold leading-5 tracking-tight sm:mt-4 sm:text-[15px]">{card.title}</h3>
-        <p className="relative z-10 mt-2 hidden flex-1 text-xs leading-5 text-muted sm:block">{card.desc}</p>
+        <p className="relative z-10 mt-2 line-clamp-2 flex-1 text-[11px] leading-4 text-muted sm:text-xs sm:leading-5">{card.desc}</p>
         <span className="relative z-10 mt-auto pt-3 text-[11px] font-bold text-accent">{c.seeAll} →</span>
       </Link>)}
     </div>

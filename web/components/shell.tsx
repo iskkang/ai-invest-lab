@@ -53,7 +53,7 @@ export function TopBar({asOf,symbols,locale}:{
             <DataAsOfStatus asOf={asOf} locale={locale}/>
           </div>
           <span className="hidden lg:inline-flex"><ThemeToggle locale={locale}/></span>
-          <div className="lg:hidden"><MobileMenu locale={locale}/></div>
+          <div className="hidden md:block lg:hidden"><MobileMenu locale={locale}/></div>
         </div>
       </div>
       <div className="hidden border-t border-line/70 lg:block"><HeaderNav locale={locale}/></div>

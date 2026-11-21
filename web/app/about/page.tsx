@@ -3,12 +3,15 @@ import { PageTitle } from "@/components/shell";
 import { headers } from "next/headers";
 import { t } from "@/lib/i18n";
 import { PUBLIC_COPY, isLocale } from "@/lib/public-content";
+import { EngineMethodologyDetails } from "@/components/engine-methodology-details";
+import { loadActiveMethodology } from "@/lib/methodology-runtime";
 
 export const metadata = {title:"About"};
 export default async function About() {
   const candidate = (await headers()).get("x-ail-locale") ?? "ko";
   const locale = isLocale(candidate) ? candidate : "ko";
   const c = PUBLIC_COPY[locale];
+  const active = await loadActiveMethodology();
   return (
     <div className="space-y-4">
       <PageTitle title={t(locale,"AI는 실제로 주식투자를 잘할까?")}
@@ -24,6 +27,7 @@ export default async function About() {
           ))}
         </ol>
       </Section>
+      <EngineMethodologyDetails locale={locale} active={active}/>
       <Section title={t(locale,"비교 기준")}>
         <p className="text-sm leading-7 text-muted">{c.metrics[3][1]} — {t(locale,"SPY, 30종목 균등투자 및 현금 100% 벤치마크를 비교합니다.")}</p>
       </Section>

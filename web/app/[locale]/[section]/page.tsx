@@ -6,6 +6,8 @@ import { Section } from "@/components/blocks";
 import { LOCALES, PUBLIC_SECTIONS, PUBLIC_COPY, isLocale, isPublicSection } from "@/lib/public-content";
 import { dashboardMetadata } from "@/lib/seo";
 import { localizedHref } from "@/lib/i18n";
+import { EngineMethodologyDetails } from "@/components/engine-methodology-details";
+import { loadActiveMethodology } from "@/lib/methodology-runtime";
 
 export const revalidate=86400;
 export function generateStaticParams() {
@@ -24,6 +26,7 @@ export default async function ResearchArticle({params}:{
   const copy = PUBLIC_COPY[locale];
   const items = section==="faq" ? copy.faq.map(x=>({heading:x.q,body:x.a}))
     : section==="methodology" ? copy.method : copy.privacy;
+  const active = section==="methodology" ? await loadActiveMethodology() : null;
   const summary = section==="faq" ? copy.aboutFaq
     : section==="methodology" ? copy.aboutMethod : copy.aboutPrivacy;
   const schema = {
@@ -48,6 +51,7 @@ export default async function ResearchArticle({params}:{
           </Section>
         ))}
       </div>
+      {section==="methodology"&&<EngineMethodologyDetails locale={locale} active={active}/>}
       <p className="text-xs leading-6 text-muted">{copy.safety}</p>
       <Link href={localizedHref(locale,"/")} className="text-sm text-accent underline underline-offset-4">{copy.back}</Link>
     </div>

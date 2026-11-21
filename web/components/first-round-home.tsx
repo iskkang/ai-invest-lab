@@ -17,7 +17,7 @@ const COPY = {
     methodology:"실험 방법",historical:"과거 전략 연구",patterns:"패턴 검증 보기",
   },
   en: {
-    eyebrow:"AI paper trading · Before the first official round",
+    eyebrow:"AI PAPER TRADING · PRE-LAUNCH",
     title:"Comparisons begin after the first official AI decision.",
     status:"No official decision round has been published yet.",
     date:"Configured experiment start date",
@@ -67,7 +67,7 @@ export function FirstRoundHome({d}:{d:Dataset}) {
   return (
     <div data-home-phase="pre-first-published-round" className="mx-auto max-w-6xl pb-12">
       <section className="market-hero px-5 py-7 sm:px-9 sm:py-10" aria-label={copy.eyebrow}>
-        <p className="hero-eyebrow">{copy.eyebrow}</p>
+        <p className="hero-eyebrow text-[9px] tracking-[.12em] whitespace-nowrap sm:text-[10px] sm:tracking-[.2em]">{copy.eyebrow}</p>
         <h1 className="mt-4 max-w-3xl text-2xl font-extrabold leading-snug tracking-tight text-white sm:text-4xl">
           {copy.title}
         </h1>

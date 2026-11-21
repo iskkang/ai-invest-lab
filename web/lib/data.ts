@@ -26,7 +26,7 @@ export const getData = cache(async (): Promise<Dataset> => {
   const publicPage = req.get("x-ail-public") === "1";
   const mode = process.env.DATA_MODE === "live" ? "live" : "demo";
   const raw = mode === "live" ? await loadSupabase() : await loadDemo();
-  const dataset = { ...normalize(raw, mode), locale };
+  const dataset = { ...normalize(raw, mode), locale, publicQuotesRedacted: publicPage && mode === "live" };
   // Do not redistribute the licensed NH PLUG per-ticker OHLCV bars or fill
   // prices on anonymous public pages. Keep only model-generated results,
   // simulated account-level returns, and portfolio composition at this stage.
@@ -35,7 +35,10 @@ export const getData = cache(async (): Promise<Dataset> => {
     return {
       ...dataset,
       prices: {},
-      trades: [],
+      trades: dataset.trades.map(trade => ({
+        ...trade,
+        refOpenPrice: 0, price: 0, gross: 0, fee: 0, netCash: 0, realizedPnl: null,
+      })),
       // Portfolio values are simulated account metrics, not raw quote tables.
       snapshots: dataset.snapshots.map(s => ({
         ...s,
@@ -143,7 +146,7 @@ async function loadSupabase(): Promise<Raw> {
   };
 }
 
-function normalize(raw: Raw, mode: "live" | "demo"): Omit<Dataset, "locale"> {
+function normalize(raw: Raw, mode: "live" | "demo"): Omit<Dataset, "locale" | "publicQuotesRedacted"> {
   const e = raw.experiment;
   const colorFallback: Record<string, string> = {
     SPY_BUY_HOLD: "#a3a3a3", EQUAL_WEIGHT: "#eab308", CASH: "#525252",

@@ -10,11 +10,11 @@ export { BottomNav };
 
 export function Logo({locale="ko"}:{locale?:Locale}) {
   return (
-    <Link href={localizedHref(locale,"/")} className="flex items-center gap-2.5" aria-label="MarketTrials home">
+    <Link href={localizedHref(locale,"/")} className="flex items-center gap-2.5" aria-label="MarketSights home">
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white">
         <ChartNoAxesColumnIncreasing size={18} strokeWidth={2.4} aria-hidden />
       </span>
-      <span className="text-[17px] font-bold tracking-tight">MarketTrials</span>
+      <span className="text-[17px] font-bold tracking-tight">MarketSights</span>
     </Link>
   );
 }
@@ -63,16 +63,18 @@ export function TopBar({asOf,symbols,locale}:{
 
 export function Footer({locale}:{locale:Locale}) {
   const disclaimers:Record<Locale,string>={
-    ko:"MarketTrials은 교육·연구 목적의 모의투자 실험입니다. 실제 주식 주문을 실행하지 않으며 개인별 투자 권유가 아닙니다. 표시된 가상 체결 수익은 실제 투자 성과와 다를 수 있고 과거 성과는 미래 결과를 보장하지 않습니다.",
-    en:"MarketTrials is an educational paper-trading experiment. It never places real stock orders or provides personalized investment advice. Simulated fills and returns may differ from actual trading results. Past outcomes do not predict future performance.",
-    zh:"MarketTrials 是教育研究性质的模拟投资实验，不会下达真实证券订单，也不提供个性化投资建议。模拟成交与收益可能不同于实际交易结果，历史表现不代表未来收益。",
-    ja:"MarketTrialsは教育・研究目的の模擬投資実験です。実際の発注や個別の投資助言は行いません。仮想約定とリターンは実際の運用成績とは異なり、過去の結果は将来を保証しません。",
+    ko:"MarketSights은 교육·연구 목적의 모의투자 실험입니다. 실제 주식 주문을 실행하지 않으며 개인별 투자 권유가 아닙니다. 표시된 가상 체결 수익은 실제 투자 성과와 다를 수 있고 과거 성과는 미래 결과를 보장하지 않습니다.",
+    en:"MarketSights is an educational paper-trading experiment. It never places real stock orders or provides personalized investment advice. Simulated fills and returns may differ from actual trading results. Past outcomes do not predict future performance.",
+    zh:"MarketSights 是教育研究性质的模拟投资实验，不会下达真实证券订单，也不提供个性化投资建议。模拟成交与收益可能不同于实际交易结果，历史表现不代表未来收益。",
+    ja:"MarketSightsは教育・研究目的の模擬投資実験です。実際の発注や個別の投資助言は行いません。仮想約定とリターンは実際の運用成績とは異なり、過去の結果は将来を保証しません。",
   };
   return (
     <footer className="px-4 pb-28 pt-8 text-xs leading-relaxed text-muted lg:px-6 lg:pb-8">
       <p className="max-w-4xl">{disclaimers[locale]}</p>
       <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs" aria-label="Research information">
         <Link href={localizedHref(locale,"/methodology")} className="hover:text-accent">{t(locale,"실험 방식")}</Link>
+        <Link href={localizedHref(locale,"/weekly")} className="hover:text-accent">{t(locale,"주간 리포트")}</Link>
+        <Link href={localizedHref(locale,"/accuracy")} className="hover:text-accent">{t(locale,"판단 검증")}</Link>
         <Link href={localizedHref(locale,"/faq")} className="hover:text-accent">FAQ</Link>
         <Link href={localizedHref(locale,"/privacy")} className="hover:text-accent">{locale==="ko"?"개인정보":locale==="en"?"Privacy":locale==="zh"?"隐私":"プライバシー"}</Link>
       </nav>

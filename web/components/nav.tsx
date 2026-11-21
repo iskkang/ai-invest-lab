@@ -3,18 +3,23 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { BarChart3, BriefcaseBusiness, Info, LayoutDashboard, ListOrdered, Search } from "lucide-react";
+import { BarChart3, BriefcaseBusiness, GitCompareArrows, Info, LayoutDashboard, ListOrdered, Newspaper, Search, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { t, localizedHref } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
 
 export const NAV = [
   { href: "/", key: "대시보드", icon: LayoutDashboard },
+  { href: "/consensus", key: "AI 비교", icon: GitCompareArrows },
+  { href: "/weekly", key: "주간 리포트", icon: Newspaper },
+  { href: "/accuracy", key: "판단 검증", icon: ShieldCheck },
+  { href: "/performance", key: "성과", icon: BarChart3 },
   { href: "/portfolio", key: "포트폴리오", icon: BriefcaseBusiness },
   { href: "/trades", key: "거래내역", icon: ListOrdered },
-  { href: "/performance", key: "성과", icon: BarChart3 },
   { href: "/about", key: "소개", icon: Info },
 ] as const;
+const MOBILE_NAV = NAV.filter(item =>
+  ["/","/consensus","/weekly","/accuracy","/portfolio"].includes(item.href));
 
 const active = (path: string, target: string) =>
   target === path || (target !== "/" && path.startsWith(target + "/"));
@@ -44,7 +49,7 @@ export function BottomNav({ locale }: { locale: Locale }) {
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-panel/95 backdrop-blur lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }} aria-label="Mobile navigation">
       <ul className="grid grid-cols-5">
-        {NAV.map((item) => {
+        {MOBILE_NAV.map((item) => {
           const href = localizedHref(locale, item.href);
           return (
             <li key={item.key}>

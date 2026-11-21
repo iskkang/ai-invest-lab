@@ -8,7 +8,7 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "test:secrets": "node scripts/check-secrets.mjs",
-    "test:p0": "node --experimental-strip-types --test tests/price-adjust.test.mjs"
+    "test:p0": "node --experimental-strip-types --test tests/*.test.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

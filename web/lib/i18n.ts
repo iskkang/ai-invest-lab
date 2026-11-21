@@ -120,7 +120,7 @@ const rows: [string,string,string,string][] = [
 ["수익률: 벤치마크 대비","Returns vs. benchmark","收益率与基准比较","リターン対ベンチマーク"],
 ["SPY 단순 보유 대비","vs SPY buy-and-hold","与 SPY 买入持有相比","SPY単純保有比"],
 ["AI는 실제로 주식투자를 잘할까?","Can AI make better stock decisions?","AI 能做出更好的股票投资判断吗？","AIは株式投資をうまく判断できるのか？"],
-["MarketTrials 실험 규칙과 한계","Rules and limitations of MarketTrials","MarketTrials 实验规则与局限","MarketTrialsの実験規則と限界"],
+["MarketSights 실험 규칙과 한계","Rules and limitations of MarketSights","MarketSights 实验规则与局限","MarketSightsの実験規則と限界"],
 ["실험 방식","Experiment methodology","实验方法","実験方法"],
 ["비교 기준","Benchmarks","比较基准","比較基準"],
 ["한계와 주의","Limitations and caveats","局限与注意事项","限界と注意点"],
@@ -202,11 +202,14 @@ const rows: [string,string,string,string][] = [
 ["페이지를 찾을 수 없습니다","Page not found","页面未找到","ページが見つかりません"],
 ["대시보드로","Back to dashboard","返回仪表盘","ダッシュボードへ戻る"],
 ["원문 언어: 한국어. 해당 언어의 검증된 번역이 아직 없습니다.","Source language: Korean. A verified translation is not yet available.","原文语言为韩语，目前尚无经过核实的译文。","原文は韓国語です。検証済みの翻訳はまだありません。"],
-["MarketTrials 실험 규칙과 한계","MarketTrials methodology and limitations","MarketTrials 实验方法与局限","MarketTrialsの実験規則と限界"],
+["MarketSights 실험 규칙과 한계","MarketSights methodology and limitations","MarketSights 实验方法与局限","MarketSightsの実験規則と限界"],
 ["종료일","End date","结束日期","終了日"],
 ["차트 줄이기","Collapse chart","收起图表","チャートを縮小"],
 ["차트 키우기","Expand chart","展开图表","チャートを拡大"],
 ["주가 차트","Stock price chart","股票价格图","株価チャート"],
+["AI 비교","AI comparison","AI 比较","AI比較"],
+["주간 리포트","Weekly insights","每周洞察","週間インサイト"],
+["판단 검증","Accuracy lab","判断验证","判断の検証"],
 ];
 export function t(locale: Locale | string, korean: string): string {
   if (locale === "ko") return korean;

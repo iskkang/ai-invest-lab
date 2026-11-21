@@ -3,7 +3,7 @@ import { LOCALES, PUBLIC_COPY, publicOrigin, type Locale } from "./public-conten
 
 export const VISIBLE_SECTIONS = [
   "", "/portfolio", "/trades", "/performance", "/about",
-  "/methodology", "/faq", "/privacy",
+  "/methodology", "/faq", "/privacy", "/consensus", "/weekly", "/accuracy",
 ] as const;
 export type VisibleSection = (typeof VISIBLE_SECTIONS)[number];
 
@@ -21,7 +21,7 @@ export function alternateRoutes(suffix: string = "") {
 }
 export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean }): Metadata {
   const site = PUBLIC_COPY[locale];
-  const fullTitle = suffix === "" ? site.title : `${title} | MarketTrials`;
+  const fullTitle = suffix === "" ? site.title : `${title} | MarketSights`;
   const description = suffix === "" ? site.description : `${title}. ${site.description}`;
   return {
     metadataBase: new URL(publicOrigin()),
@@ -36,7 +36,7 @@ export function dashboardMetadata(locale: Locale, suffix: string, title: string,
       description,
       url: localizedRoute(locale, suffix),
       type: "website",
-      siteName: "MarketTrials",
+      siteName: "MarketSights",
     },
     robots: { index: !opts?.noindex, follow: !opts?.noindex },
   };

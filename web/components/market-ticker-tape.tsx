@@ -14,7 +14,7 @@ function TradingViewEmbed({theme}:{theme:"light"|"dark"}){
   const script=document.createElement("script");
   script.src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
   script.async=true;
-  script.textContent=JSON.stringify({symbols,showSymbolLogo:false,isTransparent:theme==="light",displayMode:"adaptive",colorTheme:theme,locale:"en"});
+  script.textContent=JSON.stringify({symbols,showSymbolLogo:false,isTransparent:true,displayMode:"regular",colorTheme:theme,locale:"en"});
   container.appendChild(script);
   return()=>{script.remove()};
  },[theme]);
@@ -30,7 +30,7 @@ export function MarketTickerTape(){
   window.addEventListener("logicsight-theme-change",update);
   return()=>{observer.disconnect();window.removeEventListener("logicsight-theme-change",update)};
  },[]);
- return <section aria-label="Market ETFs supplied by TradingView" data-market-ticker className="h-[52px] w-full overflow-hidden border-y border-line bg-bg">
+ return <section aria-label="Market ETFs supplied by TradingView" data-market-ticker className="h-[52px] w-full overflow-hidden border-y border-line bg-panel">
  {theme&&<TradingViewEmbed key={theme} theme={theme}/>}
  </section>;
 }

@@ -1,0 +1,37 @@
+# Manual only. Calls four real AI model endpoints with one genuine AAPL historical bar.
+# Does NOT connect to PostgreSQL, write records, or simulate any execution.
+# Paid provider requests require a separate manual workflow_dispatch click.
+name: model-smoke-test
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ail-model-smoke-test
+  cancel-in-progress: false
+jobs:
+  check:
+    if: github.repository == 'iskkang/ai-invest-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
+      NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+      AIL_MODEL_GPT: ${{ vars.AIL_MODEL_GPT || 'openai/gpt-4.1-mini' }}
+      AIL_MODEL_CLAUDE: ${{ vars.AIL_MODEL_CLAUDE || 'anthropic/claude-sonnet-5.5' }}
+      AIL_MODEL_GEMINI: ${{ vars.AIL_MODEL_GEMINI || 'google/gemini-3.8-flash' }}
+      AIL_MODEL_DEEPSEEK: ${{ vars.AIL_MODEL_DEEPSEEK || 'deepseek/deepseek-v3.2' }}
+      NHPLUG_TOKEN_CACHE: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install quote-only Python engine
+        run: pip install ./engine
+      - name: Test four actual AI inference endpoints (estimated cap USD 0.15)
+        run: python engine/scripts/model_smoke_test.py

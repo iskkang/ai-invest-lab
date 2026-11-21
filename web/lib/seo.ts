@@ -16,7 +16,7 @@ export function alternateRoutes(suffix: string = "") {
     "zh-CN": localizedRoute("zh", suffix),
     ko: localizedRoute("ko", suffix),
     ja: localizedRoute("ja", suffix),
-    "x-default": localizedRoute("en", suffix),
+    "x-default": localizedRoute("ko", suffix),
   };
 }
 export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean }): Metadata {

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { isLocale, type Locale } from "@/lib/public-content";
 import { ReturnChart } from "@/components/charts";
+import { ChartLegend } from "@/components/chart-legend";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { InsightTeasers } from "@/components/insight-panels";
 import { DashboardHero } from "@/components/dashboard-hero";
@@ -104,7 +105,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
       <Section title={t(d.locale,"누적 수익률 추이")} action={<span className="text-[11px] text-muted">{t(d.locale, "점선 = 벤치마크")}</span>}>
         <div><ReturnChart lines={returnLines(d, { benchmarks: true })} locale={d.locale} /></div>
-        <Legend d={d} />
+        <ChartLegend lines={returnLines(d, {benchmarks:true})} locale={d.locale}/>
       </Section>
 
       <DashboardAdSlot locale={d.locale} />
@@ -145,12 +146,3 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   );
 }
 
-function Legend({ d }: { d: Awaited<ReturnType<typeof getData>> }) {
-  return (
-    <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-      {d.accounts.map((a) => (
-        <span key={a.id} className="flex items-center gap-1.5"><Dot color={a.color} />{a.name}</span>
-      ))}
-    </div>
-  );
-}

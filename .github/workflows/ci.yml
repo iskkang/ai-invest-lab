@@ -31,3 +31,11 @@ jobs:
         with: { node-version: 22, cache: npm, cache-dependency-path: web/package-lock.json }
       - run: cd web && npm ci && npm run test:p0 && npm run typecheck && npm run test:secrets && npm run build && node scripts/smoke-public.mjs && node scripts/smoke-degraded.mjs
         env: { SITE_ACCESS: private, SITE_PASSWORD: ci }
+      # Browser geometry of the real UI components, at phone and desktop sizes.
+      # The fixture is auth-protected and available ONLY to this CI process.
+      - name: Chrome responsive layout regression (375px / 1440px)
+        run: |
+          cd web
+          npm install --no-save --package-lock=false playwright-core@1.56.1
+          node scripts/verify-home-visual.mjs
+        env: { SITE_ACCESS: private, SITE_PASSWORD: ci, AIL_UI_TEST_FIXTURE: "on" }

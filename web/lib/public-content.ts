@@ -2,7 +2,7 @@
 export const LOCALES = ["en", "zh", "ko", "ja"] as const;
 export type Locale = (typeof LOCALES)[number];
 export const DEFAULT_LOCALE: Locale = "en";
-export const PUBLIC_SECTIONS = ["methodology", "faq", "privacy", "advertise"] as const;
+export const PUBLIC_SECTIONS = ["methodology", "faq", "privacy"] as const;
 export type PublicSection = (typeof PUBLIC_SECTIONS)[number];
 
 export const LANG_LABELS: Record<Locale, string> = {

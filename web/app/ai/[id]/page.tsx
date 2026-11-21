@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { accountByAi, getData } from "@/lib/data";
 import { returnLines } from "@/lib/series";
 import { cn, fmtPct, toneClass } from "@/lib/utils";
+import { localizedHref,t } from "@/lib/i18n";
 
 export const revalidate = 300;
 
@@ -40,32 +41,32 @@ export default async function AiPage({ params }: { params: Promise<{ id: string 
         <span className={cn("ml-auto text-2xl font-semibold tabular", toneClass(s?.cum_return))}>{fmtPct(s?.cum_return)}</span>
       </div>
       {spyRet !== null && s && (
-        <p className="text-sm text-muted">SPY 단순 보유 대비 <b className={toneClass(s.cum_return - spyRet)}>{fmtPct(s.cum_return - spyRet)}</b></p>
+        <p className="text-sm text-muted">{t(d.locale,"SPY 단순 보유 대비")} <b className={toneClass(s.cum_return - spyRet)}>{fmtPct(s.cum_return - spyRet)}</b></p>
       )}
 
-      <StatGrid s={s} initial={a.initialCash} />
+      <StatGrid s={s} initial={a.initialCash} locale={d.locale} />
 
-      <Section title="수익률: 벤치마크 대비">
+      <Section title={t(d.locale,"수익률: 벤치마크 대비")}>
         <ReturnChart height={260} lines={returnLines(d, { only: [a.id, ...(spy ? [spy.id] : [])] })} />
       </Section>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <Section title="보유 종목">
+        <Section title={t(d.locale,"보유 종목")}>
           <AllocationBar d={d} account={a} />
           <div className="mt-3"><HoldingsTable d={d} account={a} /></div>
         </Section>
-        <Section title="거래 이력">
+        <Section title={t(d.locale,"거래 이력")}>
           <TradeList d={d} trades={trades.slice(0, 15)} />
         </Section>
       </div>
 
       {rejected.length > 0 && (
-        <Section title="체결되지 않은 주문(사유 포함)">
+        <Section title={t(d.locale,"체결되지 않은 주문(사유 포함)")}>
           <ul className="divide-y divide-line text-sm">
             {rejected.map((o) => (
               <li key={o.id} className="flex flex-wrap gap-x-3 py-2">
                 <span className="tabular text-muted">{o.sessionDate}</span>
-                <span className="font-medium">{o.side} {o.symbol} {o.quantity}주</span>
+                <span className="font-medium">{t(d.locale,o.side==="BUY"?"매수":"매도")} {o.symbol} {o.quantity} {t(d.locale,"주")}</span>
                 <Badge variant="warn">{o.status}</Badge>
                 <span className="text-muted">{o.reason}</span>
               </li>
@@ -75,7 +76,7 @@ export default async function AiPage({ params }: { params: Promise<{ id: string 
       )}
 
       <div>
-        <h2 className="mb-2 text-sm font-semibold">최근 투자 판단</h2>
+        <h2 className="mb-2 text-sm font-semibold">{t(d.locale,"최근 투자 판단")}</h2>
         <div className="grid gap-3 md:grid-cols-2">{decisions.map((x) => <DecisionCard key={x.id} d={d} dec={x} />)}</div>
       </div>
     </div>

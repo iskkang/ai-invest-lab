@@ -10,8 +10,8 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Frame-Options", value: "DENY" },
-          // 공개 권한 확인 전에는 검색엔진 색인 금지
-          ...(process.env.SITE_ACCESS === "public" ? [] : [{ key: "X-Robots-Tag", value: "noindex, nofollow" }]),
+          // Per-route indexing: proxy.ts marks private dashboards noindex,
+          // while localized educational pages are deliberately discoverable.
         ],
       },
     ];

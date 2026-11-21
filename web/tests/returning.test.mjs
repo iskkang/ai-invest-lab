@@ -93,4 +93,7 @@ test("Outcome scorecards exclude pending/unavailable and hide rates below 20 sam
   assert.equal(followupScorecard(d,signals,5)[0].samples,0);
   assert.equal(recentlyResolvedOutcomes(signals).length,3);
   assert.ok(!JSON.stringify(recentlyResolvedOutcomes(signals)).includes("pending"));
+  const many=Array.from({length:25},(_,i)=>({...signals[0],id:String(i),symbol:"AAPL"}));
+  assert.equal(followupScorecard(d,many,1)[0].samples,25);
+  assert.equal(followupScorecard(d,many,1)[0].qualified,true);
 });

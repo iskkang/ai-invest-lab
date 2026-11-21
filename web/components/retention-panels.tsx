@@ -191,7 +191,7 @@ export function FollowupsPage({d,signals}:{d:Dataset;signals:FollowupSignal[]}) 
         <div className="mt-4"><EndLink d={d} to="/historical" label={c.openHistory}/></div>
       </div>
       :<div className="grid gap-3 lg:grid-cols-2">
-        {signals.map(signal=><article key={signal.id} className="rounded-xl border border-line bg-panel-2 p-4">
+        {signals.slice(0,100).map(signal=><article key={signal.id} className="rounded-xl border border-line bg-panel-2 p-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex min-w-0 items-center gap-2">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{backgroundColor:signal.color}} aria-hidden/>
@@ -212,6 +212,7 @@ export function FollowupsPage({d,signals}:{d:Dataset;signals:FollowupSignal[]}) 
         </article>)}
       </div>}
     </Section>
+    {signals.length>100&&<p className="text-xs leading-6 text-muted">{c.recentHundred}</p>}
     <p className="text-xs leading-6 text-muted">{c.updated}</p>
   </div>;
 }

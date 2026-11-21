@@ -7,6 +7,7 @@ import { InsightTeasers } from "@/components/insight-panels";
 import { DashboardHero } from "@/components/dashboard-hero";
 import { DailyBriefing, TopConflicts, FollowupsPreview } from "@/components/retention-panels";
 import { ReturnVisitPulse, DecisionRevisionPanel, PortfolioMovement, RoundJournalPanel } from "@/components/returning-panels";
+import { verifiedDecisions } from "@/lib/insight-analytics";
 import { MobileResearchShortcut } from "@/components/mobile-research-shortcut";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
@@ -50,8 +51,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const pending = d.mode === "live" && d.snapshots.length === 0;
   const last = lastSessionDate(d);
   const todays = d.trades.filter((t) => t.tradeDate === last && d.accounts.find((a) => a.id === t.accountId)?.kind === "ai");
-  const lastRound = d.rounds[0];
-  const latestDecisions = lastRound ? d.decisions.filter((x) => x.roundId === lastRound.id) : [];
+  const lastRound = d.rounds.find(r => r.status === "decided" || r.status === "settled") ?? d.rounds[0];
+  const latestDecisions = lastRound ? verifiedDecisions(d).filter(x => x.roundId === lastRound.id) : [];
   const buys = todays.filter((t) => t.side === "BUY").length;
   const sells = todays.length - buys;
 

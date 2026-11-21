@@ -71,7 +71,7 @@ const finitePositive=(n:number)=>Number.isFinite(n)&&n>0;
  * reference and the close after 1/5/20 SUBSEQUENT verified SPY sessions.
  * Raw per-ticker bars never leave the server; only outcomes are rendered.
  */
-export function evaluateDecisionFollowups(d:Dataset,bars:Record<string,Bar[]>):FollowupSignal[] {
+export function evaluateDecisionFollowups(d:Dataset,bars:Record<string,Bar[]>,limit=100):FollowupSignal[] {
   const settled=new Set(d.rounds.filter(r=>r.status==="settled").map(r=>r.id));
   const models=new Map(d.accounts.filter(a=>a.kind==="ai").map(a=>[a.aiId,a]));
   const investable=new Set(d.universe.filter(s=>s.role==="investable").map(s=>s.symbol));
@@ -116,8 +116,8 @@ export function evaluateDecisionFollowups(d:Dataset,bars:Record<string,Bar[]>):F
       });
     }
   }
-  // Keep the public page bounded while preserving newest-first chronology.
-  return result.slice(0,100);
+  // Default view remains bounded; the private aggregate view can request all verified observations.
+  return result.slice(0,limit);
 }
 
 /** Extract the exact directional universe necessary for server-side follow-ups. */

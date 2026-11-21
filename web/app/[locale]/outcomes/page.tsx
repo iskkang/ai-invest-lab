@@ -21,7 +21,7 @@ export default async function OutcomesPage({params}:Props) {
   if(!isLocale(locale))notFound();
   try {
     const d=await getData();
-    const signals=await getDecisionFollowups(d);
+    const signals=await getDecisionFollowups(d,Number.MAX_SAFE_INTEGER);
     return <div className="mx-auto max-w-5xl space-y-5">
       <ModelOutcomeScorecard d={d} signals={signals}/>
       <RecentResolvedPanel d={d} signals={signals}/>

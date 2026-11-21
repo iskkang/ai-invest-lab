@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ChartLegend } from "@/components/chart-legend";
 import { UniverseRail } from "@/components/universe-rail";
 import { DashboardHero } from "@/components/dashboard-hero";
+import { FirstRoundHome } from "@/components/first-round-home";
 import type { Account, Dataset } from "@/lib/types";
 
 /** Auth-protected and explicitly disabled in Vercel / normal deployments.
@@ -36,6 +37,7 @@ export default function HomeRenderFixture() {
   } as unknown as Dataset;
   return <div data-home-ui-fixture="true" className="mx-auto max-w-[900px] space-y-8 pb-12">
     <h1 className="text-xl font-bold">Private layout regression fixture</h1>
+    <section data-prelaunch-fixture="true"><FirstRoundHome d={empty}/></section>
     <DashboardHero d={empty}/>
     <section aria-label="AI chart legend test">
       <ChartLegend locale="ko" lines={accounts.map(a=>({name:a.name,color:a.color,dashed:a.kind==="benchmark"}))}/>

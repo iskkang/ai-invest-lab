@@ -48,6 +48,21 @@ try{
     const page=await context.newPage();
     const result=await page.goto(base+"/visual-layout-check",{waitUntil:"networkidle"});
     assert.equal(result?.status(),200,"fixture should only exist inside CI");
+    const prelaunch=page.locator('[data-prelaunch-fixture="true"] [data-home-phase="pre-first-published-round"]');
+    assert.equal(await prelaunch.count(),1,"prelaunch banner should exist in real components");
+    const prelaunchSection=prelaunch.locator("section.market-hero");
+    assert.equal(await prelaunchSection.count(),1,"one pre-first-round banner only");
+    assert.equal(await prelaunchSection.locator("time[datetime='2026-11-23']").count(),1,"actual start date shown once");
+    const prelaunchText=await prelaunch.innerText();
+    assert.equal((prelaunchText.match(/2026-11-23/g)||[]).length,1,"start date must not be repeated");
+    assert.ok(prelaunchText.includes("동일한 미국 주식 1종목의 시장 데이터"),"actual universe size from dataset, not an invented number");
+    assert.ok(prelaunchText.includes("$100,000"),"experiment capital must come from real configuration");
+    assert.equal(await prelaunch.locator('a[href$="/methodology"]').count(),1);
+    assert.equal(await prelaunch.locator('a[href$="/historical"]').count(),1);
+    assert.equal(await prelaunch.locator('a[href$="/patterns"]').count(),1);
+    for(const emptyTitle of ["AI 투자 리더보드","누적 수익률 추이","최근 거래일 매매","AI 의견 충돌","판단 결과 추적","실험 일지","최근 투자 판단과 이유"]){
+      assert.ok(!prelaunchText.includes(emptyTitle),"empty live section must be omitted: "+emptyTitle);
+    }
     const status=page.locator('[data-home-data-status="true"]:visible');
     assert.equal(await status.count(),1,"exactly one visible as-of status at "+width);
     assert.match(await status.innerText(),/첫 회차 전/,"missing pre-first-round state");

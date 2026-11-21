@@ -8,8 +8,9 @@ import { InsightTeasers } from "@/components/insight-panels";
 import { DashboardHero } from "@/components/dashboard-hero";
 import { DailyBriefing, TopConflicts, FollowupsPreview } from "@/components/retention-panels";
 import { ReturnVisitPulse, DecisionRevisionPanel, PortfolioMovement, RoundJournalPanel } from "@/components/returning-panels";
+import { publicationPulse } from "@/lib/returning-analytics";
+import { FirstRoundHome } from "@/components/first-round-home";
 import { verifiedDecisions } from "@/lib/insight-analytics";
-import { MobileResearchShortcut } from "@/components/mobile-research-shortcut";
 import { PatternLabTeaser } from "@/components/pattern-dashboard";
 import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
@@ -52,7 +53,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       </section>
     );
   }
-  const pending = d.mode === "live" && d.snapshots.length === 0;
+  // Only a real official publication unlocks the full dashboard.
+  // Aborted/skipped rounds, prepared accounts and initial valuations do not.
+  const pulse = publicationPulse(d);
+  if (pulse.publishedRounds === 0) return <FirstRoundHome d={d}/>;
+  const aiAccountIds = new Set(d.accounts.filter(a=>a.kind==="ai").map(a=>a.id));
+  const hasValuation = d.snapshots.some(s=>aiAccountIds.has(s.accountId) &&
+    s.date >= (pulse.latestPublishedDate ?? "9999-12-31"));
+  const hasPriorFollowups = d.rounds.some(r=>r.status==="settled");
   const last = lastSessionDate(d);
   const todays = d.trades.filter((t) => t.tradeDate === last && d.accounts.find((a) => a.id === t.accountId)?.kind === "ai");
   const lastRound = d.rounds.find(r => r.status === "decided" || r.status === "settled") ?? d.rounds[0];
@@ -68,7 +76,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       <DailyBriefing d={d} compact />
       <PatternLabTeaser locale={d.locale}/>
       <DashboardHero d={d} />
-      {pending && <MobileResearchShortcut locale={d.locale} />}
+      {hasValuation && <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <p className="ms-kicker mb-2">{sectionLabel(d.locale,"performanceSeason")}</p>
@@ -83,42 +91,30 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </div>
       </div>
 
-      {pending && (
-        <Section className="hidden sm:block" title={t(d.locale, "첫 투자 회차 대기")}>
-          <p className="text-sm leading-7 text-muted">
-            {t(d.locale, "실험과 초기 가상 계좌가 준비됐습니다. 아직 투자 판단이나 체결 기록은 없습니다.")}
-            {" "}{t(d.locale, "실제 돈의 주문은 실행하지 않습니다. 첫 평가 전에는 수익률과 순위를 표시하지 않습니다.")}
-          </p>
-        </Section>
-      )}
       <AiCards d={d} sortKey={sortKey} />
-      <div className="grid gap-4 lg:grid-cols-2">
-        <PortfolioMovement d={d} compact />
-        <DecisionRevisionPanel d={d} compact />
-      </div>
-      <TopConflicts d={d} compact />
-      <FollowupsPreview d={d} />
-      <RoundJournalPanel d={d} compact />
-
-      <InsightTeasers d={d} />
-
       <Section title={t(d.locale,"순위 상세")} className="hidden md:block">
         <Leaderboard d={d} sortKey={sortKey} />
       </Section>
-
       <Section title={t(d.locale,"누적 수익률 추이")} action={<span className="text-[11px] text-muted">{t(d.locale, "점선 = 벤치마크")}</span>}>
         <div><ReturnChart lines={returnLines(d, { benchmarks: true })} locale={d.locale} /></div>
         <ChartLegend lines={returnLines(d, {benchmarks:true})} locale={d.locale}/>
       </Section>
-
-      <DashboardAdSlot locale={d.locale} />
-
+      </>}
       <div className="grid gap-4 lg:grid-cols-2">
-        <Section title={`${t(d.locale, "최근 거래일 매매")} (${last || "—"})`} action={<span className="text-xs text-muted tabular"><span className="text-up">{t(d.locale, "매수")} {buys}</span> · <span className="text-down">{t(d.locale, "매도")} {sells}</span></span>}>
+        {hasValuation && <PortfolioMovement d={d} compact />}
+        {pulse.publishedRounds > 1 && <DecisionRevisionPanel d={d} compact />}
+      </div>
+      <TopConflicts d={d} compact />
+      {hasPriorFollowups && <FollowupsPreview d={d} />}
+      <RoundJournalPanel d={d} compact />
+      <InsightTeasers d={d} />
+      {hasValuation && <DashboardAdSlot locale={d.locale} />}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {todays.length > 0 && <Section title={`${t(d.locale, "최근 거래일 매매")} (${last || "—"})`} action={<span className="text-xs text-muted tabular"><span className="text-up">{t(d.locale, "매수")} {buys}</span> · <span className="text-down">{t(d.locale, "매도")} {sells}</span></span>}>
           <TradeList d={d} trades={todays.slice(0, 12)} compact />
           {todays.length > 12 && <Link href={localizedHref(d.locale, "/trades")} className="mt-2 block text-center text-xs text-accent">{t(d.locale, "전체 보기")}</Link>}
-        </Section>
-        <Section title={t(d.locale,"벤치마크 비교")}>
+        </Section>}
+        {hasValuation && <Section title={t(d.locale,"벤치마크 비교")}>
           <ul className="divide-y divide-line">
             {[...benchmarkAccounts(d), ...aiAccounts(d)].map((a) => {
               const s = d.stats[a.id];
@@ -131,10 +127,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               );
             })}
           </ul>
-        </Section>
+        </Section>}
       </div>
 
-      <div>
+      {latestDecisions.length > 0 && <div>
         <div className="mb-2 flex items-center justify-between">
           <h2 className="text-sm font-semibold">{t(d.locale, "최근 투자 판단과 이유")}</h2>
           {lastRound && <RoundBadge status={lastRound.status} reason={lastRound.abortReason} locale={d.locale} />}
@@ -142,7 +138,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         <div className="grid gap-3 md:grid-cols-2">
           {latestDecisions.map((dec) => <DecisionCard key={dec.id} d={d} dec={dec} />)}
         </div>
-      </div>
+      </div>}
     </div>
     <div className="hidden xl:block"><div className="sticky top-20"><UniverseRail d={d} /></div></div>
     </div>

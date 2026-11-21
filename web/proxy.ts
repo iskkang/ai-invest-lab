@@ -43,7 +43,10 @@ export function proxy(req: NextRequest) {
     try { decoded = atob(encoded); } catch { /* invalid credential */ }
     const [u, ...rest] = decoded.split(":");
     if (u === user && rest.join(":") === pass) {
-      const response = NextResponse.next();
+      const safeHeaders = new Headers(req.headers);
+      safeHeaders.delete("x-ail-public");
+      safeHeaders.delete("x-ail-locale");
+      const response = NextResponse.next({ request: { headers: safeHeaders } });
       response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
       response.headers.set("Cache-Control", "private, no-store");
       return response;

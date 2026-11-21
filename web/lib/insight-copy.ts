@@ -33,6 +33,7 @@ const TEXT = {
     back:"리포트 목록", status:"진행 상태", weeklyChanges:"모델별 주간 활동",
     exposure:"모델별 명시적 행동", leaders:"판단별 결과 비교",
     insightCard:"같은 종목, 다른 판단", aiLeague:"AI 수익률 리더보드",
+    highlights:"이번 주 핵심 인사이트", topAgreement:"가장 많이 일치한 종목", topDisagreement:"의견이 갈린 종목", topPerformer:"검증된 주간 수익률 선두",
   },
   en: {
     title:"See how AI models interpret the same market",sub:"Compare recorded AI paper-trade decisions, weekly developments and later outcomes.",
@@ -65,6 +66,7 @@ const TEXT = {
     back:"Report archive",status:"Status",weeklyChanges:"Weekly model activity",
     exposure:"Explicit decisions by model",leaders:"Outcome comparison",
     insightCard:"Same stock, different AI views",aiLeague:"AI performance league",
+    highlights:"This week's verified highlights",topAgreement:"Most shared view",topDisagreement:"Most divergent stock",topPerformer:"Observed weekly return leader",
   },
   zh: {
     title:"比较不同 AI 对同一市场的判断",sub:"对比真实记录的 AI 模拟投资决策、每周变化和后续结果。",
@@ -97,6 +99,7 @@ const TEXT = {
     back:"历史报告",status:"状态",weeklyChanges:"模型每周活动",
     exposure:"各 AI 的明确交易行为",leaders:"结果比较",
     insightCard:"同一股票，不同 AI 观点",aiLeague:"AI 收益排名",
+    highlights:"本周已核实的重点",topAgreement:"最一致的意见",topDisagreement:"分歧最大的股票",topPerformer:"已核实的周收益领先模型",
   },
   ja: {
     title:"同じ市場に対するAIの見方を比較",sub:"実際に記録されたAIの模擬投資判断、週次の変化、その後の結果を比較します。",
@@ -129,6 +132,7 @@ const TEXT = {
     back:"過去のレポート",status:"状態",weeklyChanges:"モデル別の週間活動",
     exposure:"AI別の明示的判断",leaders:"結果の比較",
     insightCard:"同一銘柄・異なるAI判断",aiLeague:"AI投資成果ランキング",
+    highlights:"今週の検証済みハイライト",topAgreement:"最も意見が一致した銘柄",topDisagreement:"意見が分かれた銘柄",topPerformer:"確認済みの週間リターン首位",
   },
 } as const;
 

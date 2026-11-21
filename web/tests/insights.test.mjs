@@ -57,6 +57,8 @@ test("Consensus counts only explicit valid model actions from settled rounds",()
   const r=generateWeeklyReports(d,new Date("2026-11-30T12:00:00Z"));
   assert.equal(r.length,1);
   assert.equal(r[0].week,"2026-W48");
+  assert.equal(generateWeeklyReports(d,new Date("2026-11-28T04:00:00Z")).length,1);
+  assert.equal(generateWeeklyReports(d,new Date("2026-11-27T22:00:00Z")).length,0);
   assert.equal(r[0].actionCount,5);
   assert.ok(r[0].models.every(m=>m.weeklyReturn===null));
 });

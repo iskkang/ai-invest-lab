@@ -161,6 +161,8 @@ export function WeeklyIndexBody({d}:{d:Dataset}) {
 
 export function WeeklyReportBody({d,report}:{d:Dataset;report:WeeklyReport}) {
   const c=insightCopy(d.locale);
+  const best=report.models.filter(m=>m.weeklyReturn!==null)
+    .sort((a,b)=>(b.weeklyReturn??-Infinity)-(a.weeklyReturn??-Infinity))[0];
   return <div className="mx-auto max-w-5xl space-y-5">
     <Link href={localizedHref(d.locale,"/weekly")} className="text-xs text-accent">{c.back}</Link>
     <InsightsHeader locale={d.locale} title={c.report+" · "+report.week}
@@ -175,6 +177,24 @@ export function WeeklyReportBody({d,report}:{d:Dataset;report:WeeklyReport}) {
         <p className="mt-2 text-xl font-bold tabular">{value}</p>
       </div>)}
     </div>
+    <Section title={c.highlights}>
+      <div className="grid gap-3 md:grid-cols-3">
+        {[
+          [c.topAgreement, report.common[0]
+            ?report.common[0].symbol+" · "+report.common[0].agreement+"/"+report.common[0].votes.length
+            :c.noConsensus],
+          [c.topDisagreement, report.divergent[0]
+            ?report.divergent[0].symbol+" · "+report.divergent[0].votes.length+" "+c.votes
+            :c.noConflict],
+          [c.topPerformer, best&&best.weeklyReturn!==null
+            ?best.name+" · "+fmtPct(best.weeklyReturn)
+            :c.notAvailable],
+        ].map(([label,value])=><div key={label} className="rounded-xl border border-line bg-panel-2 p-4">
+          <p className="text-xs text-muted">{label}</p>
+          <p className="mt-2 text-sm font-semibold">{value}</p>
+        </div>)}
+      </div>
+    </Section>
     <Section title={c.weeklyChanges}>
       <div className="overflow-x-auto">
         <table className="w-full text-sm">

@@ -169,11 +169,12 @@ function weeklyPortfolioReturn(snapshots: Snapshot[], account: Account, start: s
  */
 export function generateWeeklyReports(d: Dataset, now: Date = new Date()): WeeklyReport[] {
   const today = now.toISOString().slice(0,10);
-  const currentWeek = isoWeek(today);
   const byWeek = new Map<string, Round[]>();
   for (const round of settledRounds(d)) {
     const week = isoWeek(round.sessionDate);
-    if (week >= currentWeek) continue;
+    // Publish after the Friday NYSE session has closed (Saturday UTC).
+    // Do not require waiting until the next Monday calendar week.
+    if (weekFriday(round.sessionDate) >= today) continue;
     const arr = byWeek.get(week) ?? [];
     arr.push(round);
     byWeek.set(week,arr);

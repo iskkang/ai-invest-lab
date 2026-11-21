@@ -20,6 +20,7 @@ jobs:
       - run: pip install -e "./engine[dev]"
       - run: psql -h localhost -U postgres -c "create role engine login password 'engine'" 
       - run: python -m py_compile engine/scripts/provider_preflight.py engine/scripts/model_smoke_test.py engine/scripts/live_price_warmup.py
+      - run: python engine/scripts/export_public_methodology.py --check
       - run: cd engine && pytest -q
         env: { TEST_PG_ENGINE_URL: "postgresql://engine:engine@localhost:5432/{db}" }
   web:

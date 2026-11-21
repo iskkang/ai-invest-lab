@@ -1,0 +1,139 @@
+{
+  "source": "Python engine source; configuration defaults (runtime overrides may differ)",
+  "models": [
+    {
+      "id": "gpt",
+      "name": "GPT",
+      "model": "openai/gpt-4.1-mini"
+    },
+    {
+      "id": "claude",
+      "name": "Claude",
+      "model": "anthropic/claude-sonnet-5.5"
+    },
+    {
+      "id": "gemini",
+      "name": "Gemini",
+      "model": "google/gemini-3.8-flash"
+    },
+    {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "model": "deepseek/deepseek-v3.2"
+    }
+  ],
+  "universe": [
+    "AAPL",
+    "MSFT",
+    "NVDA",
+    "AVGO",
+    "ORCL",
+    "CRM",
+    "AMD",
+    "CSCO",
+    "AMZN",
+    "TSLA",
+    "HD",
+    "GOOGL",
+    "META",
+    "NFLX",
+    "JPM",
+    "V",
+    "MA",
+    "BAC",
+    "LLY",
+    "UNH",
+    "JNJ",
+    "ABBV",
+    "MRK",
+    "WMT",
+    "COST",
+    "PG",
+    "KO",
+    "PEP",
+    "XOM",
+    "CVX"
+  ],
+  "decision": {
+    "targetET": "08:30",
+    "earliestET": "08:00",
+    "cutoffET": "09:15",
+    "targetKST_EDT": "21:30",
+    "targetKST_EST": "22:30",
+    "earliestKST_EDT": "21:00",
+    "cutoffKST_EDT": "22:15",
+    "earliestKST_EST": "22:00",
+    "cutoffKST_EST": "23:15",
+    "calendar": "XNYS",
+    "frequency": "once_per_nyse_session"
+  },
+  "execution": {
+    "initialCashUsd": "100000",
+    "feeBps": "0",
+    "slippageBps": "5"
+  },
+  "inference": {
+    "temperature": 0,
+    "maxTokens": 4000,
+    "sharedSystemPrompt": true,
+    "participantSpecificUserPacket": true,
+    "claudeJsonSchemaRequestException": true
+  },
+  "statistics": {
+    "minVolatilityObservations": 20,
+    "minSharpeObservations": 60,
+    "minRealizedSellsForWinRate": 5
+  },
+  "indicators": {
+    "fields": [
+      "last_close",
+      "prev_close",
+      "ret_1d",
+      "ret_5d",
+      "ret_20d",
+      "ret_60d",
+      "sma20",
+      "sma50",
+      "sma200",
+      "ema12",
+      "ema26",
+      "rsi14",
+      "macd",
+      "macd_signal",
+      "macd_hist",
+      "volatility_20d_ann",
+      "max_drawdown_252d",
+      "volume_change_20d",
+      "high_252d",
+      "low_252d",
+      "last_volume",
+      "bars_available",
+      "closes_last_10"
+    ],
+    "returnDays": [
+      1,
+      5,
+      20,
+      60
+    ],
+    "smaDays": [
+      20,
+      50,
+      200
+    ],
+    "emaDays": [
+      12,
+      26
+    ],
+    "rsiDays": 14,
+    "macdFast": 12,
+    "macdSlow": 26,
+    "macdSignal": 9,
+    "volatilityDays": 20,
+    "annualizationSessions": 252,
+    "maxDrawdownDays": 252,
+    "volumeChangeDays": 20,
+    "highLowDays": 252,
+    "recentClosesDays": 10
+  }
+}

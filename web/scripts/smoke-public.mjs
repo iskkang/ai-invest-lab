@@ -90,6 +90,37 @@ try{
     }
   }
   await visible("/ko/about","AI는 실제로 주식투자를 잘할까?");
+  // Every locale must serve the same audited engine-derived numbers and model
+  // IDs, without placeholder translation or fabricated live configuration.
+  const methodologyLabels={
+    ko:"엔진 실제 설정과 검증 기준",
+    en:"Verified engine settings and methodology",
+    zh:"已核验的引擎设置与研究方法",
+    ja:"確認済みエンジン設定と研究方法",
+  };
+  for(const [locale,label] of Object.entries(methodologyLabels)){
+    for(const suffix of ["about","methodology"]){
+      const route="/"+locale+"/"+suffix;
+      await visible(route,label);
+      const body=await (await req(route)).text();
+      for(const model of ["openai/gpt-4.1-mini","anthropic/claude-sonnet-5.5",
+        "google/gemini-3.8-flash","deepseek/deepseek-v3.2"]){
+        assert.ok(body.includes(model),"missing engine model "+model+": "+route);
+      }
+      for(const symbol of ["AAPL","NVDA","XOM","CVX"]){
+        assert.ok(body.includes(">"+symbol+"</li>"),"missing ticker "+symbol+": "+route);
+      }
+      assert.ok(body.includes("09:15")&&body.includes("23:15")&&body.includes("22:15"),
+        "missing ET/KST cutoff: "+route);
+      assert.ok(body.includes("0 bp (0%)")&&body.includes("5 bp (0.05%)"),
+        "fee/slippage assumptions missing: "+route);
+      assert.ok(body.includes("NH투자증권 나무플러그(NH PLUG) API"),
+        "verified market provider missing: "+route);
+      assert.ok(body.includes("closes_last_10")&&body.includes("rsi14")&&body.includes("macd_signal"),
+        "indicator payload incomplete: "+route);
+      assert.ok(!body.includes("Translation unavailable"),"placeholder copy: "+route);
+    }
+  }
   // Four-language insight routes must be public even with no DB credentials.
   for (const [locale,heading] of Object.entries({
     ko:"AI가 시장을 보는 서로 다른 시각",

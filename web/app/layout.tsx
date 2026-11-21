@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { headers } from "next/headers";
 import { isLocale, type Locale } from "@/lib/public-content";
-import { BottomNav, Footer, Sidebar, TopBar } from "@/components/shell";
+import { AppShell } from "@/components/app-shell";
 import { getData, lastSessionDate } from "@/lib/data";
 import { themeScript } from "@/lib/theme";
 
@@ -43,15 +43,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang={locale === "zh" ? "zh-CN" : locale} suppressHydrationWarning>
       <head><script dangerouslySetInnerHTML={{ __html: themeScript }} /></head>
       <body className="min-h-dvh">
-        <div className="flex">
-          <Sidebar locale={locale} />
-          <div className="min-w-0 flex-1">
-            <TopBar asOf={d ? lastSessionDate(d) : ""} symbols={symbols} locale={locale} />
-            <main className="px-4 pt-5 lg:px-6">{children}</main>
-            <Footer locale={locale} />
-          </div>
-        </div>
-        <BottomNav locale={locale} />
+        {/* The root App Router layout is preserved during client navigation.
+            All language-dependent chrome must read the CURRENT pathname,
+            not the initial server-rendered locale. */}
+        <AppShell initialLocale={locale} asOf={d ? lastSessionDate(d) : ""} symbols={symbols}>
+          {children}
+        </AppShell>
       </body>
     </html>
   );

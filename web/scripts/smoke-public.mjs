@@ -57,6 +57,35 @@ try{
       assert.ok(html.includes(`href="/${locale}/methodology"`),`localized methodology link missing in ${locale}`);
     }
   }
+  // Each full document must agree on locale across <html>, app shell,
+  // dropdown, bottom navigation and on-page localized content.
+  const navExpected = {
+    ko: { dashboard: "대시보드", performance: "성과", language: "한국어" },
+    en: { dashboard: "Dashboard", performance: "Performance", language: "English" },
+    zh: { dashboard: "仪表盘", performance: "投资表现", language: "简体中文" },
+    ja: { dashboard: "ダッシュボード", performance: "パフォーマンス", language: "日本語" },
+  };
+  for (const [locale, labels] of Object.entries(navExpected)) {
+    const res = await req(`/${locale}`);
+    assert.equal(res.status, 200, `wrong locale HTTP status: ${locale}`);
+    const html = await res.text();
+    assert.ok(html.includes(`data-active-locale="${locale}"`),
+      `root app shell is not using ${locale}`);
+    assert.ok(html.includes(`lang="${locale === "zh" ? "zh-CN" : locale}"`),
+      `document <html lang> not ${locale}`);
+    assert.ok(html.includes(labels.language),
+      `missing selected language label ${labels.language}`);
+    assert.ok(html.includes(`href="/${locale}/performance"`),
+      `bottom/side navigation links leaked another locale: ${locale}`);
+    assert.ok(html.includes(`href="/${locale}/trades"`),
+      `trades links leaked another locale: ${locale}`);
+    assert.ok(html.includes(labels.dashboard), `missing translated navigation: ${locale}`);
+    assert.ok(html.includes(labels.performance), `missing translated performance: ${locale}`);
+    for (const other of Object.keys(navExpected).filter((x) => x !== locale)) {
+      assert.ok(!html.includes(`href="/${other}/performance"`),
+        `mixed-language navigation in ${locale}: unexpected ${other}`);
+    }
+  }
   await visible("/ko/about","AI는 실제로 주식투자를 잘할까?");
   await visible("/en/methodology","Comparable information");
   await visible("/ko/faq","실제 주식을 사거나");

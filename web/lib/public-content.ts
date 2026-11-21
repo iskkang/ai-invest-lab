@@ -1,7 +1,7 @@
 /** Public-facing localized editorial content. This never includes private NH prices. */
-export const LOCALES = ["en", "zh", "ko", "ja"] as const;
+export const LOCALES = ["ko", "en", "zh", "ja"] as const;
 export type Locale = (typeof LOCALES)[number];
-export const DEFAULT_LOCALE: Locale = "en";
+export const DEFAULT_LOCALE: Locale = "ko";
 export const PUBLIC_SECTIONS = ["methodology", "faq", "privacy"] as const;
 export type PublicSection = (typeof PUBLIC_SECTIONS)[number];
 
@@ -30,7 +30,7 @@ export function languageAlternates(section?: PublicSection) {
     "zh-CN": localeUrl("zh", section),
     ko: localeUrl("ko", section),
     ja: localeUrl("ja", section),
-    "x-default": localeUrl("en", section),
+    "x-default": localeUrl("ko", section),
   };
 }
 

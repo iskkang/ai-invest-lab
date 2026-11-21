@@ -18,7 +18,7 @@ export async function generateMetadata({params}: {params: Promise<{locale: strin
     title: {absolute: c.title},
     description: c.description,
     alternates: {canonical: localeUrl(locale), languages: languageAlternates()},
-    openGraph: {title:c.title,description:c.description,url:localeUrl(locale),siteName:"AI Invest Lab",type:"website"},
+    openGraph: {title:c.title,description:c.description,url:localeUrl(locale),siteName:"MarketTrials",type:"website"},
     robots: {index:true,follow:true},
   };
 }

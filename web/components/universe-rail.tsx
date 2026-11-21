@@ -4,6 +4,7 @@ import type { Dataset } from "@/lib/types";
 import { universeRows } from "@/lib/stock";
 import { cn, fmtNum, fmtPct } from "@/lib/utils";
 import { Card } from "./ui/card";
+import { localizedHref, t } from "@/lib/i18n";
 
 /** 우측 패널: 투자 대상 종목 + 어떤 AI 가 보유 중인지 */
 export function UniverseRail({ d, current }: { d: Dataset; current?: string }) {
@@ -11,14 +12,14 @@ export function UniverseRail({ d, current }: { d: Dataset; current?: string }) {
   return (
     <Card className="p-3">
       <div className="mb-2 flex items-center justify-between px-1">
-        <h2 className="flex items-center gap-2 font-bold"><ListChecks size={18} aria-hidden />투자 대상 종목</h2>
-        <span className="text-[11px] text-muted">{rows.length}종목</span>
+        <h2 className="flex items-center gap-2 font-bold"><ListChecks size={18} aria-hidden />투자 대상 {t(d.locale,"투자 대상 종목")}</h2>
+        <span className="text-[11px] text-muted">{rows.length} {t(d.locale,"종목")}</span>
       </div>
-      <p className="mb-2 px-1 text-[11px] text-muted">점 = 현재 보유 중인 AI</p>
+      <p className="mb-2 px-1 text-[11px] text-muted">{t(d.locale,"점 = 현재 보유 중인 AI")}</p>
       <ul className="max-h-[640px] space-y-0.5 overflow-y-auto pr-1">
         {rows.map((r) => (
           <li key={r.symbol}>
-            <Link href={`/stocks/${r.symbol}`}
+            <Link href={localizedHref(d.locale, `/stocks/${r.symbol}`)}
               className={cn("flex items-center gap-2 rounded-lg px-2 py-2 text-sm", r.symbol === current ? "bg-accent/10" : "hover:bg-panel-2")}>
               <span className="w-14 font-semibold">{r.symbol}</span>
               <span className="flex w-12 gap-0.5">

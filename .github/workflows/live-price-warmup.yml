@@ -36,6 +36,7 @@ jobs:
       AIL_HISTORY_BARS: "215"
       AIL_WARMUP_MAX_SYMBOLS: "12"
       AIL_WARMUP_SYMBOL_TIMEOUT: "140"
+      AIL_WARMUP_BATCH: "${{ matrix.batch }}"
       NHPLUG_TOKEN_CACHE: "0"
     steps:
       - uses: actions/checkout@v4

@@ -219,7 +219,7 @@ try{
       assert.ok(sitemap.includes(`/${locale}/${suffix}`),`sitemap missing ${locale}/${suffix}`);
     }
   }
-  for(const path of ["/__ui-test","/api/health/db","/portfolio","/trades","/performance","/ai/gpt","/stocks/AAPL","/en/advertise"]){
+  for(const path of ["/visual-layout-check","/api/health/db","/portfolio","/trades","/performance","/ai/gpt","/stocks/AAPL","/en/advertise"]){
     const res=await req(path);
     assert.equal(res.status,401,`private path unexpectedly accessible: ${path}`);
     assert.match(res.headers.get("x-robots-tag")||"",/noindex/);

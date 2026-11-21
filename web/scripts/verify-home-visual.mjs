@@ -27,7 +27,7 @@ server.stderr.on("data",buffer=>{output+=buffer.toString();});
 async function ready(){
   for(let i=0;i<60;i++){
     try{
-      const r=await fetch(base+"/__ui-test",{headers:{Authorization:auth},signal:AbortSignal.timeout(1300)});
+      const r=await fetch(base+"/visual-layout-check",{headers:{Authorization:auth},signal:AbortSignal.timeout(1300)});
       if(r.status===200)return;
     }catch{}
     if(server.exitCode!==null)throw Error("Test server died: "+output.slice(-2000));
@@ -46,7 +46,7 @@ try{
       extraHTTPHeaders:{Authorization:auth},
     });
     const page=await context.newPage();
-    const result=await page.goto(base+"/__ui-test",{waitUntil:"networkidle"});
+    const result=await page.goto(base+"/visual-layout-check",{waitUntil:"networkidle"});
     assert.equal(result?.status(),200,"fixture should only exist inside CI");
     const status=page.locator('[data-home-data-status="true"]:visible');
     assert.equal(await status.count(),1,"exactly one visible as-of status at "+width);

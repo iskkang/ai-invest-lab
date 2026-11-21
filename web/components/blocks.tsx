@@ -116,28 +116,54 @@ export function HoldingsTable({ d, account }: { d: Dataset; account: Account }) 
   if (!snap) return <p className="text-sm text-muted">{translate(d.locale,"보유 종목 없음")}</p>;
   const rows = snap.holdings.slice().sort((a, b) => b.marketValue - a.marketValue);
   return (
-    <Table>
-      <thead><tr><Th>{translate(d.locale,"종목")}</Th><Th className="text-right">{translate(d.locale,"수량")}</Th><Th className="text-right">{translate(d.locale,"평단")}</Th><Th className="text-right">{translate(d.locale,"종가")}</Th>
-        <Th className="text-right">{translate(d.locale,"평가액")}</Th><Th className="text-right">{translate(d.locale,"비중")}</Th><Th className="text-right">{translate(d.locale,"미실현")}</Th></tr></thead>
-      <tbody>
-        {rows.map((h) => (
-          <tr key={h.symbol}>
-            <Td><Link className="font-medium hover:underline" href={localizedHref(d.locale, `/stocks/${h.symbol}`)}>{h.symbol}</Link></Td>
-            <Td className="text-right">{h.quantity}</Td>
-            <Td className="text-right">{d.publicQuotesRedacted?"—":fmtNum(h.avgCost)}</Td>
-            <Td className="text-right">{d.publicQuotesRedacted?"—":fmtNum(h.close)}</Td>
-            <Td className="text-right">{fmtUsd(h.marketValue)}</Td>
-            <Td className="text-right">{fmtPct(h.marketValue / snap.equity, 1, false)}</Td>
-            <Td className={cn("text-right", toneClass(h.unrealizedPnl))}>{d.publicQuotesRedacted?"—":fmtUsd(h.unrealizedPnl, 2)}</Td>
-          </tr>
-        ))}
-        <tr>
-          <Td className="text-muted">{translate(d.locale,"현금")}</Td><Td /><Td /><Td />
-          <Td className="text-right">{fmtUsd(snap.cash)}</Td>
-          <Td className="text-right">{fmtPct(snap.cash / snap.equity, 1, false)}</Td><Td />
-        </tr>
-      </tbody>
-    </Table>
+    <>
+      {/* Phones need account positions without scrolling past seven narrow columns. */}
+      <ul className="divide-y divide-line sm:hidden">
+        {rows.map(h=><li key={h.symbol} className="py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <Link className="inline-flex min-h-11 items-center text-[15px] font-bold text-accent" href={localizedHref(d.locale,`/stocks/${h.symbol}`)}>{h.symbol}</Link>
+              <p className="text-xs text-muted">{h.quantity} {translate(d.locale,"주")} · {translate(d.locale,"비중")} {fmtPct(h.marketValue / snap.equity,1,false)}</p>
+            </div>
+            <div className="shrink-0 text-right">
+              <p className="text-[15px] font-bold tabular">{fmtUsd(h.marketValue)}</p>
+              {!d.publicQuotesRedacted&&<p className={cn("mt-1 text-xs tabular",toneClass(h.unrealizedPnl))}>{fmtUsd(h.unrealizedPnl,2)}</p>}
+            </div>
+          </div>
+        </li>)}
+        <li className="flex min-h-14 items-center justify-between gap-3 py-3">
+          <div>
+            <p className="text-sm font-semibold">{translate(d.locale,"현금")}</p>
+            <p className="text-xs text-muted">{translate(d.locale,"비중")} {fmtPct(snap.cash / snap.equity,1,false)}</p>
+          </div>
+          <p className="text-sm font-bold tabular">{fmtUsd(snap.cash)}</p>
+        </li>
+      </ul>
+      <div className="hidden sm:block">
+        <Table>
+          <thead><tr><Th>{translate(d.locale,"종목")}</Th><Th className="text-right">{translate(d.locale,"수량")}</Th><Th className="text-right">{translate(d.locale,"평단")}</Th><Th className="text-right">{translate(d.locale,"종가")}</Th>
+            <Th className="text-right">{translate(d.locale,"평가액")}</Th><Th className="text-right">{translate(d.locale,"비중")}</Th><Th className="text-right">{translate(d.locale,"미실현")}</Th></tr></thead>
+          <tbody>
+            {rows.map((h) => (
+              <tr key={h.symbol}>
+                <Td><Link className="font-medium hover:underline" href={localizedHref(d.locale,`/stocks/${h.symbol}`)}>{h.symbol}</Link></Td>
+                <Td className="text-right">{h.quantity}</Td>
+                <Td className="text-right">{d.publicQuotesRedacted?"—":fmtNum(h.avgCost)}</Td>
+                <Td className="text-right">{d.publicQuotesRedacted?"—":fmtNum(h.close)}</Td>
+                <Td className="text-right">{fmtUsd(h.marketValue)}</Td>
+                <Td className="text-right">{fmtPct(h.marketValue / snap.equity, 1, false)}</Td>
+                <Td className={cn("text-right", toneClass(h.unrealizedPnl))}>{d.publicQuotesRedacted?"—":fmtUsd(h.unrealizedPnl, 2)}</Td>
+              </tr>
+            ))}
+            <tr>
+              <Td className="text-muted">{translate(d.locale,"현금")}</Td><Td /><Td /><Td />
+              <Td className="text-right">{fmtUsd(snap.cash)}</Td>
+              <Td className="text-right">{fmtPct(snap.cash / snap.equity, 1, false)}</Td><Td />
+            </tr>
+          </tbody>
+        </Table>
+      </div>
+    </>
   );
 }
 

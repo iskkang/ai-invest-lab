@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ArrowRight, GitCompareArrows, Radar } from "lucide-react";
 import type { Dataset } from "@/lib/types";
 import { localizedHref } from "@/lib/i18n";
+import { sectionLabel } from "@/lib/section-labels";
 
 const COPY={
   ko:{
     mobileIntro:"실제 과거 시장 연구는 지금 확인하고, AI 판단은 기록이 쌓이는 대로 비교하세요.",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"하나의 시장,",title2:"네 가지 AI의 시선.",
     intro:"누가 더 높은 수익률을 기록할까? 서로 다른 AI의 판단을 비교하고, 실제 모의투자 결과와 과거 시장 데이터로 검증합니다.",
     explore:"AI 판단 비교",historical:"과거 시장 연구",
@@ -16,7 +16,6 @@ const COPY={
   },
   en:{
     mobileIntro:"Explore historical research now. AI comparisons will follow verified decisions.",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"One market.",title2:"Four AI perspectives.",
     intro:"Which model performs better? Compare independent AI decisions and examine actual simulated results alongside verified historical market research.",
     explore:"Compare AI decisions",historical:"Explore historical research",
@@ -26,7 +25,6 @@ const COPY={
   },
   zh:{
     mobileIntro:"现在可查看真实历史研究；AI 对比将在判断记录累积后开放。",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"同一个市场，",title2:"四种 AI 视角。",
     intro:"哪个 AI 的表现更好？比较独立 AI 的判断，并以真实记录的模拟投资结果和历史市场数据进行检验。",
     explore:"比较 AI 决策",historical:"查看历史市场研究",
@@ -36,7 +34,6 @@ const COPY={
   },
   ja:{
     mobileIntro:"過去の市場分析は今すぐ確認できます。AI比較は判断記録の蓄積後に公開します。",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
     title1:"同じ市場、",title2:"4つのAIの視点。",
     intro:"どのAIが優れた成果を上げるのか。独立したAI判断と実際の模擬運用記録を比較し、過去の市場データでも検証します。",
     explore:"AI判断を比較",historical:"過去の市場研究",
@@ -48,17 +45,18 @@ const COPY={
 
 export function DashboardHero({d}:{d:Dataset}){
   const c=COPY[d.locale];
+  const eyebrow=sectionLabel(d.locale,"heroResearch");
   const models=d.accounts.filter(a=>a.kind==="ai");
   const scheduled=new Date().toISOString().slice(0,10)<d.experiment.startSession && d.rounds.length===0;
   const hasVerifiedDecision=d.decisions.some(dec=>dec.status==="valid");
   const primary=hasVerifiedDecision?"/consensus":"/historical";
   const secondary=hasVerifiedDecision?"/historical":"/consensus";
-  return <section className="market-hero px-4 pb-3 pt-4 sm:px-8 sm:pb-7 sm:pt-8" aria-label={c.eyebrow}>
+  return <section className="market-hero px-4 pb-3 pt-4 sm:px-8 sm:pb-7 sm:pt-8" aria-label={eyebrow}>
     <div className="relative grid items-center gap-4 md:min-h-[270px] md:gap-6 md:grid-cols-[minmax(0,1fr)_260px]">
       <div className="relative z-10">
-        <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{c.eyebrow}</p>
+        <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{eyebrow}</p>
         <h1 className="hero-title mt-2 sm:mt-5">
-          <span className="block">{c.title1}</span>
+          <span className="block">{c.title1}</span>{" "}
           <span className="hero-title-em block">{c.title2}</span>
         </h1>
         <p className="mt-2 text-[12px] leading-5 text-[#d4ddf0] sm:hidden">{c.mobileIntro}</p>
@@ -80,7 +78,7 @@ export function DashboardHero({d}:{d:Dataset}){
         <div className="hero-orbit">
           <div className="hero-orbit-center">
             <Radar size={38} strokeWidth={1.25} className="text-[#cbfa81]"/>
-            <span className="absolute bottom-5 text-[9px] font-black tracking-[.23em] text-[#dae5ff]">MARKET</span>
+            <span className="absolute bottom-5 text-[9px] font-black tracking-[.23em] text-[#dae5ff]">{sectionLabel(d.locale,"marketOrbit")}</span>
           </div>
           {models.slice(0,4).map((model,i)=><span key={model.id}
             className={"hero-orbit-label p"+(i+1)}>{model.name}</span>)}

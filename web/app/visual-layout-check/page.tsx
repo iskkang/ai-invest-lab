@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { ChartLegend } from "@/components/chart-legend";
 import { UniverseRail } from "@/components/universe-rail";
+import { DashboardHero } from "@/components/dashboard-hero";
 import type { Account, Dataset } from "@/lib/types";
 
 /** Auth-protected and explicitly disabled in Vercel / normal deployments.
@@ -22,7 +23,8 @@ export default function HomeRenderFixture() {
   const base={
     locale:"ko" as const,publicQuotesRedacted:true,accounts,
     universe:[{symbol:"AAPL",name:"Apple",sector:"IT",role:"investable"}],
-    prices:{AAPL:[]},snapshots:[],
+    prices:{AAPL:[]},snapshots:[],rounds:[],decisions:[],
+    experiment:{startSession:"2026-11-23",initialCash:100000},
   };
   const empty = base as unknown as Dataset;
   const held = {
@@ -34,6 +36,7 @@ export default function HomeRenderFixture() {
   } as unknown as Dataset;
   return <div data-home-ui-fixture="true" className="mx-auto max-w-[900px] space-y-8 pb-12">
     <h1 className="text-xl font-bold">Private layout regression fixture</h1>
+    <DashboardHero d={empty}/>
     <section aria-label="AI chart legend test">
       <ChartLegend locale="ko" lines={accounts.map(a=>({name:a.name,color:a.color,dashed:a.kind==="benchmark"}))}/>
     </section>

@@ -2,14 +2,14 @@ import type { Locale } from "./public-content";
 
 const COPY={
   ko:{
-    daily:"오늘의 AI 투자 브리핑",dailySub:"정식 기록에서 자동 구성한 최신 AI 판단 요약입니다.",
+    daily:"오늘의 AI 투자 브리핑",dailySub:"실제 기록된 최신 AI 판단을 간추려 보여드립니다.",
     latest:"최근 검증된 판단일",sourceDay:"사용한 시장 데이터 기준일",
     awaiting:"첫 AI 판단 기록을 기다리고 있습니다",awaitingBody:"실험 시작 후 실제 판단 회차가 기록되면 매수·매도·보유 현황과 모델별 판단 이유가 여기에 표시됩니다. 예시 판단은 게시하지 않습니다.",
     start:"실험 시작 예정일",openHistory:"먼저 과거 전략 연구 보기",viewDaily:"전체 브리핑 보기",
     models:"판단 완료 AI",buys:"매수",sells:"매도",holds:"보유",
     noSummary:"모델 요약이 기록되지 않았습니다.",missing:"이 회차에 유효한 판단 기록이 없습니다.",
-    conflict:"AI 의견 충돌 TOP 5",conflictSub:"동일 회차에서 같은 종목을 명시적으로 다르게 판단한 사례만 집계합니다.",
-    noConflict:"최근 회차에 명시적인 의견 충돌이 없습니다. 무언급을 보유 의견으로 추정하지 않습니다.",
+    conflict:"AI 의견이 가장 엇갈린 종목 5개",conflictSub:"동일 회차에서 같은 종목을 명시적으로 다르게 판단한 사례만 집계합니다.",
+    noConflict:"최근 회차에는 AI들의 의견이 엇갈린 종목이 없습니다. 언급하지 않은 종목을 보유 의견으로 간주하지 않습니다.",
     buy:"매수",sell:"매도",hold:"보유",explicit:"명시적 판단",
     viewCompare:"모든 AI 판단 비교",followups:"AI 판단의 결과 추적",
     followupsSub:"과거 매수·매도 판단을 이후 1·5·20거래일의 가격 방향으로 다시 확인합니다.",

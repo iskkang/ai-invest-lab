@@ -1,3 +1,4 @@
+import { sectionLabel } from "@/lib/section-labels";
 import Link from "next/link";
 import { ArrowRight, ChartNoAxesCombined, Clock3, Layers3, ShieldCheck } from "lucide-react";
 import { insightCopy } from "@/lib/insight-copy";
@@ -26,7 +27,7 @@ export function InsightsHeader({locale,title,sub}:{locale:Locale;title:string;su
   return <header className="insight-banner mb-6 px-5 py-7 sm:px-8 sm:py-9">
     <div className="relative z-10 flex flex-wrap items-end justify-between gap-5">
       <div>
-        <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>MARKETSIGHTS / INTELLIGENCE</p>
+        <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{sectionLabel(locale,"intelligence")}</p>
         <h1 className="mt-4 max-w-3xl text-[26px] font-extrabold leading-tight tracking-[-.04em] text-white sm:text-4xl">{title}</h1>
         <p className="mt-3 max-w-2xl text-sm leading-7 text-[#c5d3ef]">{sub}</p>
       </div>
@@ -66,7 +67,7 @@ export function InsightTeasers({d}:{d:Dataset}) {
   }
   return <section aria-label={c.title}>
     <div className="mb-4">
-      <p className="ms-kicker mb-2">INTELLIGENCE / EXPLORE</p>
+      <p className="ms-kicker mb-2">{sectionLabel(d.locale,"explore")}</p>
       <h2 className="text-xl font-extrabold tracking-tight">{c.title}</h2>
       <p className="mt-1 text-xs leading-6 text-muted">{c.sub}</p>
     </div>
@@ -157,7 +158,7 @@ function WeeklyEmptyState({d}:{d:Dataset}) {
   return <section className="ms-card overflow-hidden" aria-label={c.emptyTitle}>
     <div className="border-b border-line px-5 py-6 sm:px-6">
       <Badge variant="muted">{beforeStart?c.launchStatus:c.pendingStatus}</Badge>
-      <p className="ms-kicker mt-4 mb-2">RESEARCH / SCHEDULE</p>
+      <p className="ms-kicker mt-4 mb-2">{sectionLabel(d.locale,"researchSchedule")}</p>
       <h2 className="mt-2 text-lg font-bold tracking-tight">{c.emptyTitle}</h2>
       <p className="mt-2 text-sm leading-6 text-muted">{c.noReport}</p>
     </div>

@@ -1,3 +1,4 @@
+import { sectionLabel } from "@/lib/section-labels";
 import Link from "next/link";
 import { ArrowRight, BookOpenText, Database, ShieldAlert } from "lucide-react";
 import { ReturnChart, type LineInput } from "./charts";
@@ -28,9 +29,9 @@ function Head({locale}:{locale:Locale}){
     </span>
   </header>;
 }
-function Title({title,sub}:{title:string;sub:string}){
+function Title({title,sub,locale}:{title:string;sub:string;locale:Locale}){
   return <div className="mb-4">
-    <p className="ms-kicker mb-2">HISTORICAL / RESEARCH</p>
+    <p className="ms-kicker mb-2">{sectionLabel(locale,"historicalResearch")}</p>
     <h2 className="text-xl font-extrabold tracking-tight">{title}</h2>
     <p className="mt-1 text-xs leading-6 text-muted">{sub}</p>
   </div>;
@@ -96,7 +97,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
       <p className="mt-3 text-xs text-muted">{c.period}: {study.start} – {study.end} · {c.lookback}: {study.warmup} · {c.cost}: {study.costBps}bp</p>
     </section>
     <section>
-      <Title title={c.study} sub={c.studySub}/>
+      <Title locale={locale} title={c.study} sub={c.studySub}/>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3"
         aria-label={c.study}>
         {strategies.map(r=><article key={r.id} className="ms-card ms-card-hover min-w-0 p-4">
@@ -120,12 +121,12 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
       </p>}
     </section>
     <section className="ms-card p-4 sm:p-5">
-      <Title title={c.curves} sub={c.curvesSub}/>
+      <Title locale={locale} title={c.curves} sub={c.curvesSub}/>
       <ReturnChart lines={lines} height={285} locale={locale}/>
       <ChartLegend lines={lines} locale={locale}/>
     </section>
     <section>
-      <Title title={c.profiles} sub={c.profilesSub}/>
+      <Title locale={locale} title={c.profiles} sub={c.profilesSub}/>
       <div className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto overscroll-x-contain px-4 pb-3 scrollbar-none lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0"
         aria-label={c.profiles} tabIndex={0}>
         {HISTORICAL_PROFILES.map(p=><article key={p.id} className="w-[81vw] max-w-[315px] shrink-0 snap-start rounded-2xl border border-line bg-panel px-4 py-5 lg:w-auto lg:max-w-none lg:shrink">
@@ -149,7 +150,7 @@ export function HistoricalDashboard({locale,study}:{locale:Locale;study:Historic
       <p className="mt-1 text-right text-[11px] text-muted lg:hidden">{c.swipe}</p>
     </section>
     <section className="ms-card p-4 sm:p-5">
-      <Title title={c.comparison} sub={c.separate}/>
+      <Title locale={locale} title={c.comparison} sub={c.separate}/>
       <div className="space-y-2 sm:hidden">
         {study.results.map(r=><article key={r.id} className="rounded-xl border border-line bg-panel-2 p-3">
           <div className="flex items-center justify-between gap-3">

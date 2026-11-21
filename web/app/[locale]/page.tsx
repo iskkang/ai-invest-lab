@@ -69,7 +69,7 @@ export default async function PublicHome({
             className="rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white hover:opacity-90">
             {c.actionLearn}
           </Link>
-          <Link href="/" rel="nofollow"
+          <Link href="/lab" rel="nofollow"
             className="rounded-lg border border-line px-5 py-3 text-sm font-medium hover:border-accent">
             {c.actionDashboard}
           </Link>

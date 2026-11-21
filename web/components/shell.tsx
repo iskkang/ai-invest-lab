@@ -9,7 +9,7 @@ import { dataAsOfLabel } from "@/lib/home-display";
 export function Logo({locale="ko"}:{locale?:Locale}) {
   return (
     <Link href={localizedHref(locale,"/")}
-      className="group inline-flex items-center gap-2.5" aria-label="MarketSights home">
+      className="group inline-flex items-center gap-2.5" aria-label="LogicSight home">
       <svg width="35" height="35" viewBox="0 0 35 35" fill="none" aria-hidden="true"
         className="shrink-0 drop-shadow-sm">
         <rect width="35" height="35" rx="11" fill="#333B91"/>
@@ -20,7 +20,7 @@ export function Logo({locale="ko"}:{locale?:Locale}) {
       </svg>
       <span className="flex min-w-0 flex-col gap-0.5">
         <span className="text-[14px] font-extrabold leading-[1.1] tracking-[-.045em] sm:text-[17px]">
-          Market<span className="text-accent group-hover:opacity-75">Sights</span>
+          Logic<span className="text-accent group-hover:opacity-75">Sight</span>
         </span>
         <span className="hidden whitespace-nowrap text-[8px] font-extrabold tracking-[.17em] text-muted sm:block">{" · "}{sectionLabel(locale,"brandTagline")}</span>
       </span>
@@ -66,15 +66,15 @@ export function TopBar({asOf,symbols,locale}:{
 
 export function Footer({locale}:{locale:Locale}) {
   const disclaimers:Record<Locale,string>={
-    ko:"MarketSights는 교육·연구 목적의 모의투자 실험입니다. 실제 주식 주문을 실행하지 않으며 개인별 투자 권유가 아닙니다. 표시된 가상 체결 수익은 실제 투자 성과와 다를 수 있고 과거 성과는 미래 결과를 보장하지 않습니다.",
-    en:"MarketSights is an educational paper-trading experiment. It never places real stock orders or provides personalized investment advice. Simulated fills and returns may differ from actual trading results. Past outcomes do not predict future performance.",
-    zh:"MarketSights 是教育研究性质的模拟投资实验，不会下达真实证券订单，也不提供个性化投资建议。模拟成交与收益可能不同于实际交易结果，历史表现不代表未来收益。",
-    ja:"MarketSightsは教育・研究目的の模擬投資実験です。実際の発注や個別の投資助言は行いません。仮想約定とリターンは実際の運用成績とは異なり、過去の結果は将来を保証しません。",
+    ko:"LogicSight는 교육·연구 목적의 모의투자 실험입니다. 실제 주식 주문을 실행하지 않으며 개인별 투자 권유가 아닙니다. 표시된 가상 체결 수익은 실제 투자 성과와 다를 수 있고 과거 성과는 미래 결과를 보장하지 않습니다.",
+    en:"LogicSight is an educational paper-trading experiment. It never places real stock orders or provides personalized investment advice. Simulated fills and returns may differ from actual trading results. Past outcomes do not predict future performance.",
+    zh:"LogicSight 是教育研究性质的模拟投资实验，不会下达真实证券订单，也不提供个性化投资建议。模拟成交与收益可能不同于实际交易结果，历史表现不代表未来收益。",
+    ja:"LogicSightは教育・研究目的の模擬投資実験です。実際の発注や個別の投資助言は行いません。仮想約定とリターンは実際の運用成績とは異なり、過去の結果は将来を保証しません。",
   };
   return (
     <footer className="mx-auto mt-8 max-w-[1580px] px-4 pb-10 pt-9 text-xs leading-relaxed text-muted lg:px-8">
       <div className="ms-divider mb-5"/>
-      <p className="mb-2 text-[11px] font-extrabold tracking-[.17em] text-fg">MARKETSIGHTS <span className="text-accent">/</span> {sectionLabel(locale,"researchTerminal")}</p>
+      <p className="mb-2 text-[11px] font-extrabold tracking-[.17em] text-fg">LOGICSIGHT <span className="text-accent">/</span> {sectionLabel(locale,"researchTerminal")}</p>
       <p className="max-w-4xl">{disclaimers[locale]}</p>
       <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs" aria-label="Research information">
         <Link href={localizedHref(locale,"/methodology")} className="hover:text-accent">{t(locale,"실험 방법")}</Link>

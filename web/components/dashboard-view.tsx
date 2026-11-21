@@ -2,6 +2,8 @@ import Link from "next/link";
 import { headers } from "next/headers";
 import { isLocale, type Locale } from "@/lib/public-content";
 import { ReturnChart } from "@/components/charts";
+import { sectionLabel } from "@/lib/section-labels";
+import { experimentStartingSummary } from "@/lib/home-display";
 import { ChartLegend } from "@/components/chart-legend";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { InsightTeasers } from "@/components/insight-panels";
@@ -68,15 +70,15 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       {pending && <MobileResearchShortcut locale={d.locale} />}
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="ms-kicker mb-2">PERFORMANCE / SEASON 01</p>
+          <p className="ms-kicker mb-2">{sectionLabel(d.locale,"performance")}</p>
           <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">{t(d.locale, "AI 투자 리더보드")}</h2>
           <p className="mt-1 text-sm text-muted">
-            {t(d.locale, "같은 시장 데이터, 같은 규칙, 각자")} ${d.experiment.initialCash.toLocaleString()} {t(d.locale, "로 시작 · 시작일")} {d.experiment.startSession}
+            {experimentStartingSummary(d.locale,d.experiment.initialCash,d.experiment.startSession)}
           </p>
         </div>
         <div className="flex min-h-11 gap-1 rounded-lg border border-line p-1 text-xs" aria-label="Sort by performance">
           <Link href={`${localizedHref(d.locale, "/")}?sort=return`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "cum_return" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "누적 수익률")}</Link>
-          <Link href={`${localizedHref(d.locale, "/")}?sort=sharpe`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "sharpe" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "위험조정(샤프)")}</Link>
+          <Link href={`${localizedHref(d.locale, "/")}?sort=sharpe`} className={cn("inline-flex min-h-10 items-center rounded-md px-2.5 py-1.5", sortKey === "sharpe" ? "bg-panel-2 text-fg" : "text-muted")}>{t(d.locale, "위험 조정(샤프 지수)")}</Link>
         </div>
       </div>
 

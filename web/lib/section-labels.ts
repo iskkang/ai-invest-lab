@@ -1,0 +1,78 @@
+import type { Locale } from "./public-content";
+
+/** Small section labels are full UI copy, not untranslated decorative English. */
+const LABELS = {
+  ko: {
+    researchDesk:"연구 메뉴 · 01",
+    marketResearch:"모의투자 연구",
+    researchTerminal:"연구 정보",
+    dailyLab:"오늘의 AI 브리핑",
+    differenceEngine:"AI 의견 차이 분석",
+    decisionFollowup:"AI 판단 결과 추적",
+    decisionTracker:"MarketSights / 판단 결과 추적",
+    explore:"AI 연구 살펴보기",
+    schedule:"AI 투자 실험 일정",
+    performance:"투자 성과 · 시즌 01",
+    intelligence:"MarketSights / AI 연구",
+    historical:"과거 시장 연구",
+    allWeather:"자산배분 / 올웨더",
+    patternObservations:"패턴별 검증 결과",
+    patternResearch:"패턴 연구",
+  },
+  en: {
+    researchDesk:"Research desk · 01",
+    marketResearch:"Paper-trading research",
+    researchTerminal:"Research terminal",
+    dailyLab:"Daily AI investing brief",
+    differenceEngine:"AI disagreements",
+    decisionFollowup:"Decision follow-up",
+    decisionTracker:"MarketSights / Decision tracker",
+    explore:"Explore AI research",
+    schedule:"AI experiment schedule",
+    performance:"Performance · Season 01",
+    intelligence:"MarketSights / Intelligence",
+    historical:"Historical research",
+    allWeather:"Portfolio / All Weather",
+    patternObservations:"Pattern observations",
+    patternResearch:"Pattern research",
+  },
+  zh: {
+    researchDesk:"研究菜单 · 01",
+    marketResearch:"模拟投资研究",
+    researchTerminal:"研究信息",
+    dailyLab:"每日 AI 投资简报",
+    differenceEngine:"AI 意见分歧分析",
+    decisionFollowup:"AI 判断结果追踪",
+    decisionTracker:"MarketSights / 判断结果追踪",
+    explore:"探索 AI 研究",
+    schedule:"AI 投资实验日程",
+    performance:"投资表现 · 第 01 季",
+    intelligence:"MarketSights / AI 研究",
+    historical:"历史市场研究",
+    allWeather:"资产配置 / 全天候",
+    patternObservations:"形态验证结果",
+    patternResearch:"形态研究",
+  },
+  ja: {
+    researchDesk:"研究メニュー · 01",
+    marketResearch:"模擬投資の研究",
+    researchTerminal:"研究情報",
+    dailyLab:"今日の AI 投資ブリーフ",
+    differenceEngine:"AI の判断の違い",
+    decisionFollowup:"AI 判断の結果追跡",
+    decisionTracker:"MarketSights / 判断結果の追跡",
+    explore:"AI 研究を見る",
+    schedule:"AI 投資実験の日程",
+    performance:"投資成績 · シーズン 01",
+    intelligence:"MarketSights / AI 研究",
+    historical:"過去の市場研究",
+    allWeather:"資産配分 / オールウェザー",
+    patternObservations:"パターン別検証結果",
+    patternResearch:"パターン研究",
+  },
+} as const satisfies Record<Locale, Record<string, string>>;
+
+export type SectionLabelKey = keyof typeof LABELS["ko"];
+export function sectionLabel(locale: Locale, key: SectionLabelKey): string {
+  return LABELS[locale][key];
+}

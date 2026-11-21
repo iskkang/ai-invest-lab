@@ -5,6 +5,7 @@ import { ThemeToggle } from "./theme-toggle";
 import { LanguageSwitcher } from "./language-switcher";
 import { localizedHref, t } from "@/lib/i18n";
 import type { Locale } from "@/lib/public-content";
+import { sectionLabel } from "@/lib/section-labels";
 import { dataAsOfLabel } from "@/lib/home-display";
 
 export { BottomNav };
@@ -38,11 +39,11 @@ export function Sidebar({locale}:{locale:Locale}) {
         <div className="mb-10 px-2 [&_.text-accent]:!text-[#c9f58a] [&_.text-muted]:!text-[#a6b9db]">
           <Logo locale={locale}/>
         </div>
-        <p className="mb-3 px-3 text-[10px] font-bold tracking-[.19em] text-[#8299c4]">RESEARCH DESK / 01</p>
+        <p className="mb-3 px-3 text-[10px] font-bold tracking-[.19em] text-[#8299c4]">{sectionLabel(locale,"researchDesk")}</p>
         <SideNav locale={locale}/>
         <div className="mt-auto rounded-2xl border border-white/10 bg-white/[.055] px-3 py-3">
           <div className="mb-2 flex items-center gap-2 text-[10px] font-semibold tracking-[.12em] text-[#d0f9a0]">
-            <Activity size={14} aria-hidden/> MARKET RESEARCH
+            <Activity size={14} aria-hidden/>{sectionLabel(locale,"marketResearch")}
           </div>
           <p className="text-[11px] leading-relaxed text-[#b4c2dd]">
           {({ko:"교육·연구용 모의투자 실험입니다. 실제 주문·투자 권유 없음.",
@@ -102,7 +103,7 @@ export function Footer({locale}:{locale:Locale}) {
   return (
     <footer className="mx-auto mt-8 max-w-[1580px] px-4 pb-28 pt-9 text-xs leading-relaxed text-muted lg:px-8 lg:pb-10">
       <div className="ms-divider mb-5"/>
-      <p className="mb-2 text-[11px] font-extrabold tracking-[.17em] text-fg">MARKETSIGHTS <span className="text-accent">/</span> RESEARCH TERMINAL</p>
+      <p className="mb-2 text-[11px] font-extrabold tracking-[.17em] text-fg">MarketSights <span className="text-accent">/</span> {sectionLabel(locale,"researchTerminal")}</p>
       <p className="max-w-4xl">{disclaimers[locale]}</p>
       <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs" aria-label="Research information">
         <Link href={localizedHref(locale,"/methodology")} className="hover:text-accent">{t(locale,"실험 방식")}</Link>

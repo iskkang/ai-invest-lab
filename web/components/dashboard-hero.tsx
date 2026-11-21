@@ -6,7 +6,7 @@ import { localizedHref } from "@/lib/i18n";
 const COPY={
   ko:{
     mobileIntro:"실제 과거 시장 연구는 지금 확인하고, AI 판단은 기록이 쌓이는 대로 비교하세요.",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
+    eyebrow:"MarketSights / AI 모의투자 연구 01",
     title1:"하나의 시장,",title2:"네 가지 AI의 시선.",
     intro:"누가 더 높은 수익률을 기록할까? 서로 다른 AI의 판단을 비교하고, 실제 모의투자 결과와 과거 시장 데이터로 검증합니다.",
     explore:"AI 판단 비교",historical:"과거 시장 연구",
@@ -16,7 +16,7 @@ const COPY={
   },
   en:{
     mobileIntro:"Explore historical research now. AI comparisons will follow verified decisions.",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
+    eyebrow:"MarketSights / AI research 01",
     title1:"One market.",title2:"Four AI perspectives.",
     intro:"Which model performs better? Compare independent AI decisions and examine actual simulated results alongside verified historical market research.",
     explore:"Compare AI decisions",historical:"Explore historical research",
@@ -26,7 +26,7 @@ const COPY={
   },
   zh:{
     mobileIntro:"现在可查看真实历史研究；AI 对比将在判断记录累积后开放。",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
+    eyebrow:"MarketSights / AI 模拟投资研究 01",
     title1:"同一个市场，",title2:"四种 AI 视角。",
     intro:"哪个 AI 的表现更好？比较独立 AI 的判断，并以真实记录的模拟投资结果和历史市场数据进行检验。",
     explore:"比较 AI 决策",historical:"查看历史市场研究",
@@ -36,7 +36,7 @@ const COPY={
   },
   ja:{
     mobileIntro:"過去の市場分析は今すぐ確認できます。AI比較は判断記録の蓄積後に公開します。",
-    eyebrow:"MARKETSIGHTS / AI RESEARCH 01",
+    eyebrow:"MarketSights / AI 模擬投資研究 01",
     title1:"同じ市場、",title2:"4つのAIの視点。",
     intro:"どのAIが優れた成果を上げるのか。独立したAI判断と実際の模擬運用記録を比較し、過去の市場データでも検証します。",
     explore:"AI判断を比較",historical:"過去の市場研究",
@@ -58,7 +58,7 @@ export function DashboardHero({d}:{d:Dataset}){
       <div className="relative z-10">
         <p className="hero-eyebrow"><span className="hero-signal" aria-hidden/>{c.eyebrow}</p>
         <h1 className="hero-title mt-2 sm:mt-5">
-          <span className="block">{c.title1}</span>
+          <span className="block">{c.title1}{" "}</span>
           <span className="hero-title-em block">{c.title2}</span>
         </h1>
         <p className="mt-2 text-[12px] leading-5 text-[#d4ddf0] sm:hidden">{c.mobileIntro}</p>

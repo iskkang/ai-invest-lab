@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowRight, CalendarDays, GitCompareArrows, History, ShieldCheck } from "lucide-react";
 import { dailyBrief, followupInputs, rankedDisagreements, type FollowupSignal, type FollowupVerdict } from "@/lib/retention-analytics";
 import { retentionCopy } from "@/lib/retention-copy";
+import { sectionLabel } from "@/lib/section-labels";
 import { compareLatestRound, verifiedDecisions } from "@/lib/insight-analytics";
 import { localizedDecisionText, localizedHref } from "@/lib/i18n";
 import type { Dataset } from "@/lib/types";
@@ -40,7 +41,7 @@ export function DailyBriefing({d,compact=false}:{d:Dataset;compact?:boolean}) {
     <div className="border-b border-line bg-panel-2/60 px-4 py-5 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="ms-kicker mb-2">DAILY / AI INVEST LAB</p>
+          <p className="ms-kicker mb-2">{sectionLabel(d.locale,"dailyLab")}</p>
           <h2 className="text-xl font-extrabold tracking-tight sm:text-2xl">{c.daily}</h2>
           <p className="mt-2 text-xs leading-5 text-muted sm:text-sm">{c.dailySub}</p>
         </div>
@@ -97,7 +98,7 @@ export function TopConflicts({d,compact=false}:{d:Dataset;compact?:boolean}) {
   return <section aria-label={c.conflict} className="space-y-3">
     <header className="flex flex-wrap items-end justify-between gap-2">
       <div>
-        <p className="ms-kicker mb-2">AI / DIFFERENCE ENGINE</p>
+        <p className="ms-kicker mb-2">{sectionLabel(d.locale,"differenceEngine")}</p>
         <h2 className="text-xl font-extrabold tracking-tight">{c.conflict}</h2>
         <p className="mt-1 text-xs leading-5 text-muted">{c.conflictSub}</p>
       </div>
@@ -139,7 +140,7 @@ export function FollowupsPreview({d}:{d:Dataset}){
   return <section className="ms-card px-4 py-5 sm:px-6" aria-label={c.followups}>
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div>
-        <p className="ms-kicker mb-2">DECISIONS / FOLLOW-UP</p>
+        <p className="ms-kicker mb-2">{sectionLabel(d.locale,"decisionFollowup")}</p>
         <h2 className="text-xl font-extrabold tracking-tight">{c.followups}</h2>
         <p className="mt-2 max-w-xl text-xs leading-6 text-muted sm:text-sm">{c.followupsSub}</p>
       </div>
@@ -169,7 +170,7 @@ export function FollowupsPage({d,signals}:{d:Dataset;signals:FollowupSignal[]}) 
     s.observed[0].verdict==="miss"||s.observed[0].verdict==="flat").length;
   return <div className="mx-auto max-w-5xl space-y-5">
     <header className="rounded-2xl border border-line bg-panel p-5 sm:p-7">
-      <p className="ms-kicker mb-3">MARKETSIGHTS / DECISION TRACKER</p>
+      <p className="ms-kicker mb-3">{sectionLabel(d.locale,"decisionTracker")}</p>
       <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl">{c.followups}</h1>
       <p className="mt-3 text-sm leading-6 text-muted">{c.followupsSub}</p>
       <Badge variant="outline" className="mt-4">{c.verified}</Badge>

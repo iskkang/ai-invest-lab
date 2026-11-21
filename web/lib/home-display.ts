@@ -16,3 +16,17 @@ export function dataAsOfLabel(asOf: string, locale: Locale): string {
 export function hasHolderDots(rows: ReadonlyArray<{ holders: readonly unknown[] }>): boolean {
   return rows.some(row => row.holders.length > 0);
 }
+
+/** A complete localized sentence avoids the Korean particle being separated
+ * from the currency amount (e.g. "$100,000 로 시작"). */
+export function experimentStartingSummary(
+  locale: Locale, initialCash: number, startSession: string,
+): string {
+  const amount="$"+initialCash.toLocaleString("en-US");
+  switch(locale){
+    case "ko":return `같은 시장 데이터와 규칙으로 각 AI가 ${amount}로 시작합니다. 실험 시작일: ${startSession}`;
+    case "en":return `Each AI starts with ${amount}, using the same market data and rules. Experiment starts: ${startSession}`;
+    case "zh":return `各 AI 使用相同的市场数据和规则，以 ${amount} 起步。实验开始日：${startSession}`;
+    case "ja":return `各AIが同じ市場データとルールで ${amount} から開始します。実験開始日：${startSession}`;
+  }
+}

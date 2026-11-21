@@ -5,7 +5,7 @@ const TEXT={
  ko:{
   title:"Pattern Lab",headline:"유명한 매매 패턴은 실제로 얼마나 맞았을까?",
   sub:"역망치형·이동평균선·피보나치·RSI·MACD 등 8개 고정 규칙을 실제 NH PLUG 거래일 데이터로 동일하게 검증합니다. AI 투자 회차와는 별개의 과거 연구입니다.",
-  label:"PATTERN LAB / EVIDENCE",source:"실제 기록 기반 · 사후 관찰",snapshot:"연구 기준일",
+  label:"패턴 연구 / 검증 기록",source:"실제 기록 기반 · 사후 관찰",snapshot:"연구 기준일",
   universe:"평가 종목",sessions:"입력 거래일",analysis:"분석 거래일",excluded:"제외된 종목",
   recent:"최근 5거래일 발생",occurrences:"과거 신호 발생",last:"마지막 관측일",
   window5:"5거래일 뒤",window20:"20거래일 뒤",count:"검증 완료",pending:"평가 대기",hits:"방향 일치",
@@ -27,7 +27,7 @@ const TEXT={
   aiModel:"모델",agree:"방향 일치",oppose:"반대",neutral:"명시적 보유",
   allWeather:"레이 달리오 올웨더 · 별도 연구 예정",allWeatherText:"올웨더는 차트 패턴이 아니라 자산배분 전략입니다. 채권·원자재 등 추가 자산 데이터와 리밸런싱 가정 없이 주식 데이터로 성과를 가정하지 않습니다.",
   note:"개인 투자 조언이나 매매 신호 제공이 아닌 교육용 통계 연구입니다.",
-  teaser:"유명 투자 패턴의 실제 성적",teaserSub:"피보나치·역망치·이동평균선 등 8개 규칙을 데이터로 검증합니다.",teaserAction:"Pattern Lab 보기",
+  teaser:"유명 투자 패턴의 실제 성적",teaserSub:"피보나치·역망치·이동평균선 등 8개 규칙을 데이터로 검증합니다.",teaserAction:"패턴 연구 보기",
   disclose:"이 페이지의 신호 판정 규칙은 연구를 위해 고정한 정의이며, 시장에서 통용되는 모든 변형을 대표하지 않습니다.",
  },
  en:{
@@ -61,7 +61,7 @@ const TEXT={
  zh:{
   title:"形态研究室",headline:"著名交易形态真的有效吗？",
   sub:"使用真实 NH PLUG 历史交易数据，检验倒锤线、均线、斐波那契、RSI、MACD 等八种固定规则。与实时 AI 实验分开。",
-  label:"PATTERN LAB / EVIDENCE",source:"基于已核实的历史记录",snapshot:"数据截至",
+  label:"形态研究 / 验证记录",source:"基于已核实的历史记录",snapshot:"数据截至",
   universe:"分析股票",sessions:"输入交易日",analysis:"评估交易日",excluded:"排除股票",
   recent:"最近5个交易日发生",occurrences:"历史出现次数",last:"最近发生日",
   window5:"5交易日后",window20:"20交易日后",count:"已完成评价",pending:"等待评价",hits:"方向符合",
@@ -89,7 +89,7 @@ const TEXT={
  ja:{
   title:"パターン研究所",headline:"有名な売買パターンは本当に有効か？",
   sub:"逆ハンマー、移動平均、フィボナッチ、RSI、MACDなど8つの固定ルールを実際のNH PLUG過去データで検証。AI実験とは別の研究です。",
-  label:"PATTERN LAB / EVIDENCE",source:"検証済みの過去データ",snapshot:"データ基準日",
+  label:"パターン研究 / 検証記録",source:"検証済みの過去データ",snapshot:"データ基準日",
   universe:"対象銘柄",sessions:"入力取引日",analysis:"評価取引日",excluded:"除外銘柄",
   recent:"直近5取引日の発生",occurrences:"過去の発生回数",last:"最終発生日",
   window5:"5取引日後",window20:"20取引日後",count:"評価完了",pending:"評価待ち",hits:"方向一致",

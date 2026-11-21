@@ -272,13 +272,7 @@ body{
   .model-disclosure-table td:nth-child(5)::before { content: "Active model"; }
 }
 
-/* Compact TradingView tape on narrow screens; iframe text cannot be styled directly. */
-.ticker-inner{height:52px;width:100%;background:transparent}
-@media (max-width:767px){
-  .ticker-inner{
-    width:125%;
-    height:57.5px;
-    transform:scale(.8);
-    transform-origin:top left;
-  }
-}
+/* TradingView iframe owns its colors; keep the host full-width without transforms. */
+.ticker-outer{background:#101d32}
+.ticker-inner{width:100%;height:100%;min-width:0;background:#101d32}
+.ticker-inner iframe{display:block;width:100%!important;max-width:100%;height:100%!important;border:0}

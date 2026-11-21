@@ -2,7 +2,7 @@ import Link from "next/link";
 import { ArrowRight, ChartNoAxesCombined, Clock3, Layers3, ShieldCheck } from "lucide-react";
 import { insightCopy } from "@/lib/insight-copy";
 import {
-  compareLatestRound, generateWeeklyReports,
+  compareLatestRound, generateWeeklyReports, weekFriday, verifiedDecisions,
   type AccuracyModel, type SymbolComparison, type WeeklyReport,
   MIN_DIRECTION_SAMPLES,
 } from "@/lib/insight-analytics";
@@ -131,13 +131,54 @@ export function ConsensusBody({d}:{d:Dataset}) {
   </div>;
 }
 
+/** A truthful, data-driven launch state, not an invented weekly report. */
+function WeeklyEmptyState({d}:{d:Dataset}) {
+  const c=insightCopy(d.locale);
+  const start=d.experiment.startSession;
+  const earliest=new Date(Date.parse(weekFriday(start)+"T00:00:00Z")+86400000)
+    .toISOString().slice(0,10);
+  const beforeStart=new Date().toISOString().slice(0,10)<start;
+  const completed=new Set(verifiedDecisions(d).map(dec=>dec.roundId)).size;
+  return <section className="overflow-hidden rounded-2xl border border-line bg-panel"
+    aria-label={c.emptyTitle}>
+    <div className="border-b border-line px-5 py-5 sm:px-6">
+      <Badge variant="muted">{beforeStart?c.launchStatus:c.pendingStatus}</Badge>
+      <h2 className="mt-3 text-lg font-semibold tracking-tight">{c.emptyTitle}</h2>
+      <p className="mt-2 text-sm leading-6 text-muted">{c.noReport}</p>
+    </div>
+    <div className="grid grid-cols-1 divide-y divide-line sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+      {[
+        [c.startSessionLabel,start],
+        [c.verifiedRoundsLabel,String(completed)],
+        [c.earliestReportLabel,earliest],
+      ].map(([label,value])=><div key={label} className="px-5 py-4 sm:px-6">
+        <p className="text-xs text-muted">{label}</p>
+        <p className="mt-1 text-base font-semibold tabular">{value}</p>
+      </div>)}
+    </div>
+    <div className="border-t border-line px-5 py-4 sm:px-6">
+      <p className="text-xs leading-6 text-muted">
+        {beforeStart?c.beforeLaunchDetail:c.afterLaunchDetail}
+      </p>
+      <div className="mt-4 flex flex-wrap gap-2">
+        <Link href={localizedHref(d.locale,"/consensus")}
+          className="inline-flex items-center gap-2 rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white">
+          {c.viewComparison}<ArrowRight size={14} aria-hidden/>
+        </Link>
+        <Link href={localizedHref(d.locale,"/")}
+          className="inline-flex items-center gap-2 rounded-lg border border-line px-3 py-2 text-xs font-semibold">
+          {c.viewDashboard}<ArrowRight size={14} aria-hidden/>
+        </Link>
+      </div>
+    </div>
+  </section>;
+}
+
 export function WeeklyIndexBody({d}:{d:Dataset}) {
   const c=insightCopy(d.locale),reports=generateWeeklyReports(d);
   return <div className="mx-auto max-w-5xl space-y-5">
     <InsightsHeader locale={d.locale} title={c.weekly} sub={c.weeklySub}/>
-    {!reports.length?<Section title={c.waiting}>
-      <p className="text-sm leading-7 text-muted">{c.noReport}</p>
-    </Section>:<div className="grid gap-3 md:grid-cols-2">
+    {!reports.length?<WeeklyEmptyState d={d}/>:<div className="grid gap-3 md:grid-cols-2">
       {reports.map(report=><Link href={localizedHref(d.locale,"/weekly/"+report.week)}
         key={report.week} className="group rounded-2xl border border-line bg-panel p-5 transition hover:border-accent/70">
         <div className="flex items-center justify-between">

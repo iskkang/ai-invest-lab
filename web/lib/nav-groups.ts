@@ -1,5 +1,5 @@
 import type { Locale } from "./public-content";
-import { isNavActive } from "./nav-active";
+import { isNavActive } from "./nav-active.ts";
 
 /** The 13 original destination URLs are intentionally retained verbatim.
  * Both desktop dropdowns and mobile accordion read this single structure.

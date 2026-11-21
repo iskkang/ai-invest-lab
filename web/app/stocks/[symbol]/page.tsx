@@ -79,7 +79,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   return (
     <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
       <div className="min-w-0 space-y-4">
-        <Breadcrumb items={[{ href: "/lab", label: "Dashboard" }, { label: symbol }]} />
+        <Breadcrumb items={[{ href: localizedHref(d.locale,"/"), label: t(d.locale,"대시보드") }, { label: symbol }]} />
 
         {/* 종목 헤더 */}
         <div className="flex flex-wrap items-center gap-x-8 gap-y-4">
@@ -98,10 +98,10 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
                 {up ? <TrendingUp size={15} /> : <TrendingDown size={15} />}{up ? "+" : ""}{fmtNum(s.change)} ({fmtPct(s.changePct)})
               </span>
             </div>
-            <p className="mt-1 text-xs text-muted">{s.date} {t(d.locale,"정규장 종가 기준")} (NY 16:00) · {t(d.locale,"출처")} {d.mode === "demo" ? "DEMO 합성 데이터" : "NH투자증권 PLUG"}</p>
+            <p className="mt-1 text-xs text-muted">{s.date} {t(d.locale,"정규장 종가 기준")} (NY 16:00) · {t(d.locale,"출처")} NH PLUG</p>
           </div>
           <dl className="flex gap-6 text-sm lg:ml-auto lg:border-l lg:border-line lg:pl-6">
-            <div><dt className="text-xs text-muted">52주 범위</dt><dd className="font-semibold tabular">{fmtNum(s.lo52)} – {fmtNum(s.hi52)}</dd></div>
+            <div><dt className="text-xs text-muted">{t(d.locale,"52주 범위")}</dt><dd className="font-semibold tabular">{fmtNum(s.lo52)} – {fmtNum(s.hi52)}</dd></div>
             <div className="border-l border-line pl-6"><dt className="text-xs text-muted">{t(d.locale,"보유 AI")}</dt><dd className="font-semibold">{views.filter((v) => v.quantityHeld).length} / 4</dd></div>
           </dl>
         </div>
@@ -121,9 +121,9 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
 
         {/* 차트 */}
         <Card className="p-4">
-          <StockChart bars={bars} markers={markers} />
+          <StockChart bars={bars} markers={markers} locale={d.locale} />
           <p className="mt-2 text-[11px] text-muted">
-            가격은 기록된 분할을 반영한 조정 시계열입니다. ▲매수 ▼매도 · 색상 =
+            {t(d.locale,"가격은 기록된 분할을 반영한 조정 시계열입니다. ▲매수 ▼매도 · 색상 =")}
             {d.accounts.filter((a) => a.kind === "ai").map((a) => <span key={a.id} style={{ color: a.color }}> {a.name}</span>)}
           </p>
         </Card>
@@ -140,11 +140,11 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
                   {x.sub && <p className="text-[11px] text-muted tabular">{x.sub}</p>}
                 </div>
               </div>
-              <div className="mt-1.5"><Pill tone={x.state[1]}>{x.state[0]}</Pill></div>
+              <div className="mt-1.5"><Pill tone={x.state[1]}>{t(d.locale,x.state[0])}</Pill></div>
             </Card>
           ))}
         </div>
-        <p className="-mt-2 text-[11px] text-muted">지표 상태는 기술적 상태를 설명하는 라벨이며 매수·매도 신호가 아닙니다.</p>
+        <p className="-mt-2 text-[11px] text-muted">{t(d.locale,"지표 상태는 기술적 상태를 설명하는 라벨이며 매수·매도 신호가 아닙니다.")}</p>
 
         <AiCompare views={views} symbol={symbol} locale={d.locale} redacted={d.publicQuotesRedacted}/>
 

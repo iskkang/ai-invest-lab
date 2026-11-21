@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Dot, Section } from "@/components/blocks";
 import { Badge } from "@/components/ui/badge";
 import { getData } from "@/lib/data";
-import { localizedHref,t } from "@/lib/i18n";
+import { localizedHref,t,localizedDecisionText } from "@/lib/i18n";
 import { cn, fmtDateTimeNY, fmtNum, fmtUsd, sideLabel, toneClass } from "@/lib/utils";
 
 export const revalidate=300;
@@ -67,9 +67,9 @@ export default async function TradeDetail({params}:{params:Promise<{id:string}>}
       )}
       {action&&(
         <Section title={labels.rationale}>
-          <p className="text-sm leading-7">{action.reason}</p>
-          {action.risks.length>0&&<p className="mt-2 text-sm text-muted">{t(lang,"위험 요인:")} {action.risks.join(" · ")}</p>}
-          {dec?.summary&&<p className="mt-3 border-t border-line pt-3 text-sm text-muted">{dec.summary}</p>}
+          <p className="text-sm leading-7">{localizedDecisionText(lang,action.reason)}</p>
+          {action.risks.length>0&&<p className="mt-2 text-sm text-muted">{t(lang,"위험 요인:")} {action.risks.map(text=>localizedDecisionText(lang,text)).join(" · ")}</p>}
+          {dec?.summary&&<p className="mt-3 border-t border-line pt-3 text-sm text-muted">{localizedDecisionText(lang,dec.summary)}</p>}
         </Section>
       )}
     </div>

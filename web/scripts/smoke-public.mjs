@@ -42,8 +42,20 @@ try{
     assert.ok([301,302,303,307,308].includes(res.status),`expected redirect ${path}`);
     assert.equal(new URL(res.headers.get("location"),base).pathname,"/ko");
   }
-  for (const locale of ["ko","en","zh","ja"]) {
-    await visible(`/${locale}`,"투자 데이터 화면을 불러오지 못했습니다.");
+  for (const [locale,heading] of Object.entries({
+    ko:"투자 데이터 화면을 불러오지 못했습니다.",
+    en:"Unable to load investment data.",
+    zh:"无法加载投资数据。",
+    ja:"投資データを読み込めません。",
+  })) {
+    await visible(`/${locale}`,heading);
+    const res=await req(`/${locale}`);
+    const html=await res.text();
+    if(locale!=="ko") {
+      assert.ok(!html.includes("투자 데이터 화면을 불러오지 못했습니다."),`Korean dashboard error leaked into ${locale}`);
+      assert.ok(!html.includes('href="/ko/methodology"'),`wrong-locale methodology link in ${locale}`);
+      assert.ok(html.includes(`href="/${locale}/methodology"`),`localized methodology link missing in ${locale}`);
+    }
   }
   await visible("/ko/about","AI는 실제로 주식투자를 잘할까?");
   await visible("/en/methodology","Comparable information");
@@ -56,12 +68,12 @@ try{
   const aiHtml = await aiUnavailable.text();
   assert.ok(!aiHtml.includes("DEMO —"),"unavailable AI page must never show demo data");
   await visible("/robots.txt","/sitemap.xml");
-  await visible("/llms.txt","# AI Invest Lab");
+  await visible("/llms.txt","# MarketTrials");
   await visible("/ads.txt","No advertising sellers");
   const deploymentStatus = await req("/status");
   assert.equal(deploymentStatus.status,200,"public build probe unavailable");
   const probe = await deploymentStatus.json();
-  assert.equal(probe.service,"AI Invest Lab");
+  assert.equal(probe.service,"MarketTrials");
   assert.equal(probe.component,"web");
   assert.equal(probe.dataMode,"live");
   assert.equal(probe.demoEnabled,false);

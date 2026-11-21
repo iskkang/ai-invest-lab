@@ -7,6 +7,8 @@ import {
   type IChartApi, type SeriesMarker, type Time,
 } from "lightweight-charts";
 import { cn } from "@/lib/utils";
+import { t } from "@/lib/i18n";
+import type { Locale } from "@/lib/public-content";
 
 type BarIn = { time: string; open: number; high: number; low: number; close: number; volume: number };
 export type ChartMarker = { time: string; side: "BUY" | "SELL"; color: string; ai: string };
@@ -43,7 +45,7 @@ function rsiSeries(bars: BarIn[], n = 14) {
   return out;
 }
 
-export function StockChart({ bars, markers }: { bars: BarIn[]; markers: ChartMarker[] }) {
+export function StockChart({ bars, markers, locale="ko" }: { bars: BarIn[]; markers: ChartMarker[]; locale?:Locale }) {
   const ref = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [range, setRange] = useState<(typeof RANGES)[number]["key"]>("6M");
@@ -110,12 +112,12 @@ export function StockChart({ bars, markers }: { bars: BarIn[]; markers: ChartMar
   }, [bars, markers, ma20, ma50, rsi, show, range]);
 
   const toggles: [keyof typeof show, string, string][] = [
-    ["ma20", "MA20", "#3b82f6"], ["ma50", "MA50", "#a855f7"], ["rsi", "RSI", "#8b5cf6"], ["volume", "거래량", "#94a3b8"], ["trades", "AI 매매", "#f59e0b"],
+    ["ma20", "MA20", "#3b82f6"], ["ma50", "MA50", "#a855f7"], ["rsi", "RSI", "#8b5cf6"], ["volume", t(locale,"거래량"), "#94a3b8"], ["trades", t(locale,"AI 매매"), "#f59e0b"],
   ];
   return (
     <div>
       <div className="mb-3 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-        <div className="flex self-start rounded-lg bg-panel-2 p-0.5" role="tablist" aria-label="기간">
+        <div className="flex self-start rounded-lg bg-panel-2 p-0.5" role="tablist" aria-label={t(locale,"기간")}>
           {RANGES.map((r) => (
             <button key={r.key} role="tab" aria-selected={range === r.key} onClick={() => setRange(r.key)}
               className={cn("min-w-11 rounded-md px-3 py-1.5 text-sm font-medium", range === r.key ? "bg-accent text-white" : "text-muted")}>
@@ -131,13 +133,13 @@ export function StockChart({ bars, markers }: { bars: BarIn[]; markers: ChartMar
               {label}
             </label>
           ))}
-          <button onClick={() => setTall((t) => !t)} aria-label={tall ? "차트 줄이기" : "차트 키우기"}
+          <button onClick={() => setTall((t) => !t)} aria-label={t(locale,tall ? "차트 줄이기" : "차트 키우기")}
             className="hidden h-8 w-8 place-items-center rounded-md border border-line text-muted sm:grid">
             {tall ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
           </button>
         </div>
       </div>
-      <div ref={ref} className={cn("w-full", tall ? "h-[560px]" : "h-[300px] sm:h-[380px]")} role="img" aria-label="주가 차트" />
+      <div ref={ref} className={cn("w-full", tall ? "h-[560px]" : "h-[300px] sm:h-[380px]")} role="img" aria-label={t(locale,"주가 차트")} />
     </div>
   );
 }

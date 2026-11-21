@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export function GET() {
   return NextResponse.json(
     {
-      service: "AI Invest Lab",
+      service: "MarketTrials",
       component: "web",
       deployCommit: (process.env.VERCEL_GIT_COMMIT_SHA ?? "").slice(0, 12) || null,
       dataMode: "live",

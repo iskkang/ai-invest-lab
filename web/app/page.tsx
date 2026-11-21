@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Public landing page. The private research console now lives at /lab. */
+/** Preserve old links while making the original dashboard the public homepage. */
 export default function Home() {
-  redirect("/en");
+  redirect("/ko");
 }

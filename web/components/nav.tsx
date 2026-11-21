@@ -62,7 +62,7 @@ export function HeaderNav({locale}:{locale:Locale}) {
             :<>
               <button type="button" className={base} data-nav-trigger={group.id}
                 aria-expanded={expanded} aria-controls={"top-nav-"+group.id}
-                onClick={()=>setOpenId(group.id)}
+                onClick={()=>setOpenId(id=>id===group.id?null:group.id)}
                 onKeyDown={e=>{
                   if(e.key==="ArrowDown"){
                     e.preventDefault();setOpenId(group.id);
@@ -136,13 +136,13 @@ export function MobileMenu({locale}:{locale:Locale}) {
   return <>
     <button type="button" ref={triggerRef} onClick={()=>setIsOpen(true)}
       aria-label={copy.open} aria-expanded={isOpen} aria-haspopup="dialog"
-      aria-controls={isOpen?"marketsights-mobile-navigation":undefined}
+      aria-controls={isOpen?"logicsight-mobile-navigation":undefined}
       data-mobile-menu-trigger="true"
-      className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-panel-2 text-fg hover:text-accent">
+      className="hidden h-11 w-11 shrink-0 place-items-center rounded-xl border border-line bg-panel-2 text-fg hover:text-accent md:grid">
       <Menu size={20} strokeWidth={1.9} aria-hidden/>
     </button>
     {isOpen&&createPortal(
-      <div className="fixed inset-0 z-[100] lg:hidden" data-mobile-nav-overlay="true">
+      <div className="fixed inset-0 z-[100] md:hidden" data-mobile-nav-overlay="true">
         <button type="button" className="absolute inset-0 w-full bg-[#081328]/65"
           tabIndex={-1} aria-label={copy.close} onClick={dismiss}/>
         <section ref={sheetRef} role="dialog" aria-modal="true" aria-label={copy.navigation}

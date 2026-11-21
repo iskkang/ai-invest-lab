@@ -142,7 +142,7 @@ try{
   })){
     await visible("/"+locale+"/patterns",heading);
     const html=await (await req("/"+locale+"/patterns")).text();
-    assert.ok(html.includes("inverted-hammer")||html.includes("역망치형")||html.includes("Inverted hammer"));
+    assert.ok(html.includes(({ko:"역망치형 캔들",en:"Inverted hammer",zh:"倒锤线",ja:"逆ハンマー足"})[locale]),"Pattern definitions must be localized: "+locale);
     assert.ok(!html.includes("120.25%"),"Pattern study must not contain arbitrary fallback returns");
     await visible("/"+locale+"/patterns/fibonacci-618",
       locale==="ko"?"유명한 매매 패턴은 실제로 얼마나 맞았을까?":

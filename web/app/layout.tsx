@@ -8,7 +8,7 @@ import { themeScript } from "@/lib/theme";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: { default: "MarketSights — AI Paper-Trading Leaderboard", template: "%s · MarketSights" },
+  title: { default: "LogicSight — AI Paper-Trading Leaderboard", template: "%s · LogicSight" },
   description: "Compare four specific AI models using the same dated US-stock data, virtual starting capital and trading rules. Different model tiers; educational paper trading only.",
   // AdSense site verification metadata is emitted only after a real publisher
   // account is configured. This does not activate advertising.

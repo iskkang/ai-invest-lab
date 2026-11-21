@@ -2,12 +2,15 @@ import Link from "next/link";
 import { ChartNoAxesColumnIncreasing } from "lucide-react";
 import { BottomNav, SideNav, StockSearch } from "./nav";
 import { ThemeToggle } from "./theme-toggle";
+import { LanguageSwitcher } from "./language-switcher";
+import { localizedHref, t } from "@/lib/i18n";
+import type { Locale } from "@/lib/public-content";
 
 export { BottomNav };
 
-export function Logo() {
+export function Logo({locale="ko"}:{locale?:Locale}) {
   return (
-    <Link href="/lab" className="flex items-center gap-2.5" aria-label="AI Invest Lab 홈">
+    <Link href={localizedHref(locale,"/")} className="flex items-center gap-2.5" aria-label="AI Invest Lab home">
       <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-white">
         <ChartNoAxesColumnIncreasing size={18} strokeWidth={2.4} aria-hidden />
       </span>
@@ -16,60 +19,83 @@ export function Logo() {
   );
 }
 
-export function DemoBanner({ mode }: { mode: "live" | "demo" }) {
-  if (mode !== "demo") return null;
+export function DemoBanner({mode,locale}:{mode:"live"|"demo";locale:Locale}) {
+  if(mode!=="demo")return null;
+  const messages:Record<Locale,string>={
+    ko:"DEMO — 합성 시세·규칙 기반 AI의 예시 화면입니다. 실제 투자 성과가 아닙니다.",
+    en:"DEMO — Synthetic prices and rule-based example AI. These are NOT actual investment results.",
+    zh:"演示模式 — 使用合成行情和规则型 AI 示例，不代表实际投资业绩。",
+    ja:"DEMO — 合成株価とルールベースのAIによる例示です。実際の運用成績ではありません。",
+  };
   return (
     <div className="bg-warn text-black">
-      <p className="px-4 py-1.5 text-center text-xs font-semibold">
-        DEMO 모드 — 합성 시세와 규칙 기반 가짜 AI로 만든 시연 화면입니다. 실제 시장 데이터·실제 AI 성과가 아닙니다.
-      </p>
+      <p className="px-4 py-1.5 text-center text-xs font-semibold">{messages[locale]}</p>
     </div>
   );
 }
 
-export function Sidebar() {
+export function Sidebar({locale}:{locale:Locale}) {
   return (
     <aside className="hidden w-60 shrink-0 border-r border-line bg-panel lg:block">
       <div className="sticky top-0 flex h-dvh flex-col px-4 py-5">
-        <div className="mb-7 px-2"><Logo /></div>
-        <SideNav />
-        <p className="mt-auto px-2 text-[11px] leading-relaxed text-muted">교육·연구용 모의투자 실험입니다. 실제 주문·투자 권유 없음.</p>
+        <div className="mb-7 px-2"><Logo locale={locale}/></div>
+        <SideNav locale={locale}/>
+        <p className="mt-auto px-2 text-[11px] leading-relaxed text-muted">
+          {({ko:"교육·연구용 모의투자 실험입니다. 실제 주문·투자 권유 없음.",
+          en:"Educational paper trading only. No real orders or investment advice.",
+          zh:"仅供教育研究的模拟投资，无真实订单或投资建议。",
+          ja:"教育・研究用の模擬投資であり、実際の注文・投資助言ではありません。" } as Record<Locale,string>)[locale]}
+        </p>
       </div>
     </aside>
   );
 }
 
-export function TopBar({ asOf, symbols }: { asOf: string; symbols: { symbol: string; name: string }[] }) {
+export function TopBar({asOf,symbols,locale}:{
+  asOf:string;symbols:{symbol:string;name:string}[];locale:Locale
+}) {
   return (
     <>
-    <header className="sticky top-0 z-30 border-b border-line bg-panel/90 backdrop-blur">
-      <div className="flex h-14 items-center gap-4 px-4 lg:h-16 lg:px-6">
-        <div className="lg:hidden"><Logo /></div>
-        <div className="hidden max-w-xl flex-1 lg:block"><StockSearch symbols={symbols} /></div>
-        <div className="ml-auto flex items-center gap-3">
-          <span className="hidden rounded-md bg-panel-2 px-2.5 py-1.5 text-xs text-muted sm:inline">데이터 기준일 {asOf || "—"}</span>
-          <ThemeToggle />
+      <header className="sticky top-0 z-30 border-b border-line bg-panel/90 backdrop-blur">
+        <div className="flex h-14 items-center gap-4 px-4 lg:h-16 lg:px-6">
+          <div className="lg:hidden"><Logo locale={locale}/></div>
+          <div className="hidden max-w-xl flex-1 lg:block"><StockSearch symbols={symbols} locale={locale}/></div>
+          <div className="ml-auto flex items-center gap-2 sm:gap-3">
+            <span className="hidden rounded-md bg-panel-2 px-2.5 py-1.5 text-xs text-muted sm:inline">
+              {t(locale,"데이터 기준일")} {asOf || "—"}
+            </span>
+            <LanguageSwitcher locale={locale}/>
+            <ThemeToggle />
+          </div>
         </div>
+      </header>
+      <div className="border-b border-line bg-panel px-4 py-3 lg:hidden">
+        <StockSearch symbols={symbols} locale={locale}/>
       </div>
-    </header>
-    <div className="border-b border-line bg-panel px-4 py-3 lg:hidden"><StockSearch symbols={symbols} /></div>
     </>
   );
 }
 
-export function Footer() {
+export function Footer({locale}:{locale:Locale}) {
+  const disclaimers:Record<Locale,string>={
+    ko:"AI Invest Lab은 교육·연구 목적의 모의투자 실험입니다. 실제 주식 주문을 실행하지 않으며 개인별 투자 권유가 아닙니다. 표시된 가상 체결 수익은 실제 투자 성과와 다를 수 있고 과거 성과는 미래 결과를 보장하지 않습니다.",
+    en:"AI Invest Lab is an educational paper-trading experiment. It never places real stock orders or provides personalized investment advice. Simulated fills and returns may differ from actual trading results. Past outcomes do not predict future performance.",
+    zh:"AI Invest Lab 是教育研究性质的模拟投资实验，不会下达真实证券订单，也不提供个性化投资建议。模拟成交与收益可能不同于实际交易结果，历史表现不代表未来收益。",
+    ja:"AI Invest Labは教育・研究目的の模擬投資実験です。実際の発注や個別の投資助言は行いません。仮想約定とリターンは実際の運用成績とは異なり、過去の結果は将来を保証しません。",
+  };
   return (
     <footer className="px-4 pb-28 pt-8 text-xs leading-relaxed text-muted lg:px-6 lg:pb-8">
-      <p className="max-w-4xl">
-        AI Invest Lab은 교육·연구 목적의 <b>모의투자</b> 실험입니다. 실제 매매 주문을 내지 않으며, 특정 종목의 매수·매도를 권유하지 않습니다.
-        표시된 수익률은 가상 체결 규칙(다음 정규장 시가, 슬리피지·수수료 가정)에 따른 결과이며 실제 투자 성과와 다를 수 있습니다.
-        과거 성과는 미래 수익을 보장하지 않습니다. AI 판단 이유는 모델이 생성한 텍스트로, 사실 확인을 거치지 않았습니다.
-      </p>
+      <p className="max-w-4xl">{disclaimers[locale]}</p>
+      <nav className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs" aria-label="Research information">
+        <Link href={localizedHref(locale,"/methodology")} className="hover:text-accent">{t(locale,"실험 방식")}</Link>
+        <Link href={localizedHref(locale,"/faq")} className="hover:text-accent">FAQ</Link>
+        <Link href={localizedHref(locale,"/privacy")} className="hover:text-accent">{locale==="ko"?"개인정보":locale==="en"?"Privacy":locale==="zh"?"隐私":"プライバシー"}</Link>
+      </nav>
     </footer>
   );
 }
 
-export function PageTitle({ title, sub }: { title: string; sub?: string }) {
+export function PageTitle({title,sub}:{title:string;sub?:string}) {
   return (
     <div className="mb-4">
       <h1 className="text-xl font-bold tracking-tight">{title}</h1>
@@ -78,13 +104,13 @@ export function PageTitle({ title, sub }: { title: string; sub?: string }) {
   );
 }
 
-export function Breadcrumb({ items }: { items: { href?: string; label: string }[] }) {
+export function Breadcrumb({items}:{items:{href?:string;label:string}[]}) {
   return (
-    <nav aria-label="경로" className="mb-3 flex items-center gap-1.5 text-sm text-muted">
-      {items.map((it, i) => (
+    <nav className="mb-3 flex items-center gap-1.5 text-sm text-muted">
+      {items.map((it,i)=>(
         <span key={i} className="flex items-center gap-1.5">
-          {i > 0 && <span aria-hidden>›</span>}
-          {it.href ? <Link href={it.href} className="hover:text-fg">{it.label}</Link> : <span className="text-fg">{it.label}</span>}
+          {i>0&&<span aria-hidden>›</span>}
+          {it.href?<Link href={it.href} className="hover:text-accent">{it.label}</Link>:<span className="text-fg">{it.label}</span>}
         </span>
       ))}
     </nav>

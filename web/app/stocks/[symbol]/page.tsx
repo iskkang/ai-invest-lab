@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { getData } from "@/lib/data";
 import { aiViews, indicatorStates, stockSummary, type Tone } from "@/lib/stock";
 import { cn, fmtNum, fmtPct, toneClass } from "@/lib/utils";
+import { localizedHref,t } from "@/lib/i18n";
 
 export const revalidate = 300;
 
@@ -31,9 +32,33 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   const d = await getData();
   const info = d.universe.find((u) => u.symbol === symbol);
   const s = stockSummary(d, symbol);
-  if (!info || !s) notFound();
-  const st = indicatorStates(s);
+  if (!info) notFound();
   const views = aiViews(d, symbol);
+  if (!s) {
+    if (!d.publicQuotesRedacted) notFound();
+    const trades = d.trades.filter(t => t.symbol === symbol && d.accounts.find(a => a.id === t.accountId)?.kind === "ai");
+    return (
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="min-w-0 space-y-4">
+          <Breadcrumb items={[{href:localizedHref(d.locale,"/"),label:t(d.locale,"대시보드")},{label:symbol}]} />
+          <div className="flex items-center gap-3">
+            <span className="grid h-14 w-14 place-items-center rounded-full bg-panel-2 text-sm font-bold">{symbol.slice(0,4)}</span>
+            <div><h1 className="text-2xl font-bold">{symbol}</h1><p className="text-sm text-muted">{info.name}</p></div>
+          </div>
+          <Section title={t(d.locale,"공개 데이터 이용 제한")}>
+            <p className="text-sm leading-7 text-muted">{t(d.locale,"주식별 시세·차트는 공급자의 재배포 허가가 확인될 때까지 제공되지 않습니다.")}</p>
+            <p className="mt-2 text-sm leading-7 text-muted">{t(d.locale,"현재는 저장된 AI 판단 및 가상 포트폴리오 통계만 공개됩니다.")}</p>
+          </Section>
+          <AiCompare views={views} symbol={symbol} locale={d.locale} redacted/>
+          <Section title={`${symbol} ${t(d.locale,"거래 이력")}`}>
+            <TradeList d={d} trades={trades.slice(0,20)} />
+          </Section>
+        </div>
+        <div className="hidden xl:block"><div className="sticky top-20"><UniverseRail d={d} current={symbol}/></div></div>
+      </div>
+    );
+  }
+  const st = indicatorStates(s);
   const bars = (d.prices[symbol] ?? []).map(([time, open, high, low, close, volume]) => ({ time, open, high, low, close, volume }));
   const accounts = new Map(d.accounts.map((a) => [a.id, a]));
   const trades = d.trades.filter((t) => t.symbol === symbol && accounts.get(t.accountId)?.kind === "ai");
@@ -41,18 +66,18 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   const up = s.change >= 0;
 
   const stats: { icon: React.ElementType; label: string; value: string }[] = [
-    { icon: TrendingUp, label: "전일 종가", value: fmtNum(s.prevClose) },
-    { icon: BarChart2, label: "시가", value: fmtNum(s.open) },
-    { icon: ArrowUpDown, label: "일중 범위", value: `${fmtNum(s.low)} – ${fmtNum(s.high)}` },
-    { icon: CalendarArrowUp, label: "52주 최고", value: fmtNum(s.hi52) },
-    { icon: CalendarArrowDown, label: "52주 최저", value: fmtNum(s.lo52) },
-    { icon: Activity, label: "거래량 (20일 평균 대비)", value: `${(s.volume / 1e6).toFixed(1)}M · ${fmtPct(s.volumeVsAvg, 0)}` },
+    { icon: TrendingUp, label: t(d.locale,"전일 종가"), value: fmtNum(s.prevClose) },
+    { icon: BarChart2, label: t(d.locale,"시가"), value: fmtNum(s.open) },
+    { icon: ArrowUpDown, label: t(d.locale,"일중 범위"), value: `${fmtNum(s.low)} – ${fmtNum(s.high)}` },
+    { icon: CalendarArrowUp, label: t(d.locale,"52주 최고"), value: fmtNum(s.hi52) },
+    { icon: CalendarArrowDown, label: t(d.locale,"52주 최저"), value: fmtNum(s.lo52) },
+    { icon: Activity, label: t(d.locale,"거래량 (20일 평균 대비)"), value: `${(s.volume / 1e6).toFixed(1)}M · ${fmtPct(s.volumeVsAvg, 0)}` },
   ];
   const indicators: { icon: React.ElementType; label: string; value: string; sub?: string; state: [string, Tone] }[] = [
     { icon: Waves, label: "RSI (14)", value: s.rsi === null ? "—" : s.rsi.toFixed(1), state: st.rsi },
-    { icon: LineChart, label: "이동평균", value: s.ma20 === null ? "—" : fmtNum(s.ma20), sub: `MA20 · MA50 ${fmtNum(s.ma50)}`, state: st.ma },
-    { icon: BarChart2, label: "변동성 (30일, 연환산)", value: fmtPct(s.vol30, 1, false), state: st.vol },
-    { icon: ArrowDownRight, label: "최대 낙폭 (1년)", value: fmtPct(s.mdd, 1, false), state: st.mdd },
+    { icon: LineChart, label: t(d.locale,"이동평균"), value: s.ma20 === null ? "—" : fmtNum(s.ma20), sub: `MA20 · MA50 ${fmtNum(s.ma50)}`, state: st.ma },
+    { icon: BarChart2, label: t(d.locale,"변동성 (30일, 연환산)"), value: fmtPct(s.vol30, 1, false), state: st.vol },
+    { icon: ArrowDownRight, label: t(d.locale,"최대 낙폭 (1년)"), value: fmtPct(s.mdd, 1, false), state: st.mdd },
   ];
 
   return (
@@ -77,11 +102,11 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
                 {up ? <TrendingUp size={15} /> : <TrendingDown size={15} />}{up ? "+" : ""}{fmtNum(s.change)} ({fmtPct(s.changePct)})
               </span>
             </div>
-            <p className="mt-1 text-xs text-muted">{s.date} 정규장 종가 기준 (뉴욕 16:00) · 출처 {d.mode === "demo" ? "DEMO 합성 데이터" : "NH투자증권 PLUG"}</p>
+            <p className="mt-1 text-xs text-muted">{s.date} {t(d.locale,"정규장 종가 기준")} (NY 16:00) · {t(d.locale,"출처")} {d.mode === "demo" ? "DEMO 합성 데이터" : "NH투자증권 PLUG"}</p>
           </div>
           <dl className="flex gap-6 text-sm lg:ml-auto lg:border-l lg:border-line lg:pl-6">
             <div><dt className="text-xs text-muted">52주 범위</dt><dd className="font-semibold tabular">{fmtNum(s.lo52)} – {fmtNum(s.hi52)}</dd></div>
-            <div className="border-l border-line pl-6"><dt className="text-xs text-muted">보유 AI</dt><dd className="font-semibold">{views.filter((v) => v.quantityHeld).length} / 4</dd></div>
+            <div className="border-l border-line pl-6"><dt className="text-xs text-muted">{t(d.locale,"보유 AI")}</dt><dd className="font-semibold">{views.filter((v) => v.quantityHeld).length} / 4</dd></div>
           </dl>
         </div>
 
@@ -125,9 +150,9 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
         </div>
         <p className="-mt-2 text-[11px] text-muted">지표 상태는 기술적 상태를 설명하는 라벨이며 매수·매도 신호가 아닙니다.</p>
 
-        <AiCompare views={views} symbol={symbol} />
+        <AiCompare views={views} symbol={symbol} locale={d.locale} redacted={d.publicQuotesRedacted}/>
 
-        <Section title={`${symbol} AI 매매 기록`}>
+        <Section title={`${symbol} ${t(d.locale,"거래 이력")}`}>
           <TradeList d={d} trades={trades.slice(0, 20)} />
         </Section>
       </div>

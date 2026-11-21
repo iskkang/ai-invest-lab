@@ -49,9 +49,10 @@ DEMO는 화면 상단 주황색 띠, `[DEMO]` 표시, 별도 실험(`mode='demo'
 2. GitHub Actions의 `Secrets and variables`에 비밀값을 직접 등록합니다. Secrets: `DATABASE_URL`, `OPENROUTER_API_KEY`, `NHPLUG_APP_KEY`, `NHPLUG_APP_SECRET` (키를 GitHub 코드, 채팅, Vercel 웹 프로젝트에 넣지 마세요).
    `DATABASE_URL`은 Supabase 대시보드 Connect > **Session pooler (5432)** 연결 문자열을 사용합니다. GitHub-hosted runner는 IPv4 전용입니다. DB 비밀번호가 URL 특수문자를 포함하면 URL 인코딩합니다.
 3. 먼저 **읽기 전용 점검**: Actions → `provider-preflight` → Run workflow. DB `SELECT`, AAPL 과거 일봉 1회 조회, OpenRouter `/key`·`/models` 호출만 수행합니다. **실제 AI 판단·매매·DB 수정·자동 실행을 하지 않습니다.**
-4. 모든 점검이 통과해도 `AIL_ENGINE_ENABLED`는 `false` 또는 미설정으로 유지합니다. `daily-engine`의 실제 실행 활성화는 별도 운영 검증 후에만 진행합니다.
-5. 이후 4개 AI 모델의 실호출·실험/데이터 초기화·장중 판단 시간 검증·비용 한도를 마친 뒤에만 LIVE 모의투자를 시작합니다.
-6. 웹: Vercel 배포 → [docs/DEPLOY.md](docs/DEPLOY.md) (`DATA_MODE=demo` 유지).
+4. 외부 API 3개가 정상이라면 Actions → `model-smoke-test` → Run workflow를 눌러 **유료 AI 4회 호출**을 별도로 검증할 수 있습니다. 1종목(AAPL)의 실제 과거 종가만 사용하고, 같은 시장 스냅샷으로 4개 모델의 JSON 응답을 검증합니다. 예상 요청비용 총액이 $0.15를 초과하면 호출 전에 중단합니다(예상액일 뿐 실제 청구액의 절대 상한은 아님). 데이터베이스에 쓰거나 모의 주문을 만들지 않습니다.
+5. 모든 점검이 통과해도 `AIL_ENGINE_ENABLED`는 `false` 또는 미설정으로 유지합니다. `daily-engine`의 실제 실행 활성화는 별도 운영 검증 후에만 진행합니다.
+6. 이후 실험/데이터 초기화·장중 판단 시간 검증·비용 한도를 마친 뒤에만 LIVE 모의투자를 시작합니다.
+7. 웹: Vercel 배포 → [docs/DEPLOY.md](docs/DEPLOY.md) (`DATA_MODE=demo` 유지).
 
 ### 매일 흐름
 

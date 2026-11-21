@@ -57,6 +57,13 @@ try{
   await visible("/robots.txt","/sitemap.xml");
   await visible("/llms.txt","# AI Invest Lab");
   await visible("/ads.txt","No advertising sellers");
+  const deploymentStatus = await req("/status");
+  assert.equal(deploymentStatus.status,200,"public build probe unavailable");
+  const probe = await deploymentStatus.json();
+  assert.equal(probe.service,"AI Invest Lab");
+  assert.equal(probe.component,"web");
+  assert.equal(probe.dataMode,"demo");
+  assert.equal(deploymentStatus.headers.get("cache-control"),"no-store");
   const map=await req("/sitemap.xml");
   assert.equal(map.status,200);
   const sitemap=await map.text();

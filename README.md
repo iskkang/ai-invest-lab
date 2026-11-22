@@ -1,4 +1,4 @@
-# MarketSights
+# LogicSight
 
 > "AI는 실제로 주식투자를 잘할까?" — GPT·Claude·Gemini·DeepSeek가 **같은 데이터, 같은 규칙**으로 미국 대형주 30종목을 모의투자하고, 결과를 감사 가능한 기록으로 공개하는 웹 서비스.
 

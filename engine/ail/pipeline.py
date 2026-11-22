@@ -25,7 +25,7 @@ from .decision import PROMPT_HASH, SYSTEM_PROMPT, InvalidDecision, validate
 from .llm import estimate_cost, user_message
 from .market_data import active_universe, build_market_payload, ingest, store_snapshot, sync_sessions
 
-BENCHMARKS = [("SPY_BUY_HOLD", "SPY 단순 매수·보유"), ("EQUAL_WEIGHT", "30종목 균등투자"), ("CASH", "현금 100%")]
+BENCHMARKS = [("SPY_BUY_HOLD", "SPY 단순 매수·보유"), ("EQUAL_WEIGHT", "종목군 균등투자"), ("CASH", "현금 100%")]
 
 
 # ─────────────────────────────── 초기화

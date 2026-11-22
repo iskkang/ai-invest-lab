@@ -126,9 +126,9 @@ def apply_for_round(conn, changes, round_id: int, session, actor="engine"):
             if result.rowcount != 1:
                 raise LabError("universe membership changed before round: " + sym)
         result = conn.execute(
-            "update universe_change_requests set status='applied',applied_at=now(),applied_round_id=%s"
-            " where id=%s and status='scheduled'",
-            (round_id, c["id"]),
+            "update universe_change_requests set status='applied',effective_session=%s,"
+            " applied_at=now(),applied_round_id=%s where id=%s and status='scheduled'",
+            (session, round_id, c["id"]),
         )
         if result.rowcount != 1:
             raise LabError("change already applied: " + sym)

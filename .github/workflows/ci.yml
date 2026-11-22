@@ -37,6 +37,7 @@ jobs:
         run: |
           cd web
           npm install --no-save --package-lock=false playwright-core@1.56.1
+          node --check scripts/verify-home-visual.mjs
           node scripts/verify-home-visual.mjs
         env: { SITE_ACCESS: private, SITE_PASSWORD: ci, AIL_UI_TEST_FIXTURE: "on" }
       - name: Save 375px dark UI screenshots

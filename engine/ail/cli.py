@@ -8,6 +8,7 @@
   ail set-model gpt openai/gpt-4.1-mini --reason "..."
   ail pause|resume --reason "..."
   ail universe-add SYM "Name" "Sector" --reason "..."   /  ail universe-remove SYM --reason "..."
+  # These queue an audited change for the next official round (not immediately).
   ail corporate-action NVDA split 2026-09-14 --ratio 4 --source "IR 공시 URL"
 """
 from __future__ import annotations
@@ -96,9 +97,9 @@ def main(argv=None) -> int:
     elif args.cmd in ("pause", "resume"):
         admin.set_status(conn, settings.experiment_name, "paused" if args.cmd == "pause" else "running", actor, args.reason)
     elif args.cmd == "universe-add":
-        admin.universe_add(conn, args.symbol, args.name, args.sector, actor, args.reason)
+        _print({"scheduled": to_jsonable(admin.universe_add(conn, args.symbol, args.name, args.sector, actor, args.reason, settings.experiment_name, now))})
     elif args.cmd == "universe-remove":
-        admin.universe_remove(conn, args.symbol, actor, args.reason)
+        _print({"scheduled": to_jsonable(admin.universe_remove(conn, args.symbol, actor, args.reason, settings.experiment_name, now))})
     elif args.cmd == "corporate-action":
         admin.add_corporate_action(conn, args.symbol, args.kind, date.fromisoformat(args.ex_date), args.ratio,
                                    args.amount, args.source, args.note, actor, args.price_source)

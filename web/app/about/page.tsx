@@ -30,7 +30,7 @@ export default async function About() {
       </Section>
       <EngineMethodologyDetails locale={locale} active={active}/>
       <Section title={t(locale,"비교 기준")}>
-        <p className="text-sm leading-7 text-muted">{c.metrics[3][1]} — {t(locale,"SPY, 30종목 균등투자 및 현금 100% 벤치마크를 비교합니다.")}</p>
+        <p className="text-sm leading-7 text-muted">{c.metrics[3][1]} — {t(locale,"SPY, 종목군 균등투자 및 현금 100% 벤치마크를 비교합니다.")}</p>
       </Section>
       <Section title={t(locale,"한계와 주의")}>
         <p className="text-sm leading-7 text-muted">{c.safety}</p>

@@ -177,7 +177,7 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
     accounts: (raw.accounts ?? []).map((a: Raw) => ({
       id: a.id, kind: a.kind, aiId: a.ai_model_id, benchmarkCode: a.benchmark_code,
       name: a.kind === "benchmark" ? t(locale, ({
-        SPY_BUY_HOLD: "SPY 단순 매수·보유", EQUAL_WEIGHT: "30종목 균등투자", CASH: "현금 100%"
+        SPY_BUY_HOLD: "SPY 단순 매수·보유", EQUAL_WEIGHT: "종목군 균등투자", CASH: "현금 100%"
       } as Record<string,string>)[a.benchmark_code] ?? a.name) : a.display_name ?? a.name,
       color: a.color ?? colorFallback[a.benchmark_code] ?? "#888",
       model: a.model, initialCash: n(a.initial_cash),

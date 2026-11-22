@@ -156,7 +156,7 @@ try{
       const iframe=band.locator("iframe").first();
       await iframe.waitFor({timeout:10000});
       const src=await iframe.getAttribute("src");
-      assert.match(src??"",/embed-widget\\/tickers/, "static Tickers iframe is required");
+      assert.ok((src??"").includes("/embed-widget/tickers/"), "static Tickers iframe is required");
       const decoded=decodeURIComponent(src??"");
       assert.ok(decoded.includes("AMEX:SPY"),"first ticker must be SPY");
       assert.ok(decoded.indexOf("AMEX:SPY")<decoded.indexOf("NASDAQ:QQQ"),

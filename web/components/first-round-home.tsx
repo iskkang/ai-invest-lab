@@ -20,10 +20,10 @@ const COPY = {
     eyebrow:"AI PAPER TRADING · PRE-LAUNCH",
     title:"Comparisons begin after the first official AI decision.",
     status:"No official decision round has been published yet.",
-    date:"Configured experiment start date",
+    date:"Experiment starts",
     method:"How does the comparison work?",
     detail:(models:number,stocks:number,cash:string)=>
-      `${models} AI models use the same dated market data for ${stocks} US stocks, ${cash} each in virtual starting cash, and the same trading rules. They do not see each other's decisions.`,
+      `${models===4?"Four":models} AI models use the same dated market data for ${stocks} US stocks, ${cash} each in virtual starting cash, and the same trading rules. They do not see each other's decisions.`,
     noRecords:"Rankings, return charts and trades appear only after real decisions and account valuations have been recorded.",
     methodology:"Research methodology",historical:"Historical research",patterns:"Pattern research",
   },

@@ -51,7 +51,7 @@ function HorizonBox({row,locale}:{row:HorizonStudy;locale:Locale}){
       <span className="text-[11px] text-muted">{c.count} {number(row.observations,locale)}</span>
     </div>
     <div className="mt-3">
-      <p className="text-2xl font-extrabold tabular">{hitRateText(row.hitRate,locale)}</p>
+      <p className={row.hitRate===null?"break-words text-xs font-bold":"text-2xl font-extrabold tabular"}>{hitRateText(row.hitRate,locale)}</p>
       {row.hitRate!==null&&<p className="mt-1 text-[11px] text-muted">{maturedText(row,locale)}</p>}
     </div>
     {row.hitRate!==null&&<div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line"
@@ -105,7 +105,7 @@ function SummaryCard({locale,pattern}:{locale:Locale;pattern:PatternSummary}){
       <div className="mt-3 grid grid-cols-2 gap-2">
         {pattern.horizons.map(row=><div key={row.horizon} className="rounded-xl border border-line px-3 py-3">
           <p className="text-[11px] text-muted">{row.horizon===5?c.window5:c.window20}</p>
-          <p className="mt-1 text-xl font-extrabold tabular">
+          <p className={row.hitRate===null?"mt-1 break-words text-xs font-bold leading-5":"mt-1 text-lg font-extrabold tabular"}>
             {hitRateText(row.hitRate,locale)}
           </p>
           <p className="mt-1 text-[10px] text-muted">

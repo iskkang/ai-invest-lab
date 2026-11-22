@@ -35,7 +35,7 @@ export function MarketTickerTape(){
   return()=>{node.replaceChildren()};
  },[]);
  return <section aria-label="Market ETF prices supplied by TradingView" data-market-ticker
-  className="ticker-outer h-[52px] w-full overflow-hidden border-y border-line bg-[#101d32]">
+  className="ticker-outer h-[63px] w-full overflow-hidden border-y border-line bg-[#121d32] md:h-[84px]">
   <div ref={host} className="tradingview-widget-container ticker-inner"/>
  </section>;
 }

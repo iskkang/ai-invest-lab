@@ -17,7 +17,7 @@
   --color-warn: var(--warn);
 }
 
-/* MarketSights visual system — ink, ultraviolet and signal lime.
+/* LogicSight visual system — ink, ultraviolet and signal lime.
    Original market data colors stay distinct from decorative signal colors. */
 :root {
   --bg: #f5f7fb;

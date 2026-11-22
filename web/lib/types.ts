@@ -119,6 +119,18 @@ export interface Round {
 
 export type Bar = [string, number, number, number, number, number]; // date,o,h,l,c,v
 
+export interface UniverseChange {
+  id: number;
+  action: "add" | "remove";
+  symbol: string;
+  reason: string;
+  scheduledAt: string;
+  effectiveSession: string;
+  status: "scheduled" | "applied";
+  appliedAt: string | null;
+  appliedRoundId: number | null;
+}
+
 export interface Dataset {
   locale: "en" | "zh" | "ko" | "ja";
   publicQuotesRedacted: boolean;
@@ -142,4 +154,5 @@ export interface Dataset {
   universe: { symbol: string; name: string; sector: string | null; role: string }[];
   prices: Record<string, Bar[]>;
   generatedAt: string;
+  universeChanges?: UniverseChange[];
 }

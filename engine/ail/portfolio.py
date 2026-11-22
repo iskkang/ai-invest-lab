@@ -262,6 +262,63 @@ def create_benchmark_orders(conn, exp: dict, session: date, source_name: str) ->
     return n
 
 
+
+def rebalance_equal_weight(conn, exp: dict, session: date, source_name: str) -> int:
+    """Rebalance only the equal-weight benchmark at the open of the effective round.
+
+    The benchmark, unlike AI participants, follows a mechanical target-weight rule.
+    SPY buy-and-hold and cash benchmarks never rebalance. Requests are idempotent.
+    """
+    claimed = conn.execute(
+        "insert into universe_rebalance_runs(experiment_id,session_date)"
+        " values (%s,%s) on conflict do nothing returning session_date",
+        (exp["id"], session),
+    ).fetchone()
+    if not claimed:
+        return 0
+    account = conn.execute(
+        "select * from portfolio_accounts where experiment_id=%s"
+        " and benchmark_code='EQUAL_WEIGHT'", (exp["id"],),
+    ).fetchone()
+    if not account:
+        raise LabError("equal-weight benchmark account missing")
+    aid = account["id"]
+    existing = holdings_of(conn, aid)
+    targets = [r["symbol"] for r in conn.execute(
+        "select symbol from stock_universe where role='investable'"
+        " and removed_at is null order by symbol"
+    ).fetchall()]
+    if not targets:
+        raise LabError("cannot rebalance benchmark to an empty universe")
+    symbols = sorted(set(existing) | set(targets))
+    opens = {sym: _mark_open(conn, sym, source_name, session) for sym in symbols}
+    equity = cash_of(conn, aid) + sum(
+        D(existing[sym]["qty"]) * opens[sym] for sym in existing
+    )
+    budget = equity / len(targets)
+    fee_rate = D(exp["fee_bps"]) / 10000
+    desired = {}
+    for sym in targets:
+        buy_price = slipped_price(opens[sym], "BUY", exp["slippage_bps"])
+        desired[sym] = int((budget / (buy_price * (1 + fee_rate)))
+                           .to_integral_value(rounding=ROUND_FLOOR))
+    n = 0
+    # All sell orders settle before buys, preserving the cash-only benchmark.
+    for sym in symbols:
+        current = existing.get(sym, {}).get("qty", 0)
+        target = desired.get(sym, 0)
+        delta = target - current
+        if not delta:
+            continue
+        conn.execute(
+            "insert into orders(round_id,account_id,session_date,symbol,side,quantity)"
+            " values (null,%s,%s,%s,%s,%s)",
+            (aid, session, sym, "BUY" if delta > 0 else "SELL", abs(delta)),
+        )
+        n += 1
+    return n
+
+
 # ─────────────────────────────── 평가
 def value_session(conn, exp: dict, session: date, source_name: str) -> int:
     accts = conn.execute("select * from portfolio_accounts where experiment_id=%s order by id", (exp["id"],)).fetchall()

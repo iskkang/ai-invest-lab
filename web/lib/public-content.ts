@@ -75,7 +75,7 @@ export const PUBLIC_COPY: Record<Locale, Copy> = {
     heroSub: "LogicSight compares the specified GPT, Claude, Gemini and DeepSeek versions with the same dated market data, virtual starting capital and trading rules. The models differ in size and price tier.",
     actionLearn:"Explore the methodology",actionDashboard:"Explore AI leaderboard",
     safety:"Educational simulation only. No real brokerage orders, personalized recommendations or guaranteed returns.",
-    metrics:[["4 independent AIs","GPT · Claude · Gemini · DeepSeek"],["30 US stocks","A fixed investable starting universe"],["$100,000 each","Equal hypothetical starting capital"],["3 benchmarks","SPY · equal-weight · cash"]],
+    metrics:[["4 independent AIs","GPT · Claude · Gemini · DeepSeek"],["30 US stocks","Initial universe; later changes announced in Journal"],["$100,000 each","Equal hypothetical starting capital"],["3 benchmarks","SPY · equal-weight · cash"]],
     features:[
       {heading:"Shared dated market-data snapshot",text:"A versioned, timestamped market-data packet is shared with every participant. AI responses are recorded separately; other models' decisions are excluded."},
       {heading:"Defined execution rules",text:"Hypothetical orders are evaluated against the next regular US session's opening price, subject to a published slippage assumption and position limits."},

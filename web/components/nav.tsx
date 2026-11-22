@@ -60,20 +60,27 @@ export function HeaderNav({locale}:{locale:Locale}) {
             <Link href={localizedHref(locale,group.href)}
               aria-current={chosen?"page":undefined} className={base}>{group.names[locale]}</Link>
             :<>
-              <button type="button" className={base} data-nav-trigger={group.id}
-                aria-expanded={expanded} aria-controls={"top-nav-"+group.id}
-                onClick={()=>setOpenId(id=>id===group.id?null:group.id)}
-                onKeyDown={e=>{
-                  if(e.key==="ArrowDown"){
-                    e.preventDefault();setOpenId(group.id);
-                    requestAnimationFrame(()=>{
-                      navRef.current?.querySelector<HTMLAnchorElement>('#top-nav-'+group.id+' a')?.focus();
-                    });
-                  }
-                }}>
-                {group.names[locale]}
-                <ChevronDown size={15} aria-hidden className={cn("transition-transform",expanded&&"rotate-180")}/>
-              </button>
+              <div className="inline-flex items-center gap-0.5">
+                <Link href={localizedHref(locale,group.href)}
+                  aria-current={chosen?"page":undefined} className={base}>
+                  {group.names[locale]}
+                </Link>
+                <button type="button" data-nav-trigger={group.id}
+                  aria-label={group.names[locale]+" submenu"} aria-expanded={expanded}
+                  aria-controls={"top-nav-"+group.id}
+                  className="grid min-h-11 min-w-11 place-items-center rounded-lg text-fg hover:bg-panel-2 hover:text-accent"
+                  onClick={()=>setOpenId(id=>id===group.id?null:group.id)}
+                  onKeyDown={e=>{
+                    if(e.key==="ArrowDown"){
+                      e.preventDefault();setOpenId(group.id);
+                      requestAnimationFrame(()=>{
+                        navRef.current?.querySelector<HTMLAnchorElement>('#top-nav-'+group.id+' a')?.focus();
+                      });
+                    }
+                  }}>
+                  <ChevronDown size={15} aria-hidden className={cn("transition-transform",expanded&&"rotate-180")}/>
+                </button>
+              </div>
               {expanded&&<ul id={"top-nav-"+group.id} aria-label={group.names[locale]+" · "+MENU_COPY[locale].sub}
                 className="absolute left-1/2 top-full z-50 mt-0 w-[220px] -translate-x-1/2 space-y-1 rounded-2xl border border-line bg-panel p-2 shadow-xl"
                 data-submenu={group.id}>

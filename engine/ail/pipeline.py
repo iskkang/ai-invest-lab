@@ -17,7 +17,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal
 
 from . import market_calendar as mc
-from . import portfolio, stats
+from . import portfolio, stats, universe
 from .common import D, DataIntegrityError, LabError, canonical, sha256, to_jsonable
 from .config import BENCHMARK_SYMBOL, DEFAULT_UNIVERSE, Settings
 from .db import advisory_lock, audit, jsonb
@@ -135,7 +135,10 @@ def settle_through(conn, exp: dict, source, through: date, now: datetime, settin
     held = [r["symbol"] for r in conn.execute(
         "select distinct h.symbol from holdings h join portfolio_accounts a on a.id=h.account_id"
         " where a.experiment_id=%s", (exp["id"],)).fetchall()]
-    symbols = sorted(set(symbols) | set(held))
+    queued_adds = [row["symbol"] for row in conn.execute(
+        "select symbol from universe_change_requests where experiment_id=%s"
+        " and status='scheduled' and action='add'", (exp["id"],)).fetchall()]
+    symbols = sorted(set(symbols) | set(held) | set(queued_adds))
     sync_sessions(conn, through - timedelta(days=550), through + timedelta(days=10))
     with conn.transaction():
         report = ingest(conn, source, symbols, through, now, settings.history_bars)
@@ -152,6 +155,13 @@ def settle_through(conn, exp: dict, source, through: date, now: datetime, settin
             portfolio.apply_corporate_actions(conn, exp, session, source.name)
             if session == first:
                 portfolio.create_benchmark_orders(conn, exp, session, source.name)
+            elif conn.execute(
+                "select 1 from universe_change_requests where experiment_id=%s"
+                " and status='applied' and applied_round_id in"
+                " (select id from experiment_rounds where experiment_id=%s and session_date=%s)"
+                " limit 1", (exp["id"], exp["id"], session),
+            ).fetchone():
+                portfolio.rebalance_equal_weight(conn, exp, session, source.name)
             res = portfolio.settle_session(conn, exp, session, source.name)
             if res["state"] == "waiting":
                 raise DataIntegrityError(res["reason"])
@@ -245,6 +255,8 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
         raise LabError("decision after market open is not allowed (fill price would be known)")
     if now > cutoff_at:
         raise LabError(f"decision after {settings.decision_latest} ET cutoff is not allowed")
+    changes = universe.pending_for_round(conn, exp["id"], session)
+    candidates = universe.candidate_universe(conn, changes) if changes else None
     with conn.transaction():
         rnd = conn.execute("insert into experiment_rounds(experiment_id, session_date, decision_at, data_as_of, status)"
                            " values (%s,%s,%s,%s,'created') returning *", (exp["id"], session, now, data_as_of)).fetchone()
@@ -258,7 +270,9 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
     if exp["status"] != "running":
         return abort(f"experiment {exp['status']}")
     try:
-        market = build_market_payload(conn, source_name, data_as_of, now)
+        market = build_market_payload(conn, source_name, data_as_of, now,
+                                      universe_rows=candidates) if changes else build_market_payload(
+                                          conn, source_name, data_as_of, now)
     except DataIntegrityError as exc:
         return abort(f"DATA_INTEGRITY: {exc}")
     snap_id, market_hash = store_snapshot(conn, market, data_as_of, now)
@@ -361,6 +375,9 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
         return abort(f"DECISION_CUTOFF_EXCEEDED: completed after {settings.decision_latest} ET; excluded from official performance")
 
     with conn.transaction():
+        # Only publish a universe change alongside an accepted official round.
+        # Aborted rounds leave requests scheduled for the next valid session.
+        universe.apply_for_round(conn, changes, rid, session)
         for p in participants:
             for intent in validated[p["ai_id"]].orders:
                 rejected = intent.status == "REJECTED"

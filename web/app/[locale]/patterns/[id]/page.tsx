@@ -13,7 +13,7 @@ type Props={params:Promise<{locale:string;id:string}>};
 export async function generateMetadata({params}:Props):Promise<Metadata>{
   const {locale,id}=await params;
   if(!isLocale(locale)||!isPatternId(id))return {robots:{index:false}};
-  return dashboardMetadata(locale,"/patterns/"+id,patternDetail(locale,id).name);
+  return dashboardMetadata(locale,"/patterns/"+id,patternDetail(locale,id).name,{description:patternDetail(locale,id).intro});
 }
 export async function generateStaticParams(){
   return LOCALES.flatMap(locale=>

@@ -38,21 +38,16 @@ def set_status(conn, experiment: str, status: str, actor: str, reason: str) -> N
         audit(conn, actor, f"experiment.{status}", "experiments", row["id"], {"reason": reason})
 
 
-def universe_add(conn, symbol, name, sector, actor, reason):
-    with conn.transaction():
-        conn.execute("insert into stock_universe(symbol, name, sector, role, changed_by, change_reason)"
-                     " values (%s,%s,%s,'investable',%s,%s)", (symbol.upper(), name, sector, actor, reason))
-        audit(conn, actor, "universe.add", "stock_universe", symbol.upper(), {"reason": reason})
+def universe_add(conn, symbol, name, sector, actor, reason, experiment_name="season-1", now=None):
+    from .universe import schedule_change
+    return schedule_change(conn, experiment_name, "add", symbol, actor, reason,
+                           name=name, sector=sector, now=now)
 
 
-def universe_remove(conn, symbol, actor, reason):
-    with conn.transaction():
-        n = conn.execute("update stock_universe set removed_at=now(), changed_by=%s, change_reason=%s"
-                         " where symbol=%s and removed_at is null and role='investable'",
-                         (actor, reason, symbol.upper())).rowcount
-        if not n:
-            raise LabError("symbol not active")
-        audit(conn, actor, "universe.remove", "stock_universe", symbol.upper(), {"reason": reason})
+def universe_remove(conn, symbol, actor, reason, experiment_name="season-1", now=None):
+    from .universe import schedule_change
+    return schedule_change(conn, experiment_name, "remove", symbol, actor, reason,
+                           now=now)
 
 
 def add_corporate_action(conn, symbol, kind, ex_date: date, ratio, amount, source, note, actor,

@@ -18,7 +18,7 @@ export function alternateRoutes(suffix: string = "") {
 }
 export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean }): Metadata {
   const site = PUBLIC_COPY[locale];
-  const fullTitle = suffix === "" ? site.title : `${title} | MarketSights`;
+  const fullTitle = suffix === "" ? site.title : `${title} | LogicSight`;
   const description = site.description;
   return {
     metadataBase: new URL(publicOrigin()),
@@ -33,7 +33,7 @@ export function dashboardMetadata(locale: Locale, suffix: string, title: string,
       description,
       url: localizedRoute(locale, suffix),
       type: "website",
-      siteName: "MarketSights",
+      siteName: "LogicSight",
     },
     robots: { index: !opts?.noindex, follow: !opts?.noindex },
   };

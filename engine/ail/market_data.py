@@ -139,10 +139,10 @@ def adjusted_history(conn, symbol: str, source_name: str, through: date, cutoff:
     return out
 
 
-def build_market_payload(conn, source_name: str, data_as_of: date, cutoff: datetime) -> dict:
+def build_market_payload(conn, source_name: str, data_as_of: date, cutoff: datetime, universe_rows=None) -> dict:
     """모든 AI가 공유하는 공통 시장 데이터. 결정적(deterministic)이어야 해시가 재현된다."""
     rows = []
-    for u in active_universe(conn):
+    for u in (universe_rows if universe_rows is not None else active_universe(conn)):
         hist = adjusted_history(conn, u["symbol"], source_name, data_as_of, cutoff)
         if not hist or hist[-1]["date"] != data_as_of:
             raise DataIntegrityError(f"{u['symbol']}: no confirmed bar for {data_as_of}")

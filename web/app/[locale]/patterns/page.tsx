@@ -11,7 +11,7 @@ type Props={params:Promise<{locale:string}>};
 export async function generateMetadata({params}:Props):Promise<Metadata>{
   const {locale}=await params;
   if(!isLocale(locale))return {robots:{index:false}};
-  return dashboardMetadata(locale,"/patterns",patternCopy(locale).headline);
+  return dashboardMetadata(locale,"/patterns",patternCopy(locale).headline,{description:patternCopy(locale).sub});
 }
 export default async function PatternsPage({params}:Props){
   const {locale}=await params;

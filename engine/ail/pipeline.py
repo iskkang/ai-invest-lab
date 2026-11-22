@@ -374,22 +374,27 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
     if completed_at > cutoff_at:
         return abort(f"DECISION_CUTOFF_EXCEEDED: completed after {settings.decision_latest} ET; excluded from official performance")
 
-    with conn.transaction():
-        # Only publish a universe change alongside an accepted official round.
-        # Aborted rounds leave requests scheduled for the next valid session.
-        universe.apply_for_round(conn, changes, rid, session)
-        for p in participants:
-            for intent in validated[p["ai_id"]].orders:
-                rejected = intent.status == "REJECTED"
-                conn.execute(
-                    "insert into orders(round_id, account_id, decision_id, session_date, symbol, side, quantity,"
-                    " status, reject_reason, resolved_at) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                    (rid, p["account_id"], decision_ids[p["ai_id"]], session, intent.symbol, intent.side,
-                     intent.quantity, intent.status, intent.reject_reason, now if rejected else None))
-        conn.execute("update experiment_rounds set status='decided' where id=%s", (rid,))
-        if not conn.execute("select 1 from orders where round_id=%s and status='PENDING'", (rid,)).fetchone():
-            # 모두 HOLD 이거나 사전 거부만 있으면 체결할 것이 없다
-            conn.execute("update experiment_rounds set status='settled', settled_at=now() where id=%s", (rid,))
+    try:
+        with conn.transaction():
+            # Only publish a universe change alongside an accepted official round.
+            # Aborted rounds leave requests scheduled for the next valid session.
+            universe.apply_for_round(conn, changes, rid, session)
+            for p in participants:
+                for intent in validated[p["ai_id"]].orders:
+                    rejected = intent.status == "REJECTED"
+                    conn.execute(
+                        "insert into orders(round_id, account_id, decision_id, session_date, symbol, side, quantity,"
+                        " status, reject_reason, resolved_at) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
+                        (rid, p["account_id"], decision_ids[p["ai_id"]], session, intent.symbol, intent.side,
+                         intent.quantity, intent.status, intent.reject_reason, now if rejected else None))
+            conn.execute("update experiment_rounds set status='decided' where id=%s", (rid,))
+            if not conn.execute("select 1 from orders where round_id=%s and status='PENDING'", (rid,)).fetchone():
+                # 모두 HOLD 이거나 사전 거부만 있으면 체결할 것이 없다
+                conn.execute("update experiment_rounds set status='settled', settled_at=now() where id=%s", (rid,))
+    except Exception as exc:
+        # A failed queue application or order commit must not strand a deciding round.
+        # The transaction rolls back both membership edits and the benchmark trigger.
+        return abort(f"ROUND_COMMIT_FAILED: {type(exc).__name__}")
     return {"round_id": rid, "status": "decided", "snapshot_hash": market_hash,
             "orders": {k: len(v.orders) for k, v in validated.items()}}
 

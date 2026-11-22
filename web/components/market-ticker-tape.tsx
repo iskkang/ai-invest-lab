@@ -48,7 +48,7 @@ export function MarketTickerTape(){
   let pauseUntil=performance.now()+1600;
   let manualUntil=0;
   const speed=19; // CSS pixels per second, slow enough to read prices.
-  const scale=()=>window.matchMedia("(max-width: 767px)").matches?.75:1;
+  const scale=()=>window.matchMedia("(max-width: 767px)").matches ? 0.75 : 1;
   const tick=(now:number)=>{
    const step=last?Math.min((now-last)/1000,.1):0;
    last=now;

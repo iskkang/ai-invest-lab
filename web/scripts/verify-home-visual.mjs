@@ -153,22 +153,29 @@ try{
       const outputDir=new URL("../visual-artifacts/",import.meta.url).pathname;
       fs.mkdirSync(outputDir,{recursive:true});
       const band=page.locator('[data-market-ticker]');
-      const iframe=band.locator("iframe").first();
-      try{await iframe.waitFor({timeout:6500});}catch{}
-      await page.waitForTimeout(1200);
+      const ticker=band.locator("tv-tickers");
+      assert.equal(await ticker.count(),1,"static TradingView tickers must render");
+      assert.equal(await ticker.getAttribute("symbols"),
+        "AMEX:SPY,NASDAQ:QQQ,AMEX:DIA,AMEX:IWM,CAPITALCOM:VIX",
+        "first symbol must be SPY, with the five ETFs in fixed order");
+      assert.equal(await band.locator("iframe").count(),0,"legacy moving ticker must not mount");
+      const tickerScroll=band.locator("[data-ticker-start='left']");
+      assert.equal(await tickerScroll.evaluate(el=>el.scrollLeft),0,
+        "first stock must begin at the leftmost scroll position");
+      const position=await tickerScroll.boundingBox();
+      const bounds=await band.boundingBox();
+      assert.ok(Math.abs((position?.x??999)-(bounds?.x??0))<1,
+        "ticker must align with the viewport left edge");
+      await page.waitForTimeout(1600);
       const bbox=await band.boundingBox();
       const background=await band.evaluate(el=>getComputedStyle(el).backgroundColor);
-      const source=await iframe.count()?await iframe.getAttribute("src"):null;
-      let visibleText="";
-      try{
-        const handle=await iframe.elementHandle();
-        const frame=await handle?.contentFrame();
-        visibleText=(await frame?.locator("body").innerText({timeout:1500}))??"";
-      }catch{}
       await page.screenshot({path:outputDir+"home-dark-375.png",fullPage:false});
       console.log("TICKER 375px",JSON.stringify({
         width:bbox?.width,height:bbox?.height,background,
-        iframeSrc:source,bodyText:visibleText.slice(0,450)
+        mode:"static",scrollLeft:await tickerScroll.evaluate(el=>el.scrollLeft),
+        symbols:await ticker.getAttribute("symbols"),
+        defined:await ticker.evaluate(el=>Boolean(customElements.get(el.localName))),
+        visibleText:(await ticker.innerText()).slice(0,450)
       }));
       await page.goto(base+"/en/patterns",{waitUntil:"domcontentloaded"});
       try{await page.locator('[data-market-ticker] iframe').waitFor({timeout:6500});}catch{}

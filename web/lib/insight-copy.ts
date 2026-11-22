@@ -1,6 +1,6 @@
 import type { Locale } from "./public-content";
 
-/** All MarketSights research headings are translated independently of AI text. */
+/** All LogicSight research headings are translated independently of AI text. */
 const TEXT = {
   ko: {
     emptyTitle:"첫 주간 리포트를 준비하고 있습니다", launchStatus:"실험 시작 예정", pendingStatus:"검증된 판단 기록 대기",

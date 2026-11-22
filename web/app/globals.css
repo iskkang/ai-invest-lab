@@ -287,5 +287,6 @@ body{
   max-width:none!important;border:0;
 }
 @media(max-width:767px){
- .ticker-static-inner{width:1200px;height:84px;transform:scale(.75);transform-origin:left top}
+ .ticker-static-inner{width:1200px!important;min-width:1200px!important;height:84px;transform:scale(.75);transform-origin:left top}
+ .ticker-static-inner iframe{width:1200px!important;min-width:1200px!important}
 }

@@ -62,7 +62,7 @@ export function proxy(req: NextRequest) {
     status: 401,
     headers: {
       ...privateHeaders,
-      "WWW-Authenticate": 'Basic realm="MarketSights private API", charset="UTF-8"',
+      "WWW-Authenticate": 'Basic realm="LogicSight private API", charset="UTF-8"',
     },
   });
 }

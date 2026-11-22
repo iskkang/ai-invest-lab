@@ -44,7 +44,7 @@ const runCachedResearch = unstable_cache(async (): Promise<HistoricalStudy> => {
   const priceMap=makeAdjustedPriceMap(rows,(actions??[]) as SplitRow[],cutoff);
   // Only derived, portfolio-level returns leave the server.
   return runHistoricalStudy(priceMap);
-},["marketsights-historical-study-nh-plug-v1"],{revalidate:14400});
+},["logicsight-historical-study-nh-plug-v1"],{revalidate:14400});
 
 export async function historicalResearch():Promise<HistoricalStudy>{
   return runCachedResearch();

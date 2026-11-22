@@ -16,10 +16,10 @@ export function alternateRoutes(suffix: string = "") {
     "x-default": localizedRoute("en", suffix),
   };
 }
-export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean }): Metadata {
+export function dashboardMetadata(locale: Locale, suffix: string, title: string, opts?: { noindex?: boolean; description?: string }): Metadata {
   const site = PUBLIC_COPY[locale];
   const fullTitle = suffix === "" ? site.title : `${title} | LogicSight`;
-  const description = site.description;
+  const description = opts?.description ?? site.description;
   return {
     metadataBase: new URL(publicOrigin()),
     title: { absolute: fullTitle },

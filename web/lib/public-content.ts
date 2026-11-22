@@ -85,7 +85,7 @@ export const PUBLIC_COPY: Record<Locale, Copy> = {
     currentBody:"The private research dashboard may show a pre-first-session state until authentic decisions, hypothetical fills and valuations have been recorded. No demo performance is presented as real model results.",
     why:"What makes this comparison useful?",
     whyBody:"Instead of cherry-picking one AI answer, the experiment holds input data, starting capital, market timing and risk limits constant. Each participant keeps its own transaction history, allowing later comparison with SPY, equal-weight and cash benchmarks.",
-    footnote:"Published educational descriptions do not include licensed raw licensed market-data provider stock-price feeds. Live dashboards remain access-controlled pending data-redistribution rights and privacy/security review.",
+    footnote:"Published educational descriptions do not include raw licensed market-data-provider stock-price feeds. Live dashboards remain access-controlled pending data-redistribution rights and privacy/security review.",
     aboutMethod:"A reproducible comparison needs fixed rules, timestamped information and an audit trail. The study separates decisions from later hypothetical fills and valuations.",
     method:[
       {heading:"1. Comparable information",body:"For each eligible NYSE decision session, participants receive the same dated market snapshot containing only prices and computed technical indicators known by the cutoff. Each AI sees only its own prior holdings and transactions; it cannot inspect competitors."},

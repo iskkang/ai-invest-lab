@@ -82,7 +82,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     all("portfolio_accounts", "*", (q) => q.eq("experiment_id", exp.id)),
   ]);
   const ids = accounts.map((a: Raw) => a.id);
-  const [ps, bs, stats, trades, orders, rounds, decisions, universe] = await Promise.all([
+  const [ps, bs, stats, trades, orders, rounds, decisions, universe, universeChanges] = await Promise.all([
     all("portfolio_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("benchmark_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("performance_stats", "*", (q) => q.in("account_id", ids).order("as_of", { ascending: false })),
@@ -91,6 +91,8 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     all("experiment_rounds", "*", (q) => q.eq("experiment_id", exp.id).order("session_date", { ascending: false })),
     all("ai_decisions", "id,round_id,ai_model_id,requested_model,status,error,parsed,market_hash,completed_at"),
     all("stock_universe", "symbol,name,sector,role", (q) => q.is("removed_at", null)),
+    all("universe_change_requests", "id,action,symbol,reason,scheduled_at,effective_session,status,applied_at,applied_round_id",
+        (q) => q.eq("experiment_id", exp.id).order("scheduled_at", { ascending: false })),
   ]);
   const orderById = new Map(orders.map((o: Raw) => [o.id, o]));
   const roundById = new Map(rounds.map((r: Raw) => [r.id, r]));
@@ -149,6 +151,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
       data_as_of: (roundById.get(d.round_id) as Raw)?.data_as_of,
     })),
     universe,
+    universe_changes: universeChanges,
     prices: priceMap,
   };
 }
@@ -204,6 +207,12 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
       sessionDate: d.session_date, dataAsOf: d.data_as_of,
     })),
     universe: raw.universe ?? [],
+    universeChanges: (raw.universe_changes ?? []).map((change: Raw) => ({
+      id: change.id, action: change.action, symbol: change.symbol, reason: change.reason,
+      scheduledAt: change.scheduled_at, effectiveSession: change.effective_session,
+      status: change.status, appliedAt: change.applied_at ?? null,
+      appliedRoundId: change.applied_round_id ?? null,
+    })),
     prices: Object.fromEntries(Object.entries(raw.prices ?? {}).map(([k, rows]) => [
       k, (rows as unknown[][]).map((r) => [String(r[0]), n(r[1]), n(r[2]), n(r[3]), n(r[4]), n(r[5])]),
     ])) as Dataset["prices"],

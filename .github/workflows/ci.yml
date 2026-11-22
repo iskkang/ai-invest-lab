@@ -39,3 +39,11 @@ jobs:
           npm install --no-save --package-lock=false playwright-core@1.56.1
           node scripts/verify-home-visual.mjs
         env: { SITE_ACCESS: private, SITE_PASSWORD: ci, AIL_UI_TEST_FIXTURE: "on" }
+      - name: Save 375px dark UI screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: logicsight-dark-mobile-375
+          path: web/visual-artifacts/*.png
+          if-no-files-found: ignore
+          retention-days: 7

@@ -1,4 +1,5 @@
 import { sectionLabel } from "@/lib/section-labels";
+import { MARKET_DATA_ATTRIBUTION } from "@/lib/market-data-disclosure";
 import Link from "next/link";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, BookOpen, ChartNoAxesCombined,
@@ -16,6 +17,16 @@ function number(n:number,locale:Locale){
   return n.toLocaleString(locale==="zh"?"zh-CN":locale==="ja"?"ja-JP":locale==="ko"?"ko-KR":"en-US");
 }
 function signed(n:number){return (n>0?"+":"")+n.toFixed(2)+"%";}
+function hitRateText(rate:number|null,locale:Locale){
+ return rate===null
+  ? (locale==="en"?"Not enough data (n<20)":patternCopy(locale).notQualified)
+  : rate.toFixed(1)+"%"+(locale==="en"?" hit rate":"");
+}
+function maturedText(row:HorizonStudy,locale:Locale){
+ return locale==="en"
+  ? `${row.up} of ${row.observations} matured`
+  : `${patternCopy(locale).count} ${number(row.observations,locale)} / ${patternCopy(locale).hits} ${number(row.up,locale)}`;
+}
 function Head({locale,detail}:{locale:Locale;detail?:PatternId}){
   const c=patternCopy(locale);
   const specifics=detail?patternDetail(locale,detail):null;
@@ -28,6 +39,7 @@ function Head({locale,detail}:{locale:Locale;detail?:PatternId}){
     <div className="mt-5 inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/10 px-3 py-2 text-xs text-[#d9e7fb]">
       <ShieldAlert size={16} className="shrink-0 text-[#cbfa81]" aria-hidden/>{c.source}
     </div>
+    <p className="mt-2 text-xs text-[#c5d3ef]">{MARKET_DATA_ATTRIBUTION}</p>
   </header>;
 }
 function HorizonBox({row,locale}:{row:HorizonStudy;locale:Locale}){
@@ -38,9 +50,9 @@ function HorizonBox({row,locale}:{row:HorizonStudy;locale:Locale}){
       <h3 className="text-xs font-extrabold">{label}</h3>
       <span className="text-[11px] text-muted">{c.count} {number(row.observations,locale)}</span>
     </div>
-    <div className="mt-3 flex items-baseline gap-2">
-      <span className="text-2xl font-extrabold tabular">{row.hitRate===null?"—":signed(row.hitRate)}</span>
-      <span className="text-[11px] text-muted">{row.hitRate===null?c.notQualified:c.hits}</span>
+    <div className="mt-3">
+      <p className="text-2xl font-extrabold tabular">{hitRateText(row.hitRate,locale)}</p>
+      {row.hitRate!==null&&<p className="mt-1 text-[11px] text-muted">{maturedText(row,locale)}</p>}
     </div>
     {row.hitRate!==null&&<div className="mt-3 h-1.5 overflow-hidden rounded-full bg-line"
       aria-hidden><div className="h-full rounded-full bg-accent" style={{width:Math.min(100,Math.max(0,row.hitRate))+"%"}}/></div>}
@@ -94,10 +106,10 @@ function SummaryCard({locale,pattern}:{locale:Locale;pattern:PatternSummary}){
         {pattern.horizons.map(row=><div key={row.horizon} className="rounded-xl border border-line px-3 py-3">
           <p className="text-[11px] text-muted">{row.horizon===5?c.window5:c.window20}</p>
           <p className="mt-1 text-xl font-extrabold tabular">
-            {row.hitRate===null?"—":signed(row.hitRate)}
+            {hitRateText(row.hitRate,locale)}
           </p>
           <p className="mt-1 text-[10px] text-muted">
-            {c.count} {row.observations} / {row.hitRate===null?c.notQualified:c.hits}
+            {row.hitRate===null?"":maturedText(row,locale)}
           </p>
         </div>)}
       </div>

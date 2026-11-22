@@ -174,7 +174,10 @@ try{
       console.log("TICKER 375px",JSON.stringify({
         width:bounds?.width,height:bounds?.height,background,
         mode:"static-iframe",scrollLeft:await scroll.evaluate(el=>el.scrollLeft),
-        iframeSrc:src
+        iframeSrc:src,
+        iframeBox:await iframe.boundingBox(),
+        innerBox:await band.locator(".ticker-static-inner").boundingBox(),
+        scrollMetrics:await scroll.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}))
       }));
       await page.goto(base+"/en/patterns",{waitUntil:"domcontentloaded"});
       try{await page.locator('[data-market-ticker] iframe').waitFor({timeout:6500});}catch{}

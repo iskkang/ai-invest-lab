@@ -162,13 +162,17 @@ try{
       assert.ok(decoded.indexOf("AMEX:SPY")<decoded.indexOf("NASDAQ:QQQ"),
         "SPY must precede QQQ");
       const scroll=band.locator("[data-ticker-start='left']");
+      assert.equal(await scroll.getAttribute("data-ticker-auto-scroll"),"true",
+        "ticker must run its automatic movement controller");
       assert.equal(await scroll.evaluate(el=>el.scrollLeft),0,
-        "ticker must start from the left edge");
+        "ticker must initially start from the left edge");
       const position=await scroll.boundingBox();
       const bounds=await band.boundingBox();
       assert.ok(Math.abs((position?.x??999)-(bounds?.x??0))<1,
         "ticker must align with left viewport edge");
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(3200);
+      const moved=await scroll.evaluate(el=>el.scrollLeft);
+      assert.ok(moved>4,"ticker must automatically move from SPY to later symbols");
       const innerFrameBox=await iframe.boundingBox();
       const scrollSize=await scroll.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}));
       assert.ok(innerFrameBox&&innerFrameBox.width>=375,"mobile ticker must cover entire viewport width");

@@ -29,7 +29,7 @@ export const loadPrivateAdjustedBars = unstable_cache(async (symbols: string[], 
     .lte("ex_date",last).lte("created_at",new Date().toISOString());
   if(actionError)throw new Error("Unable to validate historical stock splits");
   return makeAdjustedPriceMap(rows,(actions??[]) as SplitRow[],last);
-},["marketsights-private-accuracy-prices-v1"],{revalidate:3600});
+},["logicsight-private-accuracy-prices-v1"],{revalidate:3600});
 
 /** No original price, per-stock quote or secret is returned to the browser. */
 export async function getAggregateAccuracy(d: Dataset) {

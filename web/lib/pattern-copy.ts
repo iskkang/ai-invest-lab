@@ -33,11 +33,11 @@ const TEXT={
  en:{
   title:"Pattern Lab",headline:"Do famous trading patterns actually hold up?",
   sub:"Eight fixed rules—including the inverted hammer, moving averages, Fibonacci, RSI and MACD—tested against real NH PLUG trading-session records. Separate from the live AI experiment.",
-  source:"Verified historical observations",snapshot:"Data through",
+  source:"Historical observations (not controlled)",snapshot:"Data through",
   universe:"Stocks analyzed",sessions:"Input sessions",analysis:"Evaluation sessions",excluded:"Excluded stocks",
   recent:"Events in last 5 sessions",occurrences:"Historical occurrences",last:"Last occurrence",
   window5:"After 5 sessions",window20:"After 20 sessions",count:"Matured",pending:"Pending",hits:"Direction aligned",
-  qualified:"Observed results",notQualified:"Insufficient sample",noSamples:"No matured samples yet.",
+  qualified:"Observed results",notQualified:"Not enough data (n<20)",noSamples:"No matured samples yet.",
   avg:"Mean directional price change",relative:"Vs same-direction SPY",range:"Observed period",
   explore:"Rulebook and observations",open:"Explore pattern",back:"All patterns",
   positive:"Upward hypothesis",negative:"Downward hypothesis",none:"No recorded occurrences yet.",

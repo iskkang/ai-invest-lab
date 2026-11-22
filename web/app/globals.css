@@ -272,17 +272,20 @@ body{
   .model-disclosure-table td:nth-child(5)::before { content: "Active model"; }
 }
 
-/* Fixed-order TradingView Tickers. No transform, marquee or centered offset.
-   The first SPY card begins at x=0; overflow is horizontal and user-driven. */
+/* Static TradingView Tickers: first item anchored to left, never auto-scrolls.
+   On phones the 1200px iframe is scaled to 900px with 375px visible. */
 .ticker-outer{background:#121d32}
-.ticker-static-list{
-  display:block;width:100%;height:100%;min-width:0;
-  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
-  scrollbar-width:none;background:#121d32;
-  -webkit-overflow-scrolling:touch;
+.ticker-static-scroll{
+  position:relative;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;
+  overscroll-behavior-x:contain;scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;background:#121d32;
 }
-.ticker-static-list::-webkit-scrollbar{display:none}
-.ticker-static-list tv-tickers{
-  display:block;min-width:100%;width:max-content;max-width:none;
-  height:100%;margin:0;padding:0;
+.ticker-static-scroll::-webkit-scrollbar{display:none}
+.ticker-static-inner{width:100%;height:84px;background:#121d32}
+.ticker-static-inner iframe{
+  display:block;width:100%!important;height:84px!important;
+  max-width:none!important;border:0;
+}
+@media(max-width:767px){
+ .ticker-static-inner{width:1200px;height:84px;transform:scale(.75);transform-origin:left top}
 }

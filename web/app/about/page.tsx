@@ -1,4 +1,5 @@
 import { Section } from "@/components/blocks";
+import { MARKET_DATA_ATTRIBUTION } from "@/lib/market-data-disclosure";
 import { PageTitle } from "@/components/shell";
 import { headers } from "next/headers";
 import { t } from "@/lib/i18n";
@@ -15,7 +16,7 @@ export default async function About() {
   return (
     <div className="space-y-4">
       <PageTitle title={t(locale,"AI는 실제로 주식투자를 잘할까?")}
-        sub={t(locale,"MarketSights 실험 규칙과 한계")}/>
+        sub={t(locale,"LogicSight 실험 규칙과 한계")}/>
       <Section title={t(locale,"실험 방법")}>
         <p className="mb-4 text-sm leading-7 text-muted">{c.aboutMethod}</p>
         <ol className="space-y-4">
@@ -36,7 +37,8 @@ export default async function About() {
         <p className="mt-2 text-sm leading-7 text-muted">{c.currentBody}</p>
       </Section>
       <Section title={t(locale,"데이터 출처")}>
-        <p className="text-sm leading-7 text-muted">{c.footnote}</p>
+        <p className="text-sm leading-7 text-muted">{MARKET_DATA_ATTRIBUTION}</p>
+        <p className="mt-2 text-sm leading-7 text-muted">{c.footnote}</p>
       </Section>
     </div>
   );

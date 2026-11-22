@@ -5,7 +5,7 @@ import { LOCALES, PUBLIC_COPY, PUBLIC_SECTIONS, localeUrl, publicOrigin } from "
 export async function GET() {
   const site = publicOrigin();
   const lines = [
-    "# MarketSights",
+    "# LogicSight",
     "",
     "> Educational independent AI US-stock paper-trading research.",
     "",

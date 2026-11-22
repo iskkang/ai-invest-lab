@@ -272,12 +272,17 @@ body{
   .model-disclosure-table td:nth-child(5)::before { content: "Active model"; }
 }
 
-/* TradingView creates an 84px iframe. Scale its entire surface (including % changes),
-   reserving exactly 63px vertically at phone widths, with no right-edge gap. */
+/* Fixed-order TradingView Tickers. No transform, marquee or centered offset.
+   The first SPY card begins at x=0; overflow is horizontal and user-driven. */
 .ticker-outer{background:#121d32}
-.ticker-inner{width:100%;height:84px;min-width:0;background:#121d32}
-.ticker-inner iframe{display:block;width:100%!important;max-width:none!important;height:84px!important;border:0}
-@media(max-width:767px){
-  .ticker-inner{width:133.333333%;height:84px;transform:scale(.75);transform-origin:left top}
+.ticker-static-list{
+  display:block;width:100%;height:100%;min-width:0;
+  overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;
+  scrollbar-width:none;background:#121d32;
+  -webkit-overflow-scrolling:touch;
 }
-
+.ticker-static-list::-webkit-scrollbar{display:none}
+.ticker-static-list tv-tickers{
+  display:block;min-width:100%;width:max-content;max-width:none;
+  height:100%;margin:0;padding:0;
+}

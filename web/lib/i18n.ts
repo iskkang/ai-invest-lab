@@ -114,7 +114,7 @@ const rows: [string,string,string,string][] = [
 ["수익률: 벤치마크 대비","Returns vs. benchmark","收益率与基准比较","リターン対ベンチマーク"],
 ["SPY 단순 보유 대비","vs SPY buy-and-hold","与 SPY 买入持有相比","SPY単純保有比"],
 ["AI는 실제로 주식투자를 잘할까?","Can AI make better stock decisions?","AI 能做出更好的股票投资判断吗？","AIは株式投資をうまく判断できるのか？"],
-["MarketSights 실험 규칙과 한계","Rules and limitations of MarketSights","MarketSights 实验规则与局限","MarketSightsの実験規則と限界"],
+["LogicSight 실험 규칙과 한계","Rules and limitations of LogicSight","LogicSight 实验规则与局限","LogicSightの実験規則と限界"],
 ["실험 방식","Experiment methodology","实验方法","実験方法"],
 ["비교 기준","Benchmarks","比较基准","比較基準"],
 ["한계와 주의","Limitations and caveats","局限与注意事项","限界と注意点"],

@@ -27,7 +27,9 @@ export function MarketTickerTape(){
   script.async=true;
   script.textContent=JSON.stringify({
    symbols,showSymbolLogo:false,colorTheme:"dark",
-   isTransparent:false,width:"100%",height:84,locale:"en"
+   isTransparent:false,displayMode:"compact",
+   width:window.matchMedia("(max-width: 767px)").matches?1200:"100%",
+   height:84,locale:"en"
   });
   node.appendChild(script);
   return()=>node.replaceChildren();

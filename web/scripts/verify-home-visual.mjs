@@ -67,7 +67,12 @@ try{
       assert.equal(await sheet.count(),0,"Escape should close More sheet");
     }else{
       assert.equal(await bottomNav.isVisible(),false,"mobile tabs must be hidden on desktop");
-      assert.equal(await page.locator('[data-header-nav="true"]').count(),1,"desktop header navigation missing");
+      const header=page.locator('[data-header-nav="true"]');
+      assert.equal(await header.count(),1,"desktop header navigation missing");
+      for(const [id,href] of [["compare","/en/consensus"],["research","/en/patterns"],["journal","/en/journal"]]){
+        assert.equal(await header.locator('[data-top-nav-item="'+id+'"] > div > a').getAttribute("href"),href,
+          id+" heading must be a real destination link");
+      }
     }
     const prelaunch=page.locator('[data-prelaunch-fixture="true"] [data-home-phase="pre-first-published-round"]');
     assert.equal(await prelaunch.count(),1,"prelaunch banner should exist in real components");
@@ -78,6 +83,8 @@ try{
     assert.equal((prelaunchText.match(/2026-11-23/g)||[]).length,1,"start date must not be repeated");
     assert.ok(prelaunchText.includes("market data for 1 US stocks"),"actual universe size from dataset, not an invented number");
     assert.ok(prelaunchText.includes("$100,000"),"experiment capital must come from real configuration");
+    assert.ok(prelaunchText.includes("Experiment starts"),"new prelaunch date heading");
+    assert.ok(prelaunchText.includes("Four AI models"),"spelled-out participant count on home");
     const tierDisclosure=prelaunch.locator('[data-model-disclosure="true"]');
     assert.equal(await tierDisclosure.count(),1,"home methodology must disclose unequal models");
     assert.equal(await tierDisclosure.locator("tbody tr").count(),4,"four pinned models required");

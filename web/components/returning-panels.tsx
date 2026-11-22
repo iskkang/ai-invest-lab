@@ -26,6 +26,37 @@ function Direction({value,d}:{value:"BUY"|"SELL"|"HOLD";d:Dataset}){
   </Badge>;
 }
 
+
+/** Universe reservations are visible immediately, even before any AI round exists. */
+export function UniverseChangeJournal({d}:{d:Dataset}){
+  const events=d.universeChanges??[];
+  return <section className="rounded-2xl border border-line bg-panel p-4 sm:p-6" aria-label="Stock universe change announcements">
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <h2 className="text-lg font-bold">Stock universe changes</h2>
+      <span className="text-xs text-muted">Published before the effective round</span>
+    </div>
+    {!events.length?<p className="mt-3 rounded-xl bg-panel-2 p-3 text-sm text-muted">No scheduled changes.</p>
+    :<ol className="mt-4 space-y-3">{events.map(event=><li key={event.id} className="rounded-xl border border-line bg-panel-2 p-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className={`rounded-lg px-2 py-1 text-xs font-bold ${event.action==="add"?"bg-up/10 text-up":"bg-down/10 text-down"}`}>
+          {event.action==="add"?"ADD":"REMOVE"}
+        </span>
+        <strong className="text-sm">{event.symbol}</strong>
+        <span className="ml-auto rounded-lg border border-line px-2 py-1 text-[11px] text-muted">
+          {event.status==="applied"?"Applied":"Scheduled"}
+        </span>
+      </div>
+      <p className="mt-2 break-words text-sm text-fg">{event.reason}</p>
+      <div className="mt-3 grid gap-1 text-xs leading-5 text-muted sm:grid-cols-2">
+        <span>Announced: <time dateTime={event.scheduledAt}>{event.scheduledAt.replace("T"," ").slice(0,16)} UTC</time></span>
+        <span>Effective round: <time dateTime={event.effectiveSession}>{event.effectiveSession}</time></span>
+        {event.appliedAt&&<span>Applied: <time dateTime={event.appliedAt}>{event.appliedAt.replace("T"," ").slice(0,16)} UTC</time></span>}
+        {event.appliedRoundId!==null&&<span>Round ID: {event.appliedRoundId}</span>}
+      </div>
+    </li>)}</ol>}
+  </section>;
+}
+
 /** First screen: recorded publication and valuation freshness, not 'live' marketing copy. */
 export function ReturnVisitPulse({d}:{d:Dataset}){
   const p=publicationPulse(d),c=returningCopy(d.locale);

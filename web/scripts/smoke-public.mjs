@@ -99,7 +99,7 @@ try {
   assert.equal(aiUnavailable.status,500,"Unavailable live AI detail must fail closed");
   assert.ok(!(await aiUnavailable.text()).includes("DEMO —"));
   await visible("/robots.txt","/sitemap.xml");
-  await visible("/llms.txt","# MarketSights");
+  await visible("/llms.txt","# LogicSight");
   await visible("/ads.txt","No advertising sellers");
   const health=await req("/status");
   assert.equal(health.status,200);

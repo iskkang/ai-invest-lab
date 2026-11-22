@@ -31,7 +31,7 @@ export const NAV_GROUPS = [
     ],
   },
   {
-    id:"journal",href:"/daily",
+    id:"journal",href:"/journal",
     names:{ko:"일지",en:"Journal",zh:"实验日志",ja:"実験日誌"},
     children:[
       {href:"/daily",names:{ko:"일일 브리핑",en:"Daily brief",zh:"每日简报",ja:"デイリーブリーフ"}},

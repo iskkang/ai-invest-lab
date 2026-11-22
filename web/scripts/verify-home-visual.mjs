@@ -169,6 +169,10 @@ try{
       assert.ok(Math.abs((position?.x??999)-(bounds?.x??0))<1,
         "ticker must align with left viewport edge");
       await page.waitForTimeout(1000);
+      const innerFrameBox=await iframe.boundingBox();
+      const scrollSize=await scroll.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}));
+      assert.ok(innerFrameBox&&innerFrameBox.width>=375,"mobile ticker must cover entire viewport width");
+      assert.ok(scrollSize.scrollWidth>scrollSize.clientWidth,"remaining ETF quotes must be reachable by swipe");
       const background=await band.evaluate(el=>getComputedStyle(el).backgroundColor);
       await page.screenshot({path:outputDir+"home-dark-375.png",fullPage:false});
       console.log("TICKER 375px",JSON.stringify({

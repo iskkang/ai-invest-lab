@@ -146,7 +146,7 @@ export function MobileMenu({locale}:{locale:Locale}) {
         <button type="button" className="absolute inset-0 w-full bg-[#081328]/65"
           tabIndex={-1} aria-label={copy.close} onClick={dismiss}/>
         <section ref={sheetRef} role="dialog" aria-modal="true" aria-label={copy.navigation}
-          id="marketsights-mobile-navigation"
+          id="logicsight-mobile-navigation"
           className="absolute inset-y-0 right-0 flex w-[min(89vw,370px)] flex-col overflow-hidden border-l border-line bg-panel shadow-2xl">
           <div className="flex shrink-0 items-center justify-between border-b border-line px-4 py-4">
             <h2 className="text-lg font-extrabold">{copy.navigation}</h2>

@@ -64,7 +64,7 @@ TRADING RULES
 - Orders execute at the NEXT regular-session OPEN (session_date). That price is unknown to you and may gap.
 - Long-only cash account: no short selling, no leverage, no margin. Whole shares only.
 - After your orders, no single stock may exceed max_position_weight of total portfolio value. Keep enough cash for fees and slippage.
-- Only symbols in market.investable may be traded. Each symbol at most once.
+- BUY only symbols in market.investable. Previously held removed symbols may be SOLD or HELD, but never bought again. Each symbol at most once.
 - Doing nothing is valid. You are never required to trade.
 
 OUTPUT
@@ -142,11 +142,17 @@ def validate(text: str, ctx: dict) -> ValidatedDecision:
     if data["data_as_of"] != ctx["data_as_of"]:
         raise InvalidDecision("data_as_of mismatch (answer is not based on the provided snapshot)")
     prices: dict[str, Decimal] = ctx["investable"]
+    held_marks = ctx.get("marks", {})
+    existing_holdings = ctx["holdings"]
     seen: set[str] = set()
     for a in data["actions"]:
         sym = a["symbol"]
         if sym not in prices:
-            raise InvalidDecision(f"unknown or non-investable symbol: {sym}")
+            # A removed security may still be held; preserve voluntary liquidation.
+            if not (a["action"] in ("SELL", "HOLD")
+                    and int(existing_holdings.get(sym, 0)) > 0
+                    and sym in held_marks):
+                raise InvalidDecision(f"unknown or non-investable symbol: {sym}")
         if sym in seen:
             raise InvalidDecision(f"duplicate symbol: {sym}")
         seen.add(sym)
@@ -164,7 +170,7 @@ def validate(text: str, ctx: dict) -> ValidatedDecision:
     result = ValidatedDecision(parsed=data)
     for a in trades:
         sym, qty, side = a["symbol"], a["quantity"], a["action"]
-        px = slipped_price(prices[sym], side, ctx["slippage_bps"])
+        px = slipped_price(prices.get(sym, held_marks.get(sym)), side, ctx["slippage_bps"])
         gross = px * qty
         fee = fee_amount(gross, ctx["fee_bps"])
         intent = OrderIntent(sym, side, qty)

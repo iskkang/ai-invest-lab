@@ -1,3 +1,4 @@
+import {ClosePreview} from "@/components/market-close";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Dashboard from "@/components/dashboard-view";
@@ -31,5 +32,5 @@ export default async function LocalizedDashboard({
 }) {
   const {locale} = await params;
   if(!isLocale(locale)) notFound();
-  return <Dashboard searchParams={searchParams}/>;
+  return <><Dashboard searchParams={searchParams}/><ClosePreview/></>;
 }

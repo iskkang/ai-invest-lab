@@ -1,1 +1,30 @@
-[]
+[
+  {
+    "date": "2026-11-23",
+    "publishedAt": "2026-11-23T22:16:05.256Z",
+    "title": "Nvidia powers a 6.5% Nasdaq rebound as small caps join the rally",
+    "summary": "The S&P 500 broke a seven-session losing streak, and Nvidia alone accounted for about a third of its gain. Smaller companies also rallied, giving Tuesday’s session a useful test of how far the recovery can spread.",
+    "close": "The S&P 500 finished Monday at 7,237.17, up 4.73%, and the Nasdaq Composite gained 6.51% to 24,089.56. The Russell 2000 added 3.40% to 2,669.66. The Cboe Volatility Index ended at 26.62 in the daily index series, down 9.27 points from Friday’s 35.89. Options traders were pricing in smaller swings over the coming month even as stocks posted an unusually large one-day move.",
+    "drivers": "Stock futures were already rising before Nvidia announced that its board had reinstated Jensen Huang as chief executive. The news gave the rebound a clear leader. Nvidia rose 31.48% and contributed an estimated 111 points to the S&P 500’s 327-point advance. Micron gained 19.04%, while Exxon Mobil and Chevron both fell. The small-cap advance shows buying reached beyond chipmakers, even though the largest technology companies supplied much of the index gain.",
+    "review": "",
+    "outlook": "For Tuesday, November 24, the base case is that the market holds most of Monday’s rebound. A Russell 2000 close above 2,669.66 alongside a VIX close below 26.62 would confirm that smaller companies are still drawing buyers as expected volatility eases. An S&P 500 close below 7,073.78 would erase more than half of Monday’s point gain and invalidate that outlook.",
+    "sources": [
+      {
+        "name": "Associated Press · closing indexes",
+        "url": "https://apnews.com/article/fcdf1bad36b4f81c90cbb0f33a2c5704"
+      },
+      {
+        "name": "Nvidia · board announcement",
+        "url": "https://nvidianews.nvidia.com/news/nvidia-board-reinstates-jensen-huang-as-president-ceo-and-board-director"
+      },
+      {
+        "name": "Portfolio Terminal · closing data and index contributions",
+        "url": "https://portfolio-terminal.com/markets/stock-market-close/november-23-2026"
+      },
+      {
+        "name": "Cboe · VIX index definition",
+        "url": "https://www.cboe.com/tradable-products/vix/"
+      }
+    ]
+  }
+]

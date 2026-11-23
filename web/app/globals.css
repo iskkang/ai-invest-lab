@@ -272,21 +272,29 @@ body{
   .model-disclosure-table td:nth-child(5)::before { content: "Active model"; }
 }
 
-/* Static TradingView Tickers: first item anchored to left, never auto-scrolls.
-   On phones the 1200px iframe is scaled to 900px with 375px visible. */
-.ticker-outer{background:#121d32}
-.ticker-static-scroll{
-  position:relative;width:100%;height:100%;overflow-x:auto;overflow-y:hidden;
-  overscroll-behavior-x:contain;scrollbar-width:none;
-  -webkit-overflow-scrolling:touch;background:#121d32;
+/* Identical quote groups meet at the loop boundary at every viewport width. */
+.market-tape {
+  overflow-x: auto;
+  scrollbar-width: none;
+  background: var(--panel);
+  border-block: 1px solid var(--line);
+  --tv-widget-font-family: var(--font-sans);
+  --tv-widget-text-color: var(--fg);
+  --tv-widget-price-text-color: var(--fg);
+  --tv-widget-background-color: var(--panel);
+  --tv-widget-border-color: var(--line);
 }
-.ticker-static-scroll::-webkit-scrollbar{display:none}
-.ticker-static-inner{width:100%;height:84px;background:#121d32}
-.ticker-static-inner iframe{
-  display:block;width:100%!important;height:84px!important;
-  max-width:none!important;border:0;
+.market-tape-track {
+  display: flex;
+  width: max-content;
+  animation: market-tape-scroll 55s linear infinite;
 }
-@media(max-width:767px){
- .ticker-static-inner{width:1200px!important;min-width:1200px!important;height:84px;transform:scale(.75);transform-origin:left top}
- .ticker-static-inner iframe{width:1200px!important;min-width:1200px!important}
+.market-tape-group { width: max(100vw, 1100px); height: 78px; }
+.market-tape-group tv-ticker-tape { display: block; width: 100%; height: 100%; }
+.market-tape:focus-within .market-tape-track,
+.market-tape:active .market-tape-track { animation-play-state: paused; }
+@keyframes market-tape-scroll { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) {
+  .market-tape-track { animation: none; }
+  .market-tape-group[aria-hidden] { display: none; }
 }

@@ -15,9 +15,22 @@ export default async function PerformancePage() {
   const d = await getData();
   const rows = [...d.accounts].sort((a, b) => (d.stats[b.id]?.cum_return ?? -9) - (d.stats[a.id]?.cum_return ?? -9));
   const notes = Array.from(new Set(Object.values(d.stats).flatMap((s) => s.notes ?? [])));
+  const participants = d.accounts.filter(account => account.kind !== "benchmark");
+  const participantIds = new Set(participants.map(account => account.id));
+  const valuations = d.snapshots.filter(snapshot => participantIds.has(snapshot.accountId));
+  const session = valuations.reduce((latest, snapshot) => snapshot.date > latest ? snapshot.date : latest, "");
   return (
     <div className="space-y-4">
       <PageTitle title={t(d.locale,"성과 비교")} sub={t(d.locale,"AI 4개와 벤치마크 3개를 같은 시작일·같은 평가 규칙으로 비교합니다. 모두 실험 시작 이후 누적된 모의투자 결과입니다(과거 데이터 백테스트 아님).")} />
+      <Section title={session ? `Daily AI returns · US session ${session}` : "Daily AI returns"}>
+        {session ? <Table>
+          <thead><tr><Th>Model</Th><Th className="text-right">Daily return</Th></tr></thead>
+          <tbody>{participants.map(account => {
+            const snapshot = valuations.find(row => row.date === session && row.accountId === account.id);
+            return <tr key={account.id}><Td>{account.name}</Td><Td className="text-right">{snapshot?.dailyReturn == null ? "Awaiting daily return" : fmtPct(snapshot.dailyReturn)}</Td></tr>;
+          })}</tbody>
+        </Table> : <p>No settled AI portfolios yet. Daily returns will appear after the first end-of-session valuation.</p>}
+      </Section>
       <Section title={t(d.locale,"누적 수익률")}>
         <div><ReturnChart lines={returnLines(d, { benchmarks: true })} locale={d.locale} /></div>
       </Section>

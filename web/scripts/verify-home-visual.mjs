@@ -149,47 +149,16 @@ try{
     const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-window.innerWidth);
     assert.ok(overflow<=1,"horizontal scrolling at "+width+"px: "+overflow);
 
+    const track=page.locator("[data-market-ticker] .market-tape-track").first();
+    const first=await track.boundingBox();
+    await page.waitForTimeout(600);
+    const second=await track.boundingBox();
+    assert.ok(first && second && second.x < first.x-3, "market tape must advance at "+width+"px");
     if(width===375){
       const outputDir=new URL("../visual-artifacts/",import.meta.url).pathname;
       fs.mkdirSync(outputDir,{recursive:true});
-      const band=page.locator('[data-market-ticker]');
-      const iframe=band.locator("iframe").first();
-      await iframe.waitFor({timeout:10000});
-      const src=await iframe.getAttribute("src");
-      assert.ok((src??"").includes("/embed-widget/tickers/"), "static Tickers iframe is required");
-      const decoded=decodeURIComponent(src??"");
-      assert.ok(decoded.includes("AMEX:SPY"),"first ticker must be SPY");
-      assert.ok(decoded.indexOf("AMEX:SPY")<decoded.indexOf("NASDAQ:QQQ"),
-        "SPY must precede QQQ");
-      const scroll=band.locator("[data-ticker-start='left']");
-      assert.equal(await scroll.getAttribute("data-ticker-auto-scroll"),"true",
-        "ticker must run its automatic movement controller");
-      const initialScroll=await scroll.evaluate(el=>el.scrollLeft);
-      assert.ok(initialScroll>=0&&initialScroll<60,
-        "ticker must initially show the first symbol near the left edge");
-      const position=await scroll.boundingBox();
-      const bounds=await band.boundingBox();
-      assert.ok(Math.abs((position?.x??999)-(bounds?.x??0))<1,
-        "ticker must align with left viewport edge");
-      await page.waitForTimeout(3200);
-      const moved=await scroll.evaluate(el=>el.scrollLeft);
-      assert.ok(moved>initialScroll+4,"ticker must automatically move from SPY to later symbols");
-      const innerFrameBox=await iframe.boundingBox();
-      const scrollSize=await scroll.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}));
-      assert.ok(innerFrameBox&&innerFrameBox.width>=375,"mobile ticker must cover entire viewport width");
-      assert.ok(scrollSize.scrollWidth>scrollSize.clientWidth,"remaining ETF quotes must be reachable by swipe");
-      const background=await band.evaluate(el=>getComputedStyle(el).backgroundColor);
       await page.screenshot({path:outputDir+"home-dark-375.png",fullPage:false});
-      console.log("TICKER 375px",JSON.stringify({
-        width:bounds?.width,height:bounds?.height,background,
-        mode:"static-iframe",scrollLeft:await scroll.evaluate(el=>el.scrollLeft),
-        iframeSrc:src,
-        iframeBox:await iframe.boundingBox(),
-        innerBox:await band.locator(".ticker-static-inner").boundingBox(),
-        scrollMetrics:await scroll.evaluate(el=>({scrollWidth:el.scrollWidth,clientWidth:el.clientWidth}))
-      }));
       await page.goto(base+"/en/patterns",{waitUntil:"domcontentloaded"});
-      try{await page.locator('[data-market-ticker] iframe').waitFor({timeout:6500});}catch{}
       await page.waitForTimeout(800);
       await page.screenshot({path:outputDir+"research-dark-375.png",fullPage:false});
       console.log("SCREENSHOTS home-dark-375.png research-dark-375.png");

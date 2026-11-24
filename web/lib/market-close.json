@@ -1,5 +1,41 @@
 [
   {
+    "date": "2026-11-24",
+    "publishedAt": "2026-11-24T22:17:18.288Z",
+    "title": "Nasdaq gives back 1.5% as Nvidia slides and small caps advance",
+    "summary": "The S&P 500 kept nearly nine-tenths of Monday’s gain as selling in AI stocks pulled the Nasdaq lower. The Dow and Russell 2000 rose, although decliners narrowly outnumbered gainers on both major exchanges.",
+    "close": "The S&P 500 ended Tuesday at 7,201.09, down 0.50%, and the Nasdaq Composite fell 1.48% to 23,733.54. The Dow added 423.39 points to finish at 50,018.70, while the Russell 2000 gained 15.29 points to 2,684.94. The Cboe Volatility Index closed at 26.36, down 0.26 point. On the NYSE, roughly 104 issues fell for every 100 that rose. On Nasdaq, 2,548 fell and 2,376 rose.",
+    "drivers": "Nvidia fell 5.9% a day after Jensen Huang’s return as chief executive sparked a rally in chip stocks. Anthropic also slipped below its IPO price. Earnings gave retailers a different cue. Abercrombie & Fitch raised its full-year profit forecast and its shares climbed 19.7%. Health care posted the strongest gain among the S&P 500 sectors.",
+    "review": "Tuesday’s close met both conditions in Monday’s outlook. The Russell 2000 finished above 2,669.66 and the VIX ended below 26.62. The S&P 500 gave back just 36.08 points of Monday’s 326.78-point rise, leaving it well above the 7,073.78 level that would have invalidated the call.",
+    "outlook": "For Wednesday, November 25, the base case is that small caps help sustain this week’s rebound if technology selling stays contained. A Russell 2000 close above Tuesday’s 2,684.94 alongside an S&P 500 close above Monday’s 7,237.17 would confirm that buyers are making headway in both groups. An S&P 500 close below 7,073.78 would erase more than half of Monday’s gain and invalidate the rebound outlook.",
+    "sources": [
+      {
+        "name": "Associated Press · November 24 closing index levels",
+        "url": "https://apnews.com/article/6cc4e580290aadf304ee316d6d46dd81"
+      },
+      {
+        "name": "Reuters · final closing report and exchange breadth",
+        "url": "https://www.reuters.com/business/wall-st-futures-dip-chip-stocks-cool-after-nvidia-fueled-rally-2026-11-24/"
+      },
+      {
+        "name": "Cboe · VIX spot index and daily change",
+        "url": "https://www.cboe.com/tradable-products/vix"
+      },
+      {
+        "name": "Tallac Options · end-of-day VIX index history",
+        "url": "https://tallacoptions.com/Data/EOD/VIX"
+      },
+      {
+        "name": "Abercrombie & Fitch · third-quarter earnings release filed with the SEC",
+        "url": "https://www.sec.gov/Archives/edgar/data/1018840/000101884026000052/q32026pressrelease.htm"
+      },
+      {
+        "name": "NYSE · trading hours and holiday calendar",
+        "url": "https://www.nyse.com/trade/hours-calendars"
+      }
+    ]
+  },
+  {
     "date": "2026-11-23",
     "publishedAt": "2026-11-23T22:16:05.256Z",
     "title": "Nvidia powers a 6.5% Nasdaq rebound as small caps join the rally",

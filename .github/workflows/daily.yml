@@ -1,15 +1,24 @@
 # 미국 거래일 자동 실행. 실제 판단 시각 판정(휴장일·서머타임·08:00~09:15 ET 창)은 엔진이 한다.
-# GitHub cron 은 UTC 이고 지연될 수 있으므로 EDT/EST 양쪽을 덮도록 여러 번 깨우고, 중복은 DB 가 막는다.
+# Local NY time handles DST. GitHub delivery is best-effort; the engine still enforces the cutoff and de-duplicates.
 name: daily-engine
 on:
   schedule:
-    - cron: "35 12 * * 1-5"   # 08:35 EDT / 07:35 EST(창 밖 → skipped)
-    - cron: "35 13 * * 1-5"   # 09:35 EDT(개장 후 → skipped) / 08:35 EST
-    - cron: "5 13 * * 1-5"    # 09:05 EDT / 08:05 EST (지연 대비 재시도)
-    - cron: "30 22 * * 1-5"   # 폐장 후 정산 (18:30 EDT / 17:30 EST)
+    - cron: "12 8 * * 1-5"
+      timezone: "America/New_York"
+    - cron: "32 8 * * 1-5"
+      timezone: "America/New_York"
+    - cron: "52 8 * * 1-5"
+      timezone: "America/New_York"
+    - cron: "30 17 * * 1-5"
+      timezone: "America/New_York"
   workflow_dispatch:
     inputs:
-      job: { description: "run-daily | run-settle | verify | costs", required: true, default: "verify" }
+      job:
+        description: "Engine command"
+        required: true
+        type: choice
+        default: verify
+        options: [verify, run-daily, run-settle, costs]
 concurrency: { group: ail-engine, cancel-in-progress: false }
 permissions: { contents: read }
 jobs:
@@ -51,10 +60,19 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12", cache: pip }
       - run: pip install ./engine
-      - name: choose job
-        id: pick
+      - name: Run selected engine command
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+          MANUAL_JOB: ${{ inputs.job }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then echo "job=${{ inputs.job }}" >> $GITHUB_OUTPUT;
-          elif [ "${{ github.event.schedule }}" = "30 22 * * 1-5" ]; then echo "job=run-settle" >> $GITHUB_OUTPUT;
-          else echo "job=run-daily" >> $GITHUB_OUTPUT; fi
-      - run: ail ${{ steps.pick.outputs.job }}
+          set -euo pipefail
+          case "$EVENT_NAME:$SCHEDULE" in
+            schedule:'30 17 * * 1-5') job=run-settle ;;
+            schedule:'12 8 * * 1-5'|schedule:'32 8 * * 1-5'|schedule:'52 8 * * 1-5') job=run-daily ;;
+            workflow_dispatch:*)
+              case "$MANUAL_JOB" in verify|run-daily|run-settle|costs) job="$MANUAL_JOB" ;; *) exit 1 ;; esac ;;
+            *) echo "::error::Unexpected daily-engine trigger"; exit 1 ;;
+          esac
+          ail "$job"

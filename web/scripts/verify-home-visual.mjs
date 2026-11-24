@@ -48,6 +48,15 @@ try{
     const page=await context.newPage();
     const result=await page.goto(base+"/visual-layout-check",{waitUntil:"networkidle"});
     assert.equal(result?.status(),200,"fixture should only exist inside CI");
+    const coverage=page.getByRole("region",{name:"NYSE decision coverage"});
+    const labels=await coverage.locator("[data-decision-status]").evaluateAll(items=>items.map(item=>[
+      item.querySelector("time")?.dateTime, item.querySelector("span")?.textContent,
+    ]));
+    assert.deepEqual(labels,[
+      ["2026-11-25","Missed · no official round"],
+      ["2026-11-24","All 4 models held"],
+      ["2026-11-23","4 model decisions recorded"],
+    ],"dates and decision states must render in the real component");
     // Mobile bottom navigation is intentional. Desktop keeps the five-item header.
     const bottomNav=page.locator('nav[data-bottom-tabs][aria-label="Mobile navigation"]');
     if(width<768){

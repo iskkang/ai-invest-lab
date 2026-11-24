@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { ChartLegend } from "@/components/chart-legend";
 import { UniverseRail } from "@/components/universe-rail";
 import { DashboardHero } from "@/components/dashboard-hero";
+import { DecisionCoverage } from "@/components/decision-coverage";
 import { FirstRoundHome } from "@/components/first-round-home";
 import type { Account, Dataset } from "@/lib/types";
 
@@ -35,9 +36,31 @@ export default function HomeRenderFixture() {
       holdings:[{symbol:"AAPL",quantity:1,avgCost:30,close:30,marketValue:30,unrealizedPnl:0}],
     }],
   } as unknown as Dataset;
+  const decisionNow = new Date("2026-11-25T14:16:00Z");
+  const holdDate = "2026-11-24";
+  const buyDate = "2026-11-23";
+  const coverage: Dataset = {
+    ...empty,
+    experiment: {...empty.experiment, status:"running"},
+    generatedAt: decisionNow.toISOString(),
+    rounds: [holdDate,buyDate].map((sessionDate, index) => ({
+      id:index+7, sessionDate, dataAsOf:"2026-11-20", decisionAt:sessionDate+"T13:25:00Z",
+      status:"settled", abortReason:null, snapshotHash:"fixture",
+    })),
+    decisions: [holdDate,buyDate].flatMap((sessionDate, index) => accounts.filter(a=>a.aiId)
+      .map((a,i) => ({
+        id:index*4+i+1, roundId:index+7, aiId:a.aiId!, model:a.name, status:"valid",
+        error:null, summary:null, sessionDate, dataAsOf:"2026-11-20",
+        actions:index===1 && i===0 ? [{
+          symbol:"AAPL", action:"BUY", quantity:1, reason:"Fixture", risks:[],
+          indicators_used:[], expected_return_pct:null, confidence:null,
+        }] : [],
+      }))),
+  };
   return <div data-home-ui-fixture="true" className="mx-auto max-w-[900px] space-y-8 pb-12">
     <h1 className="text-xl font-bold">Private layout regression fixture</h1>
     <section data-prelaunch-fixture="true"><FirstRoundHome d={empty}/></section>
+    <DecisionCoverage d={coverage} now={decisionNow}/>
     <DashboardHero d={empty}/>
     <section aria-label="AI chart legend test">
       <ChartLegend locale="en" lines={accounts.map(a=>({name:a.name,color:a.color,dashed:a.kind==="benchmark"}))}/>

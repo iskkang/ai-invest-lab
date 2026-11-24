@@ -9,6 +9,7 @@ import { DashboardHero } from "@/components/dashboard-hero";
 import { DailyBriefing, TopConflicts, FollowupsPreview } from "@/components/retention-panels";
 import { ReturnVisitPulse, DecisionRevisionPanel, PortfolioMovement, RoundJournalPanel } from "@/components/returning-panels";
 import { publicationPulse } from "@/lib/returning-analytics";
+import { DecisionCoverage } from "@/components/decision-coverage";
 import { FirstRoundHome } from "@/components/first-round-home";
 import { verifiedDecisions } from "@/lib/insight-analytics";
 import { PatternLabTeaser } from "@/components/pattern-dashboard";
@@ -56,7 +57,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   // Only a real official publication unlocks the full dashboard.
   // Aborted/skipped rounds, prepared accounts and initial valuations do not.
   const pulse = publicationPulse(d);
-  if (pulse.publishedRounds === 0) return <FirstRoundHome d={d}/>;
+  if (pulse.publishedRounds === 0) return <div className="space-y-5"><DecisionCoverage d={d}/><FirstRoundHome d={d}/></div>;
   const aiAccountIds = new Set(d.accounts.filter(a=>a.kind==="ai").map(a=>a.id));
   const hasValuation = d.snapshots.some(s=>aiAccountIds.has(s.accountId) &&
     s.date >= (pulse.latestPublishedDate ?? "9999-12-31"));
@@ -72,6 +73,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <div className="min-w-0 space-y-5">
+      <DecisionCoverage d={d} />
       <ReturnVisitPulse d={d} />
       <DailyBriefing d={d} compact />
       <PatternLabTeaser locale={d.locale}/>

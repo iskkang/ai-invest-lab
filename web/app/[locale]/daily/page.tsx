@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { DecisionCoverage } from "@/components/decision-coverage";
 import { getData } from "@/lib/data";
 import { isLocale } from "@/lib/public-content";
 import { dashboardMetadata } from "@/lib/seo";
@@ -21,6 +22,7 @@ export default async function DailyPage({params}:Props){
   try {
     const d=await getData();
     return <div className="mx-auto max-w-5xl space-y-6">
+      <DecisionCoverage d={d}/>
       <DailyBriefing d={d}/>
       <div className="grid gap-4 lg:grid-cols-2">
         <PortfolioMovement d={d}/>

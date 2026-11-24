@@ -420,14 +420,19 @@ def _job(conn, name: str, key: str, fn):
 
 def run_daily(conn, settings: Settings, source, provider, now: datetime) -> dict:
     """판단 작업. 재실행해도 같은 세션 회차를 다시 만들지 않는다."""
+    started = time.monotonic()
     today = mc.ny_today(now)
+
+    def clock_now():
+        # Keep the supplied clock usable in tests while counting setup and lock waits.
+        return now + timedelta(seconds=max(0, time.monotonic() - started))
     with advisory_lock(conn, "ail.daily"):
         exp = bootstrap(conn, settings)
 
         def body():
             if not mc.is_session(today):
                 return {"_status": "skipped", "reason": f"{today} is not an NYSE session"}
-            local = now.astimezone(mc.NY)
+            local = clock_now().astimezone(mc.NY)
             lo, hi = mc.ny_time(today, settings.decision_earliest), mc.ny_time(today, settings.decision_latest)
             if not (lo <= local <= hi):
                 return {"_status": "skipped", "reason": f"outside decision window {settings.decision_earliest}-{settings.decision_latest} ET"}
@@ -437,7 +442,11 @@ def run_daily(conn, settings: Settings, source, provider, now: datetime) -> dict
                 out["round"] = {"status": "not started", "start_session": exp["start_session"].isoformat()}
             else:
                 fresh = conn.execute("select * from experiments where id=%s", (exp["id"],)).fetchone()
-                out["round"] = run_decision_round(conn, fresh, today, now, source.name, provider, settings)
+                decision_now = clock_now()
+                if decision_now > hi:
+                    return {**out, "_status": "skipped",
+                            "reason": "decision cutoff passed during pre-decision preparation"}
+                out["round"] = run_decision_round(conn, fresh, today, decision_now, source.name, provider, settings)
             return out
 
         return _job(conn, "daily_decision", today.isoformat(), body)

@@ -52,7 +52,7 @@ export const getData = cache(async (): Promise<Dataset> => {
 // The cached projection is quote-free and never contains API credentials.
 const loadCachedPublicRaw = unstable_cache(
   () => loadSupabase(true),
-  ["ail-public-results-v2"],
+  ["ail-public-results-v3"],
   { revalidate: 300 }
 );
 
@@ -82,6 +82,8 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     all("portfolio_accounts", "*", (q) => q.eq("experiment_id", exp.id)),
   ]);
   const ids = accounts.map((a: Raw) => a.id);
+  // Timestamp the start of the result reads, including on cached public requests.
+  const resultReadAt = new Date().toISOString();
   const [ps, bs, stats, trades, orders, rounds, decisions, universe, universeChanges] = await Promise.all([
     all("portfolio_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("benchmark_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
@@ -152,6 +154,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     })),
     universe,
     universe_changes: universeChanges,
+    results_read_at: resultReadAt,
     prices: priceMap,
   };
 }
@@ -216,7 +219,7 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
     prices: Object.fromEntries(Object.entries(raw.prices ?? {}).map(([k, rows]) => [
       k, (rows as unknown[][]).map((r) => [String(r[0]), n(r[1]), n(r[2]), n(r[3]), n(r[4]), n(r[5])]),
     ])) as Dataset["prices"],
-    generatedAt: new Date().toISOString(),
+    generatedAt: raw.results_read_at,
   };
 }
 

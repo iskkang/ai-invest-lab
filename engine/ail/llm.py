@@ -107,7 +107,7 @@ class OpenRouterProvider:
                system_prompt: str = SYSTEM_PROMPT) -> LLMResult:
         body = {
             "model": model,
-            "messages": [{"role": "system", "content": system_prompt},
+            "messages": [{"role": "system", "content": SYSTEM_PROMPT},
                          {"role": "user", "content": user_message(packet)}],
             "max_tokens": max_output_tokens,
             "temperature": 0,
@@ -115,6 +115,8 @@ class OpenRouterProvider:
                                 "json_schema": {"name": "trading_decision", "strict": True, "schema": portable_output_schema(DECISION_SCHEMA)}},
             "usage": {"include": True},
         }
+        if system_prompt != SYSTEM_PROMPT:
+            body["messages"][0]["content"] = system_prompt
         # Some Claude routes reject OpenRouter's structured-output parameter
         # with HTTP 400 even for a portable JSON schema. Keep the SAME input,
         # system prompt and trading constraints, but request plain text JSON.

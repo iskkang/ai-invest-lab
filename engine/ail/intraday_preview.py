@@ -54,16 +54,69 @@ def pick_cutoff(now, slot):
     return opening, closing, cutoff
 
 
+class FeedGridError(LabError):
+    def __init__(self, symbol, diagnostics):
+        super().__init__(f"{symbol}: no complete start-labeled regular-session grid at cutoff")
+        self.diagnostics = diagnostics
+
+
+def completed_session(now):
+    day = mc.ny_today(now)
+    if not mc.is_session(day) or not mc.after_close(day, now, buffer_minutes=0):
+        day = mc.previous_session(day)
+    return day, *mc.session_times(day)[:2]
+
+
 class NHIntradaySource(NHQuoteSource):
-    def bars(self, symbol, opening, closing):
+    def _minute_rows(self, symbol, opening, historical=False):
         day = mc.ny_today(opening)
         data = self._request(NH_PERIOD_PATH, {
             "iem_cd": symbol, "end_dt": day.strftime("%Y%m%d"), "count": "0100",
-            "maxavg": "0", "gubun": "2", "xtick": "0005", "today_cls": "1", "market_cls": "1",
+            "maxavg": "0", "gubun": "2", "xtick": "0005", "today_cls": "0" if historical else "1", "market_cls": "1",
         })
         rows = data.get("Output_1") if isinstance(data, dict) else None
         if not isinstance(rows, list):
             raise LabError(f"{symbol}: missing NH 5-minute rows")
+        return rows
+
+    def diagnostic(self, symbol, opening, cutoff, rows):
+        day = mc.ny_today(opening).strftime("%Y%m%d")
+        dates, today = set(), []
+        for row in rows:
+            if not isinstance(row, dict):
+                continue
+            date = str(row.get("trade_date", ""))
+            if date.isascii() and date.isdigit() and len(date) == 8:
+                dates.add(date)
+            label = str(row.get("trade_time", "")).zfill(6)
+            if date == day and label.isascii() and label.isdigit() and len(label) == 6:
+                today.append(label)
+        labels = set(today)
+        def hhmmss(t):
+            return t.astimezone(mc.NY).strftime("%H%M%S")
+        expect = [opening + STEP * i for i in range((cutoff - opening) // STEP)]
+        start_missing = [hhmmss(t) for t in expect if hhmmss(t) not in labels]
+        end_missing = [hhmmss(t + STEP) for t in expect if hhmmss(t + STEP) not in labels]
+        return {"symbol": symbol, "rows_returned": len(rows), "session_rows": len(today),
+                "session_first_label_et": min(today, default=None), "session_last_label_et": max(today, default=None),
+                "latest_returned_date": max(dates, default=None), "expected": len(expect),
+                "missing_if_start": len(start_missing), "missing_if_end": len(end_missing),
+                "first_missing_start_et": start_missing[:3], "first_missing_end_et": end_missing[:3],
+                "duplicate_labels": len(today) - len(labels)}
+
+    def historical_probe(self, now):
+        day, opening, closing = completed_session(now)
+        checks = [self.diagnostic(s, opening, closing, self._minute_rows(s, opening, historical=True))
+                  for s in SYMBOLS]
+        return {"status": "historical_feed_diagnostic", "observed_session": day,
+                "model_calls": 0, "feed_diagnostics": checks}
+
+    def bars(self, symbol, opening, closing):
+        day = mc.ny_today(opening)
+        rows = self._minute_rows(symbol, opening)
+        if not hasattr(self, "_last_rows"):
+            self._last_rows = {}
+        self._last_rows[symbol] = rows
         bars = {}
         for row in rows:
             if str(row["trade_date"]) != day.strftime("%Y%m%d"):
@@ -95,6 +148,9 @@ def market_snapshot(source, opening, closing, cutoff):
         # Only start-labeled grids anchored at the regular-session open are supported.
         # If the provider returns end labels, gaps, or stale data, stop rather than guessing.
         if not all(x in bars for x in starts):
+            if isinstance(source, NHIntradaySource):
+                diagnostics = [source.diagnostic(s, opening, cutoff, source._last_rows[s]) for s in SYMBOLS]
+                raise FeedGridError(symbol, diagnostics)
             raise LabError(f"{symbol}: no complete start-labeled regular-session grid at cutoff")
         rows = [bars[x] for x in starts]
         confirmed[symbol] = [list(row) for row in rows]
@@ -159,6 +215,14 @@ def run(source, slot, mode, provider_factory=OpenRouterProvider, clock=utc_now, 
     receipt = {"experiment": "isolated-intraday-preview", "mode": mode, "slot": slot,
                "started_at": now, "session": mc.ny_today(now), "official_records_changed": False}
     if timing is None:
+        # Only the manual no-model probe can inspect the prior session. This does not
+        # prove that live intraday delivery works or create a historical decision.
+        day = mc.ny_today(now)
+        off_session = not mc.is_session(day) or not (
+            mc.session_times(day)[0] <= now < mc.session_times(day)[1]
+        )
+        if mode == "probe" and slot == "now" and off_session and isinstance(source, NHIntradaySource):
+            return {**receipt, **source.historical_probe(now)}
         return {**receipt, "status": "skipped_outside_slot_or_market_closed"}
     opening, closing, cutoff = timing
     market = market_snapshot(source, opening, closing, cutoff)
@@ -254,8 +318,10 @@ def main():
         # No provider response, raw prices, credentials or request dumps in public Actions.
         out = {"experiment": "isolated-intraday-preview", "status": "blocked",
                "error_type": type(exc).__name__}
-        if type(exc) is LabError:
+        if type(exc) is LabError or type(exc) is FeedGridError:
             out["reason"] = str(exc)
+        if type(exc) is FeedGridError:
+            out["feed_diagnostics"] = exc.diagnostics
     args.receipt.write_text(canonical(out) + "\n", encoding="utf-8")
     print(canonical({k: v for k, v in out.items() if k not in {"decisions"}}))
     return 1 if out["status"] in {"blocked", "incomplete_models_no_fills", "fill_data_unconfirmed"} else 0

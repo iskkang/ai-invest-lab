@@ -99,3 +99,31 @@ def test_source_quote_only_parameters_and_filtering():
     assert list(got) == [opening]
     assert calls[0][0] == x.NH_PERIOD_PATH and calls[0][1]["gubun"] == "2"
     assert calls[0][1]["xtick"] == "0005" and calls[0][1]["market_cls"] == "1"
+
+
+def test_nh_diagnostic_keeps_only_timestamps_and_detects_end_label_pattern():
+    calls = []
+    def call(path, query):
+        calls.append((path, query))
+        return {"Output_1": [
+            dict(trade_date=query["end_dt"], trade_time=t, open_prc=123.4567,
+                 high=124, low=123, close_prc=123.5, movolume=100)
+            for t in ("093500", "094000", "094500")
+        ]}
+    source = x.NHIntradaySource(call=call)
+    with pytest.raises(x.FeedGridError) as exc:
+        x.run(source, "now", "probe", clock=lambda: z("14:45:20"))
+    entry = exc.value.diagnostics[0]
+    assert entry["missing_if_start"] == 1 and entry["missing_if_end"] == 0
+    assert entry["first_missing_start_et"] == ["093000"]
+    assert "123.4567" not in canonical(exc.value.diagnostics)
+    assert all(q["today_cls"] == "1" for _, q in calls)
+
+    calls.clear()
+    result = x.run(source, "now", "probe", clock=lambda: z("21:15:00"))
+    assert result["status"] == "historical_feed_diagnostic" and result["model_calls"] == 0
+    assert all(q["today_cls"] == "0" and q["end_dt"] == "20261125" for _, q in calls)
+    assert len(result["feed_diagnostics"]) == 4
+    calls.clear()
+    assert x.run(source, "now", "models", clock=lambda: z("21:15:00"))["status"].startswith("skipped_")
+    assert not calls

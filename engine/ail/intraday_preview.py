@@ -15,7 +15,8 @@ from .llm import OpenRouterProvider, estimate_cost, user_message
 from .sources import NH_PERIOD_PATH, NHQuoteSource
 
 SYMBOLS = ("SPY", "QQQ", "DIA", "IWM")
-STEP = timedelta(minutes=5)
+STEP = timedelta(minutes=15)
+START_TOLERANCE = timedelta(minutes=5)
 CASH = D(100_000)
 MAX_WEIGHT = D("0.20")
 FEE = D("1")
@@ -27,17 +28,17 @@ PROMPT = SYSTEM_PROMPT.replace(
     "You have only the supplied regular-session intraday features. No news, internet or other model decisions."
 ).replace(
     "Orders execute at the NEXT regular-session OPEN (session_date). That price is unknown to you and may gap.",
-    "Paper orders may execute at the first regular-session five-minute bar open strictly after all model "
+    "Paper orders may execute at the first regular-session 15-minute bar open strictly after all model "
     "decisions have been recorded. The fill price is unknown to you. This is an isolated test with a fresh account."
-).replace('["rsi14", "sma50", ...]', '["return_from_open_pct", "return_last_10m_pct", ...]')
+).replace('["rsi14", "sma50", ...]', '["return_from_open_pct", "return_last_30m_pct", ...]')
 
 
 def utc_now():
     return datetime.now(mc.UTC)
 
 
-def floor5(dt):
-    return dt.replace(minute=dt.minute // 5 * 5, second=0, microsecond=0)
+def floor_bar(dt):
+    return dt.replace(minute=dt.minute // 15 * 15, second=0, microsecond=0)
 
 
 def pick_cutoff(now, slot):
@@ -45,11 +46,12 @@ def pick_cutoff(now, slot):
     if not mc.is_session(td):
         return None
     opening, closing, _ = mc.session_times(td)
-    windows = {"open": opening + STEP * 2, "morning": mc.ny_time(td, "11:00"),
-               "afternoon": mc.ny_time(td, "14:00"), "preclose": closing - STEP * 3}
-    cutoff = floor5(now) if slot == "now" else windows[slot].astimezone(mc.UTC)
+    windows = {"open": opening + STEP, "morning": mc.ny_time(td, "11:00"),
+               "afternoon": mc.ny_time(td, "14:00"), "preclose": closing - STEP * 2}
+    cutoff = floor_bar(now) if slot == "now" else windows[slot].astimezone(mc.UTC)
     # Allow startup jitter, never backdate a missed slot or squeeze in after cutoff.
-    if not opening + 2 * STEP <= cutoff <= closing - 2 * STEP or not cutoff <= now < cutoff + STEP:
+    tolerance = STEP if slot == "now" else START_TOLERANCE
+    if not opening + STEP <= cutoff <= closing - 2 * STEP or not cutoff <= now < cutoff + tolerance:
         return None
     return opening, closing, cutoff
 
@@ -72,11 +74,11 @@ class NHIntradaySource(NHQuoteSource):
         day = mc.ny_today(opening)
         data = self._request(NH_PERIOD_PATH, {
             "iem_cd": symbol, "end_dt": day.strftime("%Y%m%d"), "count": "0100",
-            "maxavg": "0", "gubun": "2", "xtick": "0005", "today_cls": "0" if historical else "1", "market_cls": "1",
+            "maxavg": "0", "gubun": "2", "xtick": "0015", "today_cls": "0" if historical else "1", "market_cls": "1",
         })
         rows = data.get("Output_1") if isinstance(data, dict) else None
         if not isinstance(rows, list):
-            raise LabError(f"{symbol}: missing NH 5-minute rows")
+            raise LabError(f"{symbol}: missing NH 15-minute rows")
         return rows
 
     def diagnostic(self, symbol, opening, cutoff, rows):
@@ -131,7 +133,7 @@ class NHIntradaySource(NHQuoteSource):
                                       ).replace(tzinfo=mc.NY).astimezone(mc.UTC)
             if not opening <= start < closing:
                 continue
-            if start != floor5(start) or start in bars:
+            if start != floor_bar(start) or start in bars:
                 raise LabError(f"{symbol}: NH minute grid invalid")
             o, h, l, c, v = (D(row[k]) for k in ("open_prc", "high", "low", "close_prc", "movolume"))
             if not (0 < l <= min(o, c) <= max(o, c) <= h) or v < 0 or v != int(v):
@@ -157,7 +159,8 @@ def market_snapshot(source, opening, closing, cutoff):
         o, h, l, c, v = rows[-1]
         features.append({"symbol": symbol, "last_close": c,
                          "return_from_open_pct": (c / rows[0][0] - 1).quantize(D("0.000001")) * 100,
-                         "return_last_10m_pct": (c / rows[-2][0] - 1).quantize(D("0.000001")) * 100,
+                         "return_last_30m_pct": ((c / rows[-2][0] - 1).quantize(D("0.000001")) * 100
+                                                 if len(rows) >= 2 else None),
                          "session_range_pct": ((max(r[1] for r in rows) / min(r[2] for r in rows)) - 1
                                                ).quantize(D("0.000001")) * 100,
                          "volume_vs_earlier_bar_avg": ((D(v) * (len(rows) - 1) / sum(r[4] for r in rows[:-1])
@@ -212,7 +215,7 @@ def paper_settle(intents, opens):
 def run(source, slot, mode, provider_factory=OpenRouterProvider, clock=utc_now, sleep=time.sleep, journal=None):
     now = clock()
     timing = pick_cutoff(now, slot)
-    receipt = {"experiment": "isolated-intraday-preview", "mode": mode, "slot": slot,
+    receipt = {"experiment": "isolated-intraday-preview", "mode": mode, "slot": slot, "bar_minutes": 15,
                "started_at": now, "session": mc.ny_today(now), "official_records_changed": False}
     if timing is None:
         # Only the manual no-model probe can inspect the prior session. This does not
@@ -251,7 +254,7 @@ def run(source, slot, mode, provider_factory=OpenRouterProvider, clock=utc_now, 
                                      MAX_TOKENS) for p, packet in zip(models, packets))
     if estimate > COST_CAP:
         raise LabError("preview cost estimate exceeds USD 0.15")
-    if clock() >= min(cutoff + STEP, closing - 2 * STEP):
+    if clock() >= min(cutoff + (STEP if slot == "now" else START_TOLERANCE), closing - STEP):
         return {**receipt, "status": "expired_before_model_requests", "model_calls": 0}
 
     def infer(pair):
@@ -282,7 +285,7 @@ def run(source, slot, mode, provider_factory=OpenRouterProvider, clock=utc_now, 
     with ThreadPoolExecutor(max_workers=4) as pool:
         decisions = list(pool.map(infer, zip(models, packets)))
     locked_at = clock()
-    fill_at = floor5(locked_at) + STEP
+    fill_at = floor_bar(locked_at) + STEP
     receipt.update(decisions=[m for m, _ in decisions], locked_at=locked_at, estimated_max_usd=estimate)
     if any(m["state"] != "valid" for m, _ in decisions):
         return {**receipt, "status": "incomplete_models_no_fills"}
@@ -316,7 +319,7 @@ def main():
                   journal=lambda r: args.receipt.write_text(canonical(r) + "\n", encoding="utf-8"))
     except Exception as exc:
         # No provider response, raw prices, credentials or request dumps in public Actions.
-        out = {"experiment": "isolated-intraday-preview", "status": "blocked",
+        out = {"experiment": "isolated-intraday-preview", "status": "blocked", "bar_minutes": 15,
                "error_type": type(exc).__name__}
         if type(exc) is LabError or type(exc) is FeedGridError:
             out["reason"] = str(exc)

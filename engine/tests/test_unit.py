@@ -72,9 +72,58 @@ def test_nh_adapter_rejects_bad_rows():
     with pytest.raises(DataIntegrityError):
         src.daily_bars("AAPL", date(2026, 11, 20), 2)
     bad = NHQuoteSource(call=lambda p, b: {"Output_1": [
-        {"trade_date": "20261120", "open_prc": 105, "high": 103, "low": 100, "close_prc": 102, "movolume": 1}]})
+        {"trade_date": "20261120", "open_prc": 105, "high": 103, "low": 100, "close_prc": 102, "movolume": 1}]},
+        sleep=lambda _: None)
     with pytest.raises(DataIntegrityError):
         bad.daily_bars("AAPL", date(2026, 11, 20), 1)
+
+
+def _nh_bar(day="20261124", open_="101.12", high="102.23", close="101.89"):
+    # Synthetic fixtures, not COST observations.
+    return {"trade_date": day, "open_prc": open_, "high": high, "low": "100.05",
+            "close_prc": close, "movolume": "12345", "unexpected": "never log this"}
+
+
+def test_nh_adapter_accepts_only_valid_same_session_refetch():
+    prior = _nh_bar(day="20261123")
+    samples = iter([{"Output_1": [_nh_bar(high="101.01"), prior]},
+                    {"Output_1": [prior, _nh_bar()]}])
+    calls = []
+    delays = []
+
+    def call(path, query):
+        calls.append((path, query))
+        return next(samples)
+
+    bars = NHQuoteSource(call=call, sleep=delays.append).daily_bars("COST", date(2026, 11, 24), 2)
+    assert [b.trade_date.isoformat() for b in bars] == ["2026-11-23", "2026-11-24"]
+    assert (bars[1].high, bars[1].source, bars[1].raw["high"]) == (Decimal("102.2300"), "nh_plug", "102.23")
+    assert len(calls) == 2 and calls[0] == calls[1]
+    assert calls[0][0] == NH_PERIOD_PATH and calls[0][1]["market_cls"] == "1"
+    assert delays == [1.0]
+
+
+@pytest.mark.parametrize(("retry_rows", "message"), [
+    ([_nh_bar(day="20261123"), _nh_bar(high="101.02")], "still invalid after refetch"),
+    ([_nh_bar(day="20261123")], "refetch changed date coverage"),
+    ([_nh_bar(day="20261123", close="101.90"), _nh_bar()], "refetch revised an originally valid bar"),
+    ([_nh_bar(), _nh_bar()], "duplicate NH bar"),
+])
+def test_nh_refetch_rejects_bad_missing_revised_or_duplicate_bars(retry_rows, message):
+    samples = iter([{"Output_1": [_nh_bar(high="101.01"), _nh_bar(day="20261123")]},
+                    {"Output_1": retry_rows}])
+    source = NHQuoteSource(call=lambda *_: next(samples), sleep=lambda _: None)
+    with pytest.raises(DataIntegrityError, match=message) as exc:
+        source.daily_bars("COST", date(2026, 11, 24), 2)
+    err = str(exc.value)
+    assert "COST 2026-11-24" in err and "NH values: open_prc=101.12,high=101.01" in err
+    assert "quantized: open_prc=101.1200,high=101.0100" in err
+    assert "never log this" not in err
+
+
+def test_nh_adapter_catches_ohlc_mismatch_that_would_disappear_on_rounding():
+    with pytest.raises(DataIntegrityError, match="inconsistent OHLC"):
+        NHQuoteSource.parse_row("TEST", _nh_bar(open_="101.00003", high="101.0", close="101.0"))
 
 
 def test_nh_retry_only_transient_errors():

@@ -15,7 +15,11 @@ from decimal import Decimal
 import numpy as np
 
 from . import market_calendar as mc
-from .common import PRICE_Q, D, DataIntegrityError
+from .common import PRICE_Q, D, DataIntegrityError, LabError
+
+
+def _coherent_ohlc(open_: Decimal, high: Decimal, low: Decimal, close: Decimal) -> bool:
+    return low <= min(open_, close) and high >= max(open_, close)
 
 
 @dataclass(frozen=True)
@@ -33,7 +37,7 @@ class Bar:
     def check(self) -> None:
         if min(self.open, self.high, self.low, self.close) <= 0:
             raise DataIntegrityError(f"{self.symbol} {self.trade_date}: non-positive price")
-        if not (self.low <= min(self.open, self.close) and self.high >= max(self.open, self.close)):
+        if not _coherent_ohlc(self.open, self.high, self.low, self.close):
             raise DataIntegrityError(f"{self.symbol} {self.trade_date}: inconsistent OHLC")
         if self.volume < 0:
             raise DataIntegrityError(f"{self.symbol} {self.trade_date}: negative volume")
@@ -48,6 +52,18 @@ class Bar:
 NH_PERIOD_PATH = "/gbstock/quote/v1/period"
 NH_GUBUN_DAY = "3"
 ALLOWED_NH_PATHS = frozenset({NH_PERIOD_PATH})
+_NH_OHLC_FIELDS = ("open_prc", "high", "low", "close_prc")
+
+
+class _NHInconsistentOHLC(DataIntegrityError):
+    def __init__(self, symbol: str, trade_date: date, raw_prices: tuple[Decimal, ...],
+                 parsed_prices: tuple[Decimal, ...]):
+        self.trade_date = trade_date
+        # Public market prices only, not the response, request, headers, or tokens.
+        def values(prices):
+            return ",".join(f"{key}={str(value)[:48]}" for key, value in zip(_NH_OHLC_FIELDS, prices))
+        super().__init__(f"{symbol} {trade_date}: inconsistent OHLC "
+                         f"(NH values: {values(raw_prices)}; quantized: {values(parsed_prices)})")
 
 
 class NHQuoteSource:
@@ -77,7 +93,7 @@ class NHQuoteSource:
         raise AssertionError("unreachable")
 
     def daily_bars(self, symbol: str, end: date, count: int) -> list[Bar]:
-        data = self._request(NH_PERIOD_PATH, {
+        query = {
             "iem_cd": symbol,
             "end_dt": end.strftime("%Y%m%d"),
             "count": str(int(count)),
@@ -86,24 +102,61 @@ class NHQuoteSource:
             "xtick": "0001",
             "today_cls": "0",
             "market_cls": "1",
-        })
+        }
+        initial, invalid = self._read_bars(symbol, query)
+        if not invalid:
+            return sorted(initial.values(), key=lambda bar: bar.trade_date)
+
+        # Re-read the SAME regular-session request once. Never synthesize a candle,
+        # change sessions/adjustments, or use another date or provider as a substitute.
+        first_error = min(invalid.values(), key=lambda exc: exc.trade_date)
+        self._sleep(1.0)
+        try:
+            refreshed, still_invalid = self._read_bars(symbol, query)
+        except DataIntegrityError as exc:
+            raise DataIntegrityError(f"{first_error}; regular-session refetch failed: {exc}") from None
+        if still_invalid:
+            second_error = min(still_invalid.values(), key=lambda exc: exc.trade_date)
+            raise DataIntegrityError(f"{first_error}; still invalid after refetch: {second_error}")
+        if refreshed.keys() != (initial.keys() | invalid.keys()):
+            raise DataIntegrityError(f"{first_error}; refetch changed date coverage")
+        if any(refreshed[td] != bar for td, bar in initial.items()):
+            raise DataIntegrityError(f"{first_error}; refetch revised an originally valid bar")
+        return sorted(refreshed.values(), key=lambda bar: bar.trade_date)
+
+    def _read_bars(self, symbol: str, query: dict) -> tuple[dict[date, Bar], dict[date, _NHInconsistentOHLC]]:
+        data = self._request(NH_PERIOD_PATH, query.copy())
         rows = data.get("Output_1") if isinstance(data, dict) else None
         if not isinstance(rows, list):
-            msg = data.get("rsp_msg") if isinstance(data, dict) else None
-            raise DataIntegrityError(f"NH period: no Output_1 for {symbol} ({msg!r})")
-        bars = [self.parse_row(symbol, r) for r in rows]
-        bars.sort(key=lambda b: b.trade_date)
-        return bars
+            raise DataIntegrityError(f"NH period: no Output_1 for {symbol}")
+        bars: dict[date, Bar] = {}
+        invalid: dict[date, _NHInconsistentOHLC] = {}
+        for row in rows:
+            try:
+                bar = self.parse_row(symbol, row)
+            except _NHInconsistentOHLC as exc:
+                if exc.trade_date in bars or exc.trade_date in invalid:
+                    raise DataIntegrityError(f"{symbol}: duplicate NH bar for {exc.trade_date}") from None
+                invalid[exc.trade_date] = exc
+            else:
+                if bar.trade_date in bars or bar.trade_date in invalid:
+                    raise DataIntegrityError(f"{symbol}: duplicate NH bar for {bar.trade_date}")
+                bars[bar.trade_date] = bar
+        return bars, invalid
 
     @staticmethod
     def parse_row(symbol: str, r: dict) -> Bar:
         try:
             td = datetime.strptime(str(r["trade_date"]), "%Y%m%d").date()
-            q = lambda k: D(r[k]).quantize(PRICE_Q)
-            bar = Bar(symbol, td, q("open_prc"), q("high"), q("low"), q("close_prc"),
+            raw_prices = tuple(D(r[k]) for k in _NH_OHLC_FIELDS)
+            parsed_prices = tuple(price.quantize(PRICE_Q) for price in raw_prices)
+            bar = Bar(symbol, td, *parsed_prices,
                       int(D(r["movolume"])), "nh_plug", raw=dict(r))
-        except (KeyError, ValueError, TypeError, ArithmeticError) as exc:
-            raise DataIntegrityError(f"NH period: malformed row for {symbol}: {exc}") from None
+        except (KeyError, ValueError, TypeError, ArithmeticError, LabError) as exc:
+            raise DataIntegrityError(f"NH period: malformed row for {symbol} ({type(exc).__name__})") from None
+        # Compare before rounding as well, so precision cannot hide an invalid range.
+        if not _coherent_ohlc(*raw_prices) or not _coherent_ohlc(*parsed_prices):
+            raise _NHInconsistentOHLC(symbol, td, raw_prices, parsed_prices)
         bar.check()
         return bar
 

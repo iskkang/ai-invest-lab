@@ -1,0 +1,13 @@
+name = "logicsight-preopen-scheduler"
+main = "worker.mjs"
+compatibility_date = "2026-11-25"
+workers_dev = false
+preview_urls = false
+
+[vars]
+SCHEDULER_MODE = "dry-run"
+
+[triggers]
+# EDT corresponds to 12 UTC; EST corresponds to 13 UTC.
+# The Worker accepts only 08:17, 08:37, 08:57 America/New_York.
+crons = ["17,37,57 12,13 * * MON-FRI"]

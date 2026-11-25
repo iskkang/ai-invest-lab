@@ -23,6 +23,13 @@ jobs:
       - run: python engine/scripts/export_public_methodology.py --check
       - run: cd engine && pytest -q
         env: { TEST_PG_ENGINE_URL: "postgresql://engine:engine@localhost:5432/{db}" }
+  preopen-scheduler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: node --test ops/preopen-scheduler/worker.test.mjs
   web:
     runs-on: ubuntu-latest
     steps:

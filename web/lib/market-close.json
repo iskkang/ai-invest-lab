@@ -1,5 +1,41 @@
 [
   {
+    "date": "2026-11-25",
+    "publishedAt": "2026-11-25T22:16:24.685Z",
+    "title": "Eight sectors rise as the S&P 500 nearly erases a 3.2% slide",
+    "summary": "The S&P 500 ended just 0.25% lower after falling as much as 3.2% on Wednesday. Small caps and the Dow finished higher, while losses in Nvidia and other large technology names kept the Nasdaq in the red.",
+    "close": "The S&P 500 closed at 7,182.78 and the Nasdaq Composite lost 0.62% to 23,585.80. The Dow gained 0.33% to 50,182.95 and the Russell 2000 rose 0.71% to 2,704.06. Eight of the S&P 500’s eleven sectors advanced. Despite that breadth and the recovery from the morning low, the Cboe VIX closed at 28.29, up 1.93 points from Tuesday.",
+    "drivers": "Nvidia fell 3.91%, subtracting an estimated 17.1 points from the S&P 500. That one stock accounted for nearly all of the index’s net 18.31-point loss, even as other stocks gained ground. Investors also had fresh inflation data to weigh before Thanksgiving. The Bureau of Economic Analysis reported that October consumer prices, measured by the PCE index, rose 0.3% for the month and 3.8% from a year earlier.",
+    "review": "Tuesday’s outlook was partly confirmed. The Russell cleared the 2,684.94 threshold, but the S&P 500 finished below the 7,237.17 needed to confirm that large caps were participating too. Its close remained above 7,073.78, so the stated downside condition was never triggered on a closing basis.",
+    "outlook": "After Thursday’s Thanksgiving closure, the next session is Friday, November 27, with equities closing at 1 p.m. New York time. If small caps hold Tuesday’s 2,684.94 level, the base case is for the week’s rebound to survive the shortened session. A Russell close above 2,704.06 together with an S&P 500 close above 7,237.17 would confirm a broader recovery. An S&P 500 close below 7,073.78 would invalidate that view.",
+    "sources": [
+      {
+        "name": "Associated Press · November 25 closing indexes",
+        "url": "https://apnews.com/article/94fdb0ecb060ec65c0b02879ce0d2d09"
+      },
+      {
+        "name": "MarketWatch · closing market breadth",
+        "url": "https://www.marketwatch.com/livecoverage/stock-market-today-dow-s-p-500-nasdaq-investors-inflation-data-pce-nvidia/card/stocks-stage-a-big-comeback-with-the-dow-erasing-an-1-100-point-loss-to-close-higher-PFEPMbdPdjmek0aZKica"
+      },
+      {
+        "name": "Cboe · VIX spot index",
+        "url": "https://www.cboe.com/tradable-products/vix"
+      },
+      {
+        "name": "Portfolio Terminal · November 25 index contributions",
+        "url": "https://portfolio-terminal.com/markets/stock-market-close/november-25-2026"
+      },
+      {
+        "name": "Bureau of Economic Analysis · October personal income and outlays",
+        "url": "https://bea.gov/news/2026/personal-income-and-outlays-october-2026"
+      },
+      {
+        "name": "NYSE · holidays and trading hours",
+        "url": "https://www.nyse.com/trade/hours-calendars"
+      }
+    ]
+  },
+  {
     "date": "2026-11-24",
     "publishedAt": "2026-11-24T22:17:18.288Z",
     "title": "Nasdaq gives back 1.5% as Nvidia slides and small caps advance",

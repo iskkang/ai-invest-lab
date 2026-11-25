@@ -9,7 +9,7 @@ on:
         default: probe
         options: [probe, models]
       slot:
-        description: Eastern-time checkpoint; now uses the latest completed 5-minute bar
+        description: Eastern-time checkpoint; now uses the latest completed 15-minute bar
         type: choice
         required: true
         default: now
@@ -23,7 +23,7 @@ jobs:
   preview:
     if: github.repository == 'iskkang/ai-invest-lab' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 37
     environment: production
     steps:
       - uses: actions/checkout@v4

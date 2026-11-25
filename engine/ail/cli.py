@@ -19,10 +19,11 @@ import os
 import sys
 from datetime import date, datetime, timezone
 
-from . import admin, export
+from . import admin, export, market_calendar as mc
 from .common import to_jsonable
 from .config import Settings
 from .db import apply_migrations, connect
+from .decision_receipt import decision_receipt
 from .pipeline import run_daily, run_settle
 
 
@@ -73,13 +74,26 @@ def main(argv=None) -> int:
     settings.validate()
     conn = connect(settings.database_url)
     now = datetime.now(timezone.utc)
+    session = mc.ny_today(now) if args.cmd == "run-daily" else None
+    expected = os.environ.get("AIL_EXPECTED_SESSION", "")
+    if session is not None and expected and expected != session.isoformat():
+        _print({"status": "skipped", "reason": "dispatch session does not match New York date",
+                "session": session.isoformat(), "official_round": {"verified": False}})
+        return 1
     source_name = "demo" if settings.is_demo else "nh_plug"
 
     if args.cmd == "migrate":
         _print({"applied": apply_migrations(conn)})
     elif args.cmd == "run-daily":
         src, prov = _source_provider(settings)
-        _print(run_daily(conn, settings, src, prov, now))
+        result = run_daily(conn, settings, src, prov, now)
+        if not mc.is_session(session):
+            _print({**result, "official_round": {"session": session.isoformat(),
+                                               "verified": False, "round_status": "market_closed"}})
+            return 0
+        receipt = decision_receipt(conn, settings, session)
+        _print({**result, "official_round": receipt})
+        return 0 if receipt["verified"] else 1
     elif args.cmd == "run-settle":
         src, _ = _source_provider(settings)
         _print(run_settle(conn, settings, src, now))

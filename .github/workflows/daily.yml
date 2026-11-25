@@ -19,6 +19,10 @@ on:
         type: choice
         default: verify
         options: [verify, run-daily, run-settle, costs]
+      scheduled_session:
+        description: "Optional New York session date attached by the independent scheduler"
+        required: false
+        type: string
 concurrency: { group: ail-engine, cancel-in-progress: false }
 permissions: { contents: read }
 jobs:
@@ -66,6 +70,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           SCHEDULE: ${{ github.event.schedule }}
           MANUAL_JOB: ${{ inputs.job }}
+          AIL_EXPECTED_SESSION: ${{ inputs.scheduled_session }}
         run: |
           set -euo pipefail
           case "$EVENT_NAME:$SCHEDULE" in

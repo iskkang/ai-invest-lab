@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { TodayRound } from "@/components/today-round";
 import { DecisionCoverage } from "@/components/decision-coverage";
 import { getData } from "@/lib/data";
 import { isLocale } from "@/lib/public-content";
@@ -22,6 +23,7 @@ export default async function DailyPage({params}:Props){
   try {
     const d=await getData();
     return <div className="mx-auto max-w-5xl space-y-6">
+      <TodayRound data={d}/>
       <DecisionCoverage d={d}/>
       <DailyBriefing d={d}/>
       <div className="grid gap-4 lg:grid-cols-2">
@@ -32,5 +34,5 @@ export default async function DailyPage({params}:Props){
       <RoundJournalPanel d={d} compact/>
       <FollowupsPreview d={d}/>
     </div>;
-  }catch{return <InsightUnavailable locale={locale}/>;}
+  }catch{return <div className="mx-auto max-w-5xl space-y-6"><TodayRound data={null}/><InsightUnavailable locale={locale}/></div>;}
 }

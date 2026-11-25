@@ -74,6 +74,7 @@ export interface Trade {
 
 export interface RejectedOrder {
   id: number;
+  decisionId?: number | null;
   accountId: number;
   symbol: string;
   side: "BUY" | "SELL";
@@ -103,6 +104,9 @@ export interface Decision {
   error: string | null;
   summary: string | null;
   actions: DecisionAction[];
+  completedAt?: string | null;
+  marketHash?: string | null;
+  parsedActions?: boolean;
   sessionDate: string;
   dataAsOf: string;
 }
@@ -154,5 +158,6 @@ export interface Dataset {
   universe: { symbol: string; name: string; sector: string | null; role: string }[];
   prices: Record<string, Bar[]>;
   generatedAt: string;
+  dailyJobs?: { sessionDate: string; status: string; priceError: boolean }[];
   universeChanges?: UniverseChange[];
 }

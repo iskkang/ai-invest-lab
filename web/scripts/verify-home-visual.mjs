@@ -172,6 +172,25 @@ try{
       await page.screenshot({path:outputDir+"research-dark-375.png",fullPage:false});
       console.log("SCREENSHOTS home-dark-375.png research-dark-375.png");
     }
+    for(const [state, label] of [["recorded","Four decisions recorded"],["hold","All four models held"],
+      ["missing","No round recorded"],["price-error","Market-data check failed"],["unavailable","Results unavailable"]]){
+      const shot=await page.goto(base+"/visual-layout-check/round?state="+state,{waitUntil:"domcontentloaded"});
+      assert.equal(shot?.status(),200,"private round fixture must render");
+      const panel=page.getByRole("region",{name:"Today’s round"});
+      await panel.getByText(label,{exact:true}).waitFor();
+      await panel.getByText("TEST DATA · NOT OFFICIAL",{exact:true}).waitFor();
+      assert.equal(await panel.locator("h3").count(),4);
+      assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),"round fixture overflow");
+      if(state==="recorded"){
+        await panel.getByText("Simulated fill · 24 shares",{exact:true}).waitFor();
+        await panel.getByText("Rejected · no fill",{exact:true}).waitFor();
+      }
+      if(state==="recorded" || width===375&&["missing","hold"].includes(state)){
+        const dir=new URL("../visual-artifacts/",import.meta.url).pathname;
+        fs.mkdirSync(dir,{recursive:true});
+        await panel.screenshot({path:dir+"round-"+width+"-"+state+".png",animations:"disabled"});
+      }
+    }
     console.log("PASS responsive home UI",width+"px",": English-only header, 5 spaced colored legend chips, conditional holder dots, no overflow");
     await context.close();
   }

@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 import type { Locale } from "./public-content";
 import { t } from "./i18n";
 import type { Dataset, Stats } from "./types";
+import { nyClock } from "./decision-coverage";
 import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adjust";
 
 /**
@@ -84,7 +85,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
   const ids = accounts.map((a: Raw) => a.id);
   // Timestamp the start of the result reads, including on cached public requests.
   const resultReadAt = new Date().toISOString();
-  const [ps, bs, stats, trades, orders, rounds, decisions, universe, universeChanges] = await Promise.all([
+  const [ps, bs, stats, trades, orders, rounds, decisions, universe, universeChanges, dailyJobs] = await Promise.all([
     all("portfolio_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("benchmark_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("performance_stats", "*", (q) => q.in("account_id", ids).order("as_of", { ascending: false })),
@@ -95,6 +96,12 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     all("stock_universe", "symbol,name,sector,role", (q) => q.is("removed_at", null)),
     all("universe_change_requests", "id,action,symbol,reason,scheduled_at,effective_session,status,applied_at,applied_round_id",
         (q) => q.eq("experiment_id", exp.id).order("scheduled_at", { ascending: false })),
+    // Shared job evidence is optional. Never expose detail/error payloads to the page.
+    all("job_runs", "run_key,status,detail", (q) => q.eq("job_name", "daily_decision")
+      .eq("run_key", nyClock(new Date(resultReadAt)).date).order("id", { ascending: false }).limit(20))
+      .then(rows => rows.map(row => ({ sessionDate: row.run_key, status: row.status,
+        priceError: /inconsistent OHLC|non-positive price|negative volume|NH period:|NH request failed/i.test(String(row.detail?.error ?? "")) })))
+      .catch(() => undefined),
   ]);
   const orderById = new Map(orders.map((o: Raw) => [o.id, o]));
   const roundById = new Map(rounds.map((r: Raw) => [r.id, r]));
@@ -155,6 +162,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     universe,
     universe_changes: universeChanges,
     results_read_at: resultReadAt,
+    daily_jobs: dailyJobs,
     prices: priceMap,
   };
 }
@@ -198,7 +206,7 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
     })),
     rejected: (raw.rejected_orders ?? []).map((o: Raw) => ({
       id: o.id, accountId: o.account_id, symbol: o.symbol, side: o.side, quantity: n(o.quantity),
-      status: o.status, reason: o.reject_reason, sessionDate: o.session_date,
+      status: o.status, reason: o.reject_reason, sessionDate: o.session_date, decisionId: o.decision_id ?? null,
     })),
     rounds: (raw.rounds ?? []).map((r: Raw) => ({
       id: r.id, sessionDate: r.session_date, dataAsOf: r.data_as_of, decisionAt: r.decision_at,
@@ -207,7 +215,8 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
     decisions: (raw.decisions ?? []).map((d: Raw) => ({
       id: d.id, roundId: d.round_id, aiId: d.ai_model_id, model: d.requested_model, status: d.status,
       error: d.error, summary: d.parsed?.summary ?? null, actions: d.parsed?.actions ?? [],
-      sessionDate: d.session_date, dataAsOf: d.data_as_of,
+      sessionDate: d.session_date, dataAsOf: d.data_as_of, completedAt: d.completed_at ?? null,
+      marketHash: d.market_hash ?? null, parsedActions: Array.isArray(d.parsed?.actions),
     })),
     universe: raw.universe ?? [],
     universeChanges: (raw.universe_changes ?? []).map((change: Raw) => ({
@@ -220,6 +229,7 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
       k, (rows as unknown[][]).map((r) => [String(r[0]), n(r[1]), n(r[2]), n(r[3]), n(r[4]), n(r[5])]),
     ])) as Dataset["prices"],
     generatedAt: raw.results_read_at,
+    dailyJobs: raw.daily_jobs,
   };
 }
 

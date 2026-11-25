@@ -16,9 +16,15 @@ const newYork = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
   hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23",
 });
-function nyClock(at: Date) {
+export function nyClock(at: Date) {
   const p = Object.fromEntries(newYork.formatToParts(at).map(({type, value}) => [type, value]));
   return { date: [p.year, p.month, p.day].join("-"), time: [p.hour, p.minute, p.second].join(":") };
+}
+
+export function nyseCalendarStatus(date: string): "open" | "closed" | "unknown" {
+  if (date < "2026-01-01" || date > "2028-12-31") return "unknown";
+  const weekday = new Date(date + "T00:00:00Z").getUTCDay();
+  return weekday === 0 || weekday === 6 || closures.has(date) ? "closed" : "open";
 }
 
 export type CoverageStatus = "recorded" | "hold" | "missed" | "pending" | "unverified";

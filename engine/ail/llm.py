@@ -103,10 +103,11 @@ class OpenRouterProvider:
                                   int(m.get("context_length") or 0))
         return out
 
-    def decide(self, model: str, packet: dict, max_output_tokens: int, timeout: int) -> LLMResult:
+    def decide(self, model: str, packet: dict, max_output_tokens: int, timeout: int, *,
+               system_prompt: str = SYSTEM_PROMPT) -> LLMResult:
         body = {
             "model": model,
-            "messages": [{"role": "system", "content": SYSTEM_PROMPT},
+            "messages": [{"role": "system", "content": system_prompt},
                          {"role": "user", "content": user_message(packet)}],
             "max_tokens": max_output_tokens,
             "temperature": 0,

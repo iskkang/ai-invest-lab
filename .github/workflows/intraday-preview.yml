@@ -1,0 +1,55 @@
+name: intraday-preview
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Verify NH data first (no AI calls), or run all four models
+        type: choice
+        required: true
+        default: probe
+        options: [probe, models]
+      slot:
+        description: Eastern-time checkpoint; now uses the latest completed 5-minute bar
+        type: choice
+        required: true
+        default: now
+        options: [now, open, morning, afternoon, preclose]
+permissions:
+  contents: read
+concurrency:
+  group: ail-intraday-preview
+  cancel-in-progress: false
+jobs:
+  preview:
+    if: github.repository == 'iskkang/ai-invest-lab' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install ./engine
+      - name: Run isolated paper experiment
+        env:
+          MODE: ${{ inputs.mode }}
+          SLOT: ${{ inputs.slot }}
+          NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
+          NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
+          OPENROUTER_API_KEY: ${{ inputs.mode == 'models' && secrets.OPENROUTER_API_KEY || '' }}
+          NHPLUG_TOKEN_CACHE: "0"
+          AIL_MODEL_GPT: ${{ vars.AIL_MODEL_GPT || 'openai/gpt-4.1-mini' }}
+          AIL_MODEL_CLAUDE: ${{ vars.AIL_MODEL_CLAUDE || 'anthropic/claude-sonnet-5.5' }}
+          AIL_MODEL_GEMINI: ${{ vars.AIL_MODEL_GEMINI || 'google/gemini-3.8-flash' }}
+          AIL_MODEL_DEEPSEEK: ${{ vars.AIL_MODEL_DEEPSEEK || 'deepseek/deepseek-v3.2' }}
+        run: python -m ail.intraday_preview --slot "$SLOT" --mode "$MODE" --receipt intraday-receipt.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: intraday-receipt
+          path: intraday-receipt.json
+          retention-days: 7

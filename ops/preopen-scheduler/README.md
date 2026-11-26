@@ -23,6 +23,9 @@ installation must first change it to `dry-run` and follow the checks below.
 Keep `GITHUB_ACTIONS_TOKEN` as an encrypted Worker secret; the production
 Worker does not read a binding named `GITHUB_ACTIONS_TOKEN_TEST`.
 
+The dispatch uses Workers-compatible `redirect: "manual"` and rejects every
+non-2xx response, including redirects, without following its `Location`.
+
 ## Dry-run and activate
 
 1. Merge the workflow change first. Run local tests with

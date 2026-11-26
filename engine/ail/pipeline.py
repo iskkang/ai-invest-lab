@@ -16,6 +16,8 @@ import time
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 
+from psycopg.errors import UniqueViolation
+
 from . import market_calendar as mc
 from . import portfolio, stats, universe
 from .common import D, DataIntegrityError, LabError, canonical, sha256, to_jsonable
@@ -23,7 +25,8 @@ from .config import BENCHMARK_SYMBOL, DEFAULT_UNIVERSE, Settings
 from .db import advisory_lock, audit, jsonb
 from .decision import PROMPT_HASH, SYSTEM_PROMPT, InvalidDecision, validate
 from .llm import estimate_cost, user_message
-from .market_data import active_universe, build_market_payload, ingest, store_snapshot, sync_sessions
+from .market_data import IngestionBlocked, active_universe, build_market_payload, ingest, store_snapshot, sync_sessions
+from .settlement_receipt import settlement_receipt, settlement_symbols
 
 BENCHMARKS = [("SPY_BUY_HOLD", "SPY 단순 매수·보유"), ("EQUAL_WEIGHT", "종목군 균등투자"), ("CASH", "현금 100%")]
 
@@ -131,14 +134,7 @@ def settle_through(conn, exp: dict, source, through: date, now: datetime, settin
     expected_source = "demo" if exp["mode"] == "demo" else "nh_plug"
     if source.name != expected_source:
         raise LabError(f"{exp['name']}: {exp['mode']} experiment cannot use {source.name} prices")
-    symbols = [u["symbol"] for u in active_universe(conn)]
-    held = [r["symbol"] for r in conn.execute(
-        "select distinct h.symbol from holdings h join portfolio_accounts a on a.id=h.account_id"
-        " where a.experiment_id=%s", (exp["id"],)).fetchall()]
-    queued_adds = [row["symbol"] for row in conn.execute(
-        "select symbol from universe_change_requests where experiment_id=%s"
-        " and status='scheduled' and action='add'", (exp["id"],)).fetchall()]
-    symbols = sorted(set(symbols) | set(held) | set(queued_adds))
+    symbols = settlement_symbols(conn, exp["id"])
     sync_sessions(conn, through - timedelta(days=550), through + timedelta(days=10))
     with conn.transaction():
         report = ingest(conn, source, symbols, through, now, settings.history_bars)
@@ -404,7 +400,7 @@ def _job(conn, name: str, key: str, fn):
     try:
         jid = conn.execute("insert into job_runs(job_name, run_key, status) values (%s,%s,'running') returning id",
                            (name, key)).fetchone()["id"]
-    except Exception:
+    except UniqueViolation:
         return {"status": "duplicate", "note": f"{name}:{key} already running or succeeded"}
     try:
         detail = fn()
@@ -413,8 +409,13 @@ def _job(conn, name: str, key: str, fn):
                      (status, jsonb(detail), jid))
         return {"status": status, **(detail or {})}
     except Exception as exc:
+        failure = {"error": f"{type(exc).__name__}: {exc}"}
+        if isinstance(exc, IngestionBlocked):
+            # Ingest has rolled back. Keep all quote-only findings in the job
+            # record so the next diagnosis is not limited to the first symbol.
+            failure["market_data"] = exc.detail
         conn.execute("update job_runs set status='failed', finished_at=now(), detail=%s where id=%s",
-                     (jsonb({"error": f"{type(exc).__name__}: {exc}"}), jid))
+                     (jsonb(failure), jid))
         raise
 
 
@@ -452,17 +453,53 @@ def run_daily(conn, settings: Settings, source, provider, now: datetime) -> dict
         return _job(conn, "daily_decision", today.isoformat(), body)
 
 
-def run_settle(conn, settings: Settings, source, now: datetime) -> dict:
-    """폐장 후 작업: 오늘 세션까지 체결·평가 반영."""
-    today = mc.ny_today(now)
+class InvalidSettlementSession(LabError):
+    """The requested recovery date is invalid or has not finished trading."""
+
+
+def run_settle(conn, settings: Settings, source, now: datetime,
+               expected_session: str | None = None) -> dict:
+    """Settle today's session, or an explicitly requested closed session.
+
+    An explicit recovery date changes only the target date, never the actual
+    clock used for close validation or the timestamp on newly fetched prices.
+    """
+    target = mc.ny_today(now)
+    if expected_session is not None:
+        try:
+            parsed = date.fromisoformat(expected_session)
+        except (TypeError, ValueError):
+            raise InvalidSettlementSession("settlement session must use YYYY-MM-DD") from None
+        if parsed.isoformat() != expected_session:
+            raise InvalidSettlementSession("settlement session must use YYYY-MM-DD")
+        target = parsed
+        if target > mc.ny_today(now):
+            raise InvalidSettlementSession("settlement session is in the future")
+    try:
+        is_session = mc.is_session(target)
+    except ValueError:
+        raise InvalidSettlementSession("settlement session is outside the supported calendar") from None
+    if not is_session:
+        if expected_session is not None:
+            raise InvalidSettlementSession("settlement session is not an NYSE trading day")
+        return {"status": "skipped", "reason": "holiday", "session": target.isoformat()}
+    if not mc.after_close(target, now):
+        if expected_session is not None:
+            raise InvalidSettlementSession("settlement session has not reached close plus 60 minutes")
+        return {"status": "skipped", "reason": "market not closed yet", "session": target.isoformat()}
+
+    # Reject invalid, future, holiday, and unclosed targets before any mutation.
     with advisory_lock(conn, "ail.daily"):
         exp = bootstrap(conn, settings)
 
         def body():
-            if not mc.is_session(today):
-                return {"_status": "skipped", "reason": "holiday"}
-            if not mc.after_close(today, now):
-                return {"_status": "skipped", "reason": "market not closed yet"}
-            return {"settle": settle_through(conn, exp, source, today, now, settings)}
+            detail = settle_through(conn, exp, source, target, now, settings)
+            receipt = settlement_receipt(conn, settings, target)
+            return {"_status": "succeeded" if receipt["verified"] else "failed",
+                    "settle": detail, "settlement_receipt": receipt}
 
-        return _job(conn, "post_close_settle", today.isoformat(), body)
+        result = _job(conn, "post_close_settle", target.isoformat(), body)
+        if "settlement_receipt" not in result:
+            # A job label is not evidence of saved bars and all seven valuations.
+            result["settlement_receipt"] = settlement_receipt(conn, settings, target)
+        return {**result, "session": target.isoformat()}

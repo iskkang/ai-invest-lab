@@ -1,0 +1,46 @@
+# Read-only comparison of stored candles and two fresh NH quote responses.
+# No inference, orders, migrations, bootstrap, or database writes.
+name: market-data-audit
+on:
+  workflow_dispatch:
+    inputs:
+      through:
+        description: "Completed NYSE session (YYYY-MM-DD); blank selects the latest completed session"
+        required: false
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: ail-market-data-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.repository == 'iskkang/ai-invest-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      NHPLUG_APP_KEY: ${{ secrets.NHPLUG_APP_KEY }}
+      NHPLUG_APP_SECRET: ${{ secrets.NHPLUG_APP_SECRET }}
+      AIL_EXPERIMENT: ${{ vars.AIL_EXPERIMENT || 'season-1' }}
+      NHPLUG_TOKEN_CACHE: "0"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install ./engine
+      - name: Compare immutable history with current quote observations
+        env:
+          THROUGH: ${{ inputs.through }}
+        run: |
+          set -euo pipefail
+          if [[ -n "${THROUGH:-}" ]]; then
+            python engine/scripts/market_data_audit.py --through "$THROUGH"
+          else
+            python engine/scripts/market_data_audit.py
+          fi

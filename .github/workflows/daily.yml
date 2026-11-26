@@ -20,7 +20,7 @@ on:
         default: verify
         options: [verify, run-daily, run-settle, costs]
       scheduled_session:
-        description: "Optional New York session date attached by the independent scheduler"
+        description: "New York session: current day for run-daily; an already closed day for run-settle recovery"
         required: false
         type: string
 concurrency: { group: ail-engine, cancel-in-progress: false }

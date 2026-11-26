@@ -42,9 +42,12 @@ jobs:
       - name: Compare immutable history with current quote observations
         env:
           THROUGH: ${{ inputs.through }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          if [[ -n "${THROUGH:-}" ]]; then
+          if [[ "$EVENT_NAME" == "push" ]]; then
+            python engine/scripts/market_data_audit.py --probe-basis --through 2026-11-25
+          elif [[ -n "${THROUGH:-}" ]]; then
             python engine/scripts/market_data_audit.py --through "$THROUGH"
           else
             python engine/scripts/market_data_audit.py

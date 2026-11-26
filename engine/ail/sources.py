@@ -68,6 +68,40 @@ class _NHInconsistentOHLC(DataIntegrityError):
                          f"(NH values: {values(raw_prices)}; quantized: {values(parsed_prices)})")
 
 
+class _NHRequestError(DataIntegrityError):
+    """A failed quote request, with no provider response or arbitrary error text."""
+
+    def __init__(self, category):
+        allowed = ("rate_limit", "network", "http", "auth", "config")
+        self.category = category if isinstance(category, str) and category in allowed else "unknown"
+        super().__init__(f"NH request failed [{self.category}]")
+
+
+class _NHRefetchError(DataIntegrityError):
+    """Keep the known invalid candle evidence when a same-query retry fails."""
+
+    _REASONS = {
+        "still_invalid": "still invalid after refetch",
+        "changed_date_coverage": "refetch changed date coverage",
+        "revised_valid_bar": "refetch revised an originally valid bar",
+        "duplicate_bar": "regular-session refetch failed: duplicate NH bar",
+        "request_failed": "regular-session refetch failed: NH request failed",
+        "integrity_error": "regular-session refetch failed: source data failed integrity validation",
+    }
+
+    def __init__(self, first: _NHInconsistentOHLC, reason: str,
+                 second: _NHInconsistentOHLC | None = None,
+                 request_error: _NHRequestError | None = None):
+        description = self._REASONS[reason]
+        self.trade_date = first.trade_date
+        self.reason = reason
+        self.request_category = request_error.category if request_error is not None else None
+        self.observations = [{"attempt": "initial", "trade_date": first.trade_date, "ohlc": first.ohlc}]
+        if second is not None:
+            self.observations.append({"attempt": "refetch", "trade_date": second.trade_date, "ohlc": second.ohlc})
+        super().__init__(f"{first}; {description}" + (f": {second}" if second is not None else ""))
+
+
 class NHQuoteSource:
     name = "nh_plug"
 
@@ -89,7 +123,7 @@ class NHQuoteSource:
             except Exception as exc:  # NhplugError(category=rate_limit|network|http|auth|config)
                 category = getattr(exc, "category", "")
                 if category not in ("rate_limit", "network") or attempt == self._max_retries:
-                    raise DataIntegrityError(f"NH request failed [{category or type(exc).__name__}]") from None
+                    raise _NHRequestError(category) from None
                 self._sleep(delay)
                 delay *= 2
         raise AssertionError("unreachable")
@@ -115,15 +149,18 @@ class NHQuoteSource:
         self._sleep(1.0)
         try:
             refreshed, still_invalid = self._read_bars(symbol, query)
+        except _NHRequestError as exc:
+            raise _NHRefetchError(first_error, "request_failed", request_error=exc) from None
         except DataIntegrityError as exc:
-            raise DataIntegrityError(f"{first_error}; regular-session refetch failed: {exc}") from None
+            reason = "duplicate_bar" if "duplicate NH bar" in str(exc) else "integrity_error"
+            raise _NHRefetchError(first_error, reason) from None
         if still_invalid:
             second_error = min(still_invalid.values(), key=lambda exc: exc.trade_date)
-            raise DataIntegrityError(f"{first_error}; still invalid after refetch: {second_error}")
+            raise _NHRefetchError(first_error, "still_invalid", second=second_error)
         if refreshed.keys() != (initial.keys() | invalid.keys()):
-            raise DataIntegrityError(f"{first_error}; refetch changed date coverage")
+            raise _NHRefetchError(first_error, "changed_date_coverage")
         if any(refreshed[td] != bar for td, bar in initial.items()):
-            raise DataIntegrityError(f"{first_error}; refetch revised an originally valid bar")
+            raise _NHRefetchError(first_error, "revised_valid_bar")
         return sorted(refreshed.values(), key=lambda bar: bar.trade_date)
 
     def _read_bars(self, symbol: str, query: dict) -> tuple[dict[date, Bar], dict[date, _NHInconsistentOHLC]]:

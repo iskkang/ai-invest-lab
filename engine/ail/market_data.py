@@ -8,7 +8,7 @@ from . import indicators
 from . import market_calendar as mc
 from .common import D, DataIntegrityError, sha256, to_jsonable
 from .db import jsonb
-from .sources import Bar, _NHInconsistentOHLC
+from .sources import Bar, _NHInconsistentOHLC, _NHRefetchError, _NHRequestError
 
 SPLIT_GAP_LOW, SPLIT_GAP_HIGH = Decimal("0.6"), Decimal("1.6")
 BAR_FIELDS = ("open", "high", "low", "close", "volume")
@@ -65,6 +65,13 @@ def _integrity_issue(symbol: str, source: str, exc: DataIntegrityError) -> dict:
         issue["trade_date"] = trade_date.isoformat()
     if isinstance(exc, _NHInconsistentOHLC):
         issue["ohlc"] = to_jsonable(exc.ohlc)
+    elif isinstance(exc, _NHRefetchError):
+        issue["refetch_reason"] = exc.reason
+        issue["observations"] = to_jsonable(exc.observations)
+        if exc.request_category is not None:
+            issue["request_category"] = exc.request_category
+    elif isinstance(exc, _NHRequestError):
+        issue["request_category"] = exc.category
     return issue
 
 
@@ -114,11 +121,12 @@ def ingest(conn, source, symbols: list[str], through: date, now: datetime, histo
     - through 일자 봉이 하나라도 없으면 중단한다(이전 가격으로 위장하지 않음).
     """
     report = {"inserted": 0, "symbols": len(symbols), "through": through.isoformat()}
-    issues, failed = [], set()
+    issues, failed, checked = [], set(), 0
     # Own the transaction even when a caller has not opened one. Inside a caller's
     # transaction psycopg uses a savepoint. A failed batch cannot publish a subset.
     with conn.transaction():
         for symbol in symbols:
+            checked += 1
             last = conn.execute(
                 "select max(trade_date) as d from stock_prices where symbol=%s and source=%s", (symbol, source.name)
             ).fetchone()["d"]
@@ -131,6 +139,12 @@ def ingest(conn, source, symbols: list[str], through: date, now: datetime, histo
             except DataIntegrityError as exc:
                 failed.add(symbol)
                 issues.append(_integrity_issue(symbol, source.name, exc))
+                if isinstance(exc, _NHRequestError) or (
+                    isinstance(exc, _NHRefetchError) and exc.request_category is not None
+                ):
+                    # Exhausted transport/auth failures may affect every symbol.
+                    # Do not repeat the full retry budget until the workflow is killed.
+                    raise IngestionBlocked(source.name, through, issues, checked) from None
         for symbol in symbols:
             if symbol in failed:
                 continue  # Its missing final bar is already explained by the recorded failure.
@@ -142,7 +156,7 @@ def ingest(conn, source, symbols: list[str], through: date, now: datetime, histo
                                "code": "missing_bar", "error_class": "DataIntegrityError",
                                "message": f"missing bars for {through}: {symbol}"})
         if issues:
-            raise IngestionBlocked(source.name, through, issues, len(symbols))
+            raise IngestionBlocked(source.name, through, issues, checked)
     return report
 
 

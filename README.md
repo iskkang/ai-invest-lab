@@ -69,7 +69,8 @@ ai-invest-lab/
 `settlement_receipt`로 확인하고, 검증되지 않으면 실패합니다. 뉴욕 자정이 지난 뒤의 복구는
 `AIL_EXPECTED_SESSION=YYYY-MM-DD ail run-settle`로 이미 폐장한 거래일을 명시합니다.
 수집 시각은 실제 현재 시각으로 기록하며, 과거 AI 판단을 생성하지 않습니다.
-시세 문제는 수집 전체를 되돌리고 모든 실패 종목을 함께 보고합니다. 읽기 전용 전체 종목 대조는
+시세 문제는 수집 전체를 되돌리고 종목별 데이터 오류를 함께 보고합니다. 인증·통신 요청 실패는
+공급원 장애로 중단하여 전체 종목에 장시간 재시도를 반복하지 않습니다. 읽기 전용 전체 종목 대조는
 Actions의 `market-data-audit` 또는 `python engine/scripts/market_data_audit.py --through YYYY-MM-DD`를 사용합니다.
 
 ## 공정성·무결성 규칙 (코드와 테스트로 강제)

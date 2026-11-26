@@ -8,7 +8,7 @@ import pytest
 from ail.common import DataIntegrityError
 from ail.config import DEFAULT_UNIVERSE
 from ail.market_data import IngestionBlocked, _store, ingest
-from ail.sources import Bar
+from ail.sources import Bar, _NHInconsistentOHLC, _NHRefetchError, _NHRequestError
 
 THROUGH = date(2026, 11, 25)
 OBSERVED = datetime(2026, 11, 26, 5, tzinfo=timezone.utc)
@@ -102,7 +102,8 @@ def test_unexpected_database_exception_propagates_without_becoming_a_source_issu
 def test_unknown_source_error_body_is_not_logged(db):
     source = Source({"BAD": DataIntegrityError("private-response-body-must-not-be-logged")})
     with pytest.raises(IngestionBlocked) as caught:
-        ingest(db, source, ["BAD"], THROUGH, OBSERVED, 300)
+        ingest(db, source, ["BAD", "GOOD"], THROUGH, OBSERVED, 300)
+    assert source.calls == ["BAD", "GOOD"] and prices(db) == []
     assert "private-response" not in str(caught.value) + str(caught.value.detail)
     assert caught.value.detail["issues"][0]["code"] == "source_integrity_error"
 
@@ -117,3 +118,23 @@ def test_failed_job_retains_all_findings_after_price_transaction_rolls_back(db):
     job = db.execute("select status,detail from job_runs").fetchone()
     assert job["status"] == "failed" and prices(db) == []
     assert job["detail"]["market_data"] == caught.value.detail
+
+
+@pytest.mark.parametrize("during_refetch", [False, True])
+def test_request_failure_stops_remaining_requests_and_rolls_back_with_prior_findings(db, during_refetch):
+    failure = _NHRequestError("network")
+    if during_refetch:
+        values = tuple(Decimal(v) for v in ("103", "102", "99", "101"))
+        first = _NHInconsistentOHLC("OFFLINE", THROUGH, values, values)
+        failure = _NHRefetchError(first, "request_failed", request_error=failure)
+    source = Source({"BAD": DataIntegrityError("BAD: inconsistent OHLC"), "OFFLINE": failure})
+    with pytest.raises(IngestionBlocked) as caught:
+        ingest(db, source, ["GOOD", "BAD", "OFFLINE", "UNVISITED"], THROUGH, OBSERVED, 300)
+    assert source.calls == ["GOOD", "BAD", "OFFLINE"]
+    assert prices(db) == []
+    detail = caught.value.detail
+    assert detail["symbols_checked"] == 3 and detail["committed_bars"] == 0
+    assert [issue["symbol"] for issue in detail["issues"]] == ["BAD", "OFFLINE"]
+    assert detail["issues"][1]["request_category"] == "network"
+    if during_refetch:
+        assert detail["issues"][1]["observations"][0]["trade_date"] == THROUGH.isoformat()

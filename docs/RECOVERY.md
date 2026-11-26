@@ -51,3 +51,5 @@ Rollback only the **web** Vercel deployment to the last confirmed healthy releas
 5. Separately verify the next eligible pre-open decision round with all four valid model records. A settlement receipt does not establish that a future decision round ran.
 
 If ingestion fails, all price inserts in that attempt roll back. The failed job retains a structured `market_data.issues` list, including quote-only revision differences, after rollback. Database errors propagate rather than being mislabeled as duplicate jobs.
+
+Per-symbol data failures are collected across the required symbols. An exhausted NH request failure (including transport or authentication failure) stops the batch immediately, retaining earlier findings and the actual number of symbols checked. Repeating a provider outage across every symbol can exceed the workflow deadline and strand a running job. Persistent invalid-OHLC responses retain both dated observations after the same-query retry.

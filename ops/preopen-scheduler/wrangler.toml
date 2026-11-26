@@ -5,7 +5,9 @@ workers_dev = false
 preview_urls = false
 
 [vars]
-SCHEDULER_MODE = "dry-run"
+# Preserve the existing scheduler's activation target on redeploy.
+# New installations must start with "dry-run"; see README.md.
+SCHEDULER_MODE = "live"
 
 [triggers]
 # EDT corresponds to 12 UTC; EST corresponds to 13 UTC.

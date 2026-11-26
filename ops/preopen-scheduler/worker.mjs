@@ -32,7 +32,9 @@ export async function tick(scheduledTime, now, env, request = fetch) {
   if (!env.GITHUB_ACTIONS_TOKEN) throw new Error("GITHUB_ACTIONS_TOKEN is missing");
   const response = await request(endpoint, {
     method: "POST",
-    redirect: "error",
+    // Workers supports manual/follow, not error. Reject 3xx below without
+    // forwarding the Authorization header to any redirect destination.
+    redirect: "manual",
     headers: {
       Authorization: `Bearer ${env.GITHUB_ACTIONS_TOKEN}`,
       Accept: "application/vnd.github+json",

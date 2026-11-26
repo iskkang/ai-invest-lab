@@ -35,11 +35,33 @@ test("one restricted private dispatch, no retry and no remote body in errors", a
     calls++;
     assert.match(url, /iskkang\/ai-invest-lab\/actions\/workflows\/daily.yml\/dispatches$/);
     assert.equal(init.method, "POST");
-    assert.equal(init.redirect, "error");
+    assert.equal(init.redirect, "manual");
     assert.deepEqual(JSON.parse(init.body), { ref: "main", inputs: { job: "run-daily", scheduled_session: "2026-11-25" } });
     return new Response(null, { status: 204 });
   });
   assert.equal(calls, 1);
   assert.deepEqual(result, { status: "dispatch-accepted", session: "2026-11-25" });
   await assert.rejects(tick(slot, slot, env, () => new Response("raw remote body", { status: 403 })), /^Error: GitHub daily-engine dispatch failed \(HTTP 403\)$/);
+});
+test("Workers-compatible fetch rejects a redirect without forwarding credentials", async () => {
+  const slot = utc("2026-11-25T13:17:00Z");
+  const env = { SCHEDULER_MODE: "live", GITHUB_ACTIONS_TOKEN: "test-only" };
+  const requests = [];
+  const workersFetch = (url, init) => {
+    requests.push({ url, init });
+    // Cloudflare Workers implements only follow/manual, unlike Node fetch.
+    if (!["follow", "manual"].includes(init.redirect)) {
+      throw new TypeError("Invalid redirect value, must be one of follow or manual");
+    }
+    assert.equal(init.redirect, "manual", "credential-bearing requests must not follow redirects");
+    return new Response("remote redirect body", {
+      status: 302,
+      headers: { Location: "https://outside.example/collect" },
+    });
+  };
+  await assert.rejects(tick(slot, slot, env, workersFetch),
+    /^Error: GitHub daily-engine dispatch failed \(HTTP 302\)$/);
+  assert.equal(requests.length, 1, "must not retry or request the Location URL");
+  assert.equal(new URL(requests[0].url).origin, "https://api.github.com");
+  assert.equal(requests[0].init.headers.Authorization, "Bearer test-only");
 });

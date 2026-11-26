@@ -17,7 +17,7 @@ from ail.pipeline import run_settle
 from ail.reconciled_source import ReconciledQuoteSource
 
 
-EXPECTED_SHA = "c3463c40fffa64eecb0e8194142d10b2bbc7295c"
+EXPECTED_SHA = "c4820b297f62fa168088ec481ffc226ae80d6401"
 EXPECTED_BRANCH = "refs/heads/ops/reconciled-recovery-20261126"
 TARGET = date(2026, 11, 25)
 EXPIRES = datetime(2026, 11, 26, 9, 0, tzinfo=timezone.utc)

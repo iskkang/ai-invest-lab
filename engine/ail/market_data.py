@@ -218,14 +218,21 @@ def _store(conn, symbol: str, source_name: str, bars: list[Bar], now: datetime, 
             (symbol, source_name, first),
         ).fetchone()
         prev_close = D(row["close"]) if row else None
+    # A complete provider history contains hundreds of already-frozen rows.
+    # Read them once rather than paying a remote database round trip per bar.
+    # Include newly staged rows in this map too, preserving first-observation
+    # and duplicate/revision semantics within this same input batch.
+    existing_by_date = {row["trade_date"]: row for row in conn.execute(
+        "select trade_date, open, high, low, close, volume, fetched_at from stock_prices"
+        " where symbol=%s and source=%s and trade_date between %s and %s",
+        (symbol, source_name, min(bar.trade_date for bar in bars), max(bar.trade_date for bar in bars)),
+    ).fetchall()} if bars else {}
+    pending = []
     for bar in bars:
         bar.check()
         if not mc.is_session(bar.trade_date):
             raise DataIntegrityError(f"{symbol}: bar on non-session date {bar.trade_date}")
-        existing = conn.execute(
-            "select open, high, low, close, volume, fetched_at from stock_prices where symbol=%s and trade_date=%s and source=%s",
-            (symbol, bar.trade_date, source_name),
-        ).fetchone()
+        existing = existing_by_date.get(bar.trade_date)
         if existing:
             same = (D(existing["open"]) == bar.open and D(existing["high"]) == bar.high and D(existing["low"]) == bar.low
                     and D(existing["close"]) == bar.close and int(existing["volume"]) == bar.volume)
@@ -245,14 +252,22 @@ def _store(conn, symbol: str, source_name: str, bars: list[Bar], now: datetime, 
             if (gap < SPLIT_GAP_LOW or gap > SPLIT_GAP_HIGH) and bar.trade_date not in splits:
                 raise DataIntegrityError(
                     f"{symbol} {bar.trade_date}: open/prev_close={gap:.3f} looks like an unrecorded split or bad tick")
-        conn.execute(
-            "insert into stock_prices(symbol,trade_date,open,high,low,close,volume,source,fetched_at,raw,provider)"
-            " values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            (symbol, bar.trade_date, bar.open, bar.high, bar.low, bar.close, bar.volume, source_name, now,
-             jsonb(bar.raw) if bar.raw else None, bar.source),
-        )
-        report["inserted"] += 1
+        pending.append((symbol, bar.trade_date, bar.open, bar.high, bar.low, bar.close, bar.volume,
+                        source_name, now, jsonb(bar.raw) if bar.raw else None, bar.source))
+        existing_by_date[bar.trade_date] = {
+            **{field: getattr(bar, field) for field in BAR_FIELDS}, "fetched_at": now,
+        }
         prev_close = bar.close
+    if pending:
+        # Values remain ordinary bound parameters. A conflicting concurrent
+        # insert still fails the transaction; never hide it with ON CONFLICT.
+        placeholders = ",".join(["(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"] * len(pending))
+        result = conn.execute(
+            "insert into stock_prices(symbol,trade_date,open,high,low,close,volume,source,fetched_at,raw,provider)"
+            " values " + placeholders,
+            [value for row in pending for value in row],
+        )
+        report["inserted"] += result.rowcount
 
 
 def adjusted_history(conn, symbol: str, source_name: str, through: date, cutoff: datetime) -> list[dict]:

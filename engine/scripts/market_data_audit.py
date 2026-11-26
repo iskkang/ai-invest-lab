@@ -236,10 +236,14 @@ def main(argv=None):
              close_buffer_minutes=60, history_limit=history_bars, read_only=True)
         with psycopg.connect(os.environ["DATABASE_URL"], options="-c default_transaction_read_only=on",
                               connect_timeout=15, row_factory=dict_row, autocommit=True) as conn:
-            if conn.execute("show transaction_read_only").fetchone()["transaction_read_only"] != "on":
-                emit("audit_error", category="read_only_guard_not_active")
-                return 2
-            return audit(conn, through, history_bars)
+            # Poolers can discard startup options. Enforce and verify the guard
+            # inside the actual transaction that contains every audit query.
+            with conn.transaction():
+                conn.execute("set transaction read only")
+                if conn.execute("show transaction_read_only").fetchone()["transaction_read_only"] != "on":
+                    emit("audit_error", category="read_only_guard_not_active")
+                    return 2
+                return audit(conn, through, history_bars)
     except Exception as exc:
         emit("audit_error", **safe_error(exc))
         return 1

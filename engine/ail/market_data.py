@@ -1,13 +1,15 @@
 """시세 수집·정합성 검사·판단용 스냅샷 생성."""
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from decimal import Decimal
 
 from . import indicators
 from . import market_calendar as mc
 from .common import D, DataIntegrityError, sha256, to_jsonable
+from .config import LIVE_PRICE_SOURCE
 from .db import jsonb
+from .price_history import latest_price_history, store_price_history
 from .sources import Bar, _NHInconsistentOHLC, _NHRefetchError, _NHRequestError
 
 SPLIT_GAP_LOW, SPLIT_GAP_HIGH = Decimal("0.6"), Decimal("1.6")
@@ -116,11 +118,15 @@ def ingest(conn, source, symbols: list[str], through: date, now: datetime, histo
 
     - through 이후 봉은 저장하지 않는다(미래 데이터 차단).
     - 모든 종목의 알려진 정합성 오류를 모아 보고하고, 하나라도 있으면 이번 수집 전체를 롤백한다.
-    - 이미 저장된 봉과 값이 다르면 조용히 덮어쓰지 않고 중단한다(사후 수정 감지).
+    - 기존 NH/DEMO 자료의 수정은 거부한다. 새 live 데이터셋에서는 원본을 유지하고
+      공급자별 전체 관측 이력을 별도로 보존하며 필요한 경우 대체 공급원을 대조한다.
     - 분할로 보이는 시가 갭이 있는데 corporate_actions 에 기록이 없으면 중단한다.
     - through 일자 봉이 하나라도 없으면 중단한다(이전 가격으로 위장하지 않음).
     """
     report = {"inserted": 0, "symbols": len(symbols), "through": through.isoformat()}
+    reconciled = source.name == LIVE_PRICE_SOURCE
+    if reconciled:
+        report.update(providers={}, canonical_revisions=0, revision_samples=[])
     issues, failed, checked = [], set(), 0
     # Own the transaction even when a caller has not opened one. Inside a caller's
     # transaction psycopg uses a savepoint. A failed batch cannot publish a subset.
@@ -130,12 +136,42 @@ def ingest(conn, source, symbols: list[str], through: date, now: datetime, histo
             last = conn.execute(
                 "select max(trade_date) as d from stock_prices where symbol=%s and source=%s", (symbol, source.name)
             ).fetchone()["d"]
-            if last is not None and last >= through:
+            batch = latest_price_history(conn, source.name, symbol, through, datetime.now(timezone.utc)) if reconciled else None
+            route = conn.execute(
+                "select provider from price_history_batches where dataset=%s and symbol=%s"
+                " and observed_at<=%s order by observed_at desc,id desc limit 1",
+                (source.name, symbol, datetime.now(timezone.utc)),
+            ).fetchone() if reconciled else None
+            if last is not None and last >= through and (not reconciled or (batch and batch["through"] >= through)):
                 continue
-            count = history_bars if last is None else len(mc.sessions_between(last, through)) + 5
+            count = history_bars if reconciled or last is None else len(mc.sessions_between(last, through)) + 5
             try:
-                bars = [b for b in source.daily_bars(symbol, through, count) if b.trade_date <= through]
-                _store(conn, symbol, source.name, bars, now, report)
+                if reconciled and route and route["provider"] == "nasdaq_historical":
+                    bars = source.secondary_bars(symbol, through, count, reason="retained_verified_provider")
+                else:
+                    bars = source.daily_bars(symbol, through, count)
+                bars = [b for b in bars if b.trade_date <= through]
+                observed_at = now
+                if reconciled:
+                    # A comparison feed is selected for the entire history, never
+                    # for a single volume observation in a differently scaled series.
+                    if source.last_batch["provider"] == "nh_plug" and _has_price_revision(conn, symbol, source.name, bars):
+                        primary_metadata = dict(source.last_batch)
+                        primary_batch_id = store_price_history(conn, "nh_plug", symbol, through, bars, primary_metadata)
+                        bars = source.secondary_bars(symbol, through, count, reason="stored_bar_revision")
+                        source.last_batch["primary_issue"] = {
+                            "code": "stored_bar_revision", "provider": "nh_plug",
+                            "primary_batch_id": primary_batch_id,
+                            "observed_at": primary_metadata["observed_at"],
+                            "queries": primary_metadata.get("queries", []),
+                        }
+                    if len(bars) < min(200, history_bars) or not bars or bars[-1].trade_date != through:
+                        raise DataIntegrityError(f"{symbol}: incomplete full-provider history for {through}")
+                    metadata = source.last_batch
+                    observed_at = metadata["observed_at"]
+                    store_price_history(conn, source.name, symbol, through, bars, metadata)
+                    report["providers"][symbol] = metadata["provider"]
+                _store(conn, symbol, source.name, bars, observed_at, report)
             except DataIntegrityError as exc:
                 failed.add(symbol)
                 issues.append(_integrity_issue(symbol, source.name, exc))
@@ -160,6 +196,18 @@ def ingest(conn, source, symbols: list[str], through: date, now: datetime, histo
     return report
 
 
+def _has_price_revision(conn, symbol: str, dataset: str, bars: list[Bar]) -> bool:
+    if not bars:
+        return False
+    old = {r["trade_date"]: r for r in conn.execute(
+        "select trade_date, open, high, low, close from stock_prices"
+        " where symbol=%s and source=%s and trade_date between %s and %s",
+        (symbol, dataset, bars[0].trade_date, bars[-1].trade_date),
+    ).fetchall()}
+    return any(b.trade_date in old and any(D(old[b.trade_date][f]) != getattr(b, f)
+               for f in ("open", "high", "low", "close")) for b in bars)
+
+
 def _store(conn, symbol: str, source_name: str, bars: list[Bar], now: datetime, report: dict) -> None:
     splits = recorded_splits(conn, symbol, source_name, bars[-1].trade_date) if bars else {}
     prev_close = None
@@ -170,19 +218,33 @@ def _store(conn, symbol: str, source_name: str, bars: list[Bar], now: datetime, 
             (symbol, source_name, first),
         ).fetchone()
         prev_close = D(row["close"]) if row else None
+    # A complete provider history contains hundreds of already-frozen rows.
+    # Read them once rather than paying a remote database round trip per bar.
+    # Include newly staged rows in this map too, preserving first-observation
+    # and duplicate/revision semantics within this same input batch.
+    existing_by_date = {row["trade_date"]: row for row in conn.execute(
+        "select trade_date, open, high, low, close, volume, fetched_at from stock_prices"
+        " where symbol=%s and source=%s and trade_date between %s and %s",
+        (symbol, source_name, min(bar.trade_date for bar in bars), max(bar.trade_date for bar in bars)),
+    ).fetchall()} if bars else {}
+    pending = []
     for bar in bars:
         bar.check()
         if not mc.is_session(bar.trade_date):
             raise DataIntegrityError(f"{symbol}: bar on non-session date {bar.trade_date}")
-        existing = conn.execute(
-            "select open, high, low, close, volume, fetched_at from stock_prices where symbol=%s and trade_date=%s and source=%s",
-            (symbol, bar.trade_date, source_name),
-        ).fetchone()
+        existing = existing_by_date.get(bar.trade_date)
         if existing:
             same = (D(existing["open"]) == bar.open and D(existing["high"]) == bar.high and D(existing["low"]) == bar.low
                     and D(existing["close"]) == bar.close and int(existing["volume"]) == bar.volume)
             if not same:
-                raise _StoredBarRevision(symbol, source_name, bar, existing, now)
+                if source_name != LIVE_PRICE_SOURCE:
+                    raise _StoredBarRevision(symbol, source_name, bar, existing, now)
+                # Canonical prices remain the exact references for old fills and
+                # marks. New decisions use the separately versioned whole batch.
+                report["canonical_revisions"] = report.get("canonical_revisions", 0) + 1
+                samples = report.setdefault("revision_samples", [])
+                if len(samples) < 10:
+                    samples.append(_StoredBarRevision(symbol, source_name, bar, existing, now).detail)
             prev_close = bar.close
             continue
         if prev_close is not None:
@@ -190,18 +252,31 @@ def _store(conn, symbol: str, source_name: str, bars: list[Bar], now: datetime, 
             if (gap < SPLIT_GAP_LOW or gap > SPLIT_GAP_HIGH) and bar.trade_date not in splits:
                 raise DataIntegrityError(
                     f"{symbol} {bar.trade_date}: open/prev_close={gap:.3f} looks like an unrecorded split or bad tick")
-        conn.execute(
-            "insert into stock_prices(symbol,trade_date,open,high,low,close,volume,source,fetched_at,raw)"
-            " values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-            (symbol, bar.trade_date, bar.open, bar.high, bar.low, bar.close, bar.volume, source_name, now,
-             jsonb(bar.raw) if bar.raw else None),
-        )
-        report["inserted"] += 1
+        pending.append((symbol, bar.trade_date, bar.open, bar.high, bar.low, bar.close, bar.volume,
+                        source_name, now, jsonb(bar.raw) if bar.raw else None, bar.source))
+        existing_by_date[bar.trade_date] = {
+            **{field: getattr(bar, field) for field in BAR_FIELDS}, "fetched_at": now,
+        }
         prev_close = bar.close
+    if pending:
+        # Values remain ordinary bound parameters. A conflicting concurrent
+        # insert still fails the transaction; never hide it with ON CONFLICT.
+        placeholders = ",".join(["(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"] * len(pending))
+        result = conn.execute(
+            "insert into stock_prices(symbol,trade_date,open,high,low,close,volume,source,fetched_at,raw,provider)"
+            " values " + placeholders,
+            [value for row in pending for value in row],
+        )
+        report["inserted"] += result.rowcount
 
 
 def adjusted_history(conn, symbol: str, source_name: str, through: date, cutoff: datetime) -> list[dict]:
     """through/cutoff 시점까지 확정된 봉과 해당 시점에 유효한 분할만 조정한다."""
+    if source_name == LIVE_PRICE_SOURCE:
+        batch = latest_price_history(conn, source_name, symbol, through, cutoff)
+        # Provider history may already reflect corporate actions. Preserve the
+        # reported basis; never apply a second, guessed adjustment to this batch.
+        return batch["history"] if batch else []
     rows = conn.execute(
         "select trade_date, open, high, low, close, volume from stock_prices"
         " where symbol=%s and source=%s and trade_date<=%s and fetched_at<=%s order by trade_date",
@@ -234,7 +309,13 @@ def build_market_payload(conn, source_name: str, data_as_of: date, cutoff: datet
         ind = indicators.compute(closes, [h["high"] for h in hist], [h["low"] for h in hist],
                                  [h["volume"] for h in hist])
         ind["closes_last_10"] = [round(c, 4) for c in closes[-10:]]
-        rows.append({"symbol": u["symbol"], "name": u["name"], "sector": u["sector"], "role": u["role"], **ind})
+        evidence = {}
+        if source_name == LIVE_PRICE_SOURCE:
+            batch = latest_price_history(conn, source_name, u["symbol"], data_as_of, cutoff)
+            evidence = {"history_batch_id": batch["id"], "history_observed_at": batch["observed_at"].isoformat(),
+                        "provider": batch["provider"], "price_basis": batch["basis"],
+                        "volume_unit": batch["volume_unit"], "history_hash": batch["payload_hash"]}
+        rows.append({"symbol": u["symbol"], "name": u["name"], "sector": u["sector"], "role": u["role"], **ind, **evidence})
     investable = [r for r in rows if r["role"] == "investable"]
     benchmark = [r for r in rows if r["role"] == "benchmark"]
     for r in rows:
@@ -242,7 +323,8 @@ def build_market_payload(conn, source_name: str, data_as_of: date, cutoff: datet
     return {
         "schema_version": 1,
         "data_as_of": data_as_of.isoformat(),
-        "price_basis": "daily regular-session bars, point-in-time source-scoped split-adjusted",
+        "price_basis": ("complete provider-reported histories, versioned at receipt; see per-symbol basis and volume unit"
+                        if source_name == LIVE_PRICE_SOURCE else "daily regular-session bars, point-in-time source-scoped split-adjusted"),
         "source": source_name,
         "investable": investable,
         "benchmark": benchmark,

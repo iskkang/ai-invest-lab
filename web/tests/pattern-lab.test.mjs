@@ -83,7 +83,7 @@ test("Real pattern studies start at next session OPEN, mature 5/20 later, and su
   const {publicStudy,signals}=runPatternStudy(data);
   const hammer=publicStudy.patterns.find(p=>p.id==="inverted-hammer");
   assert.equal(publicStudy.eligibleSymbols,20);
-  assert.equal(publicStudy.priceSource,"nh_plug");
+  assert.equal(publicStudy.priceSource,"reconciled_live_v1");
   assert.ok(hammer.occurrences>=20);
   assert.equal(hammer.horizons[0].observations,20);
   assert.equal(hammer.horizons[0].hitRate,100);

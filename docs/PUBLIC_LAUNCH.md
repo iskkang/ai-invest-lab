@@ -13,7 +13,7 @@ The original AI leaderboard, return chart, portfolio / performance tables, model
 
 ## Access control and quote-license separation
 
-The public read-only pages use the server-rendered Supabase data projection, but the API/secret key remains server-side. Public live responses **redact** NH PLUG per-symbol OHLCV, original opening/fill prices and trade cash amounts. They may display independently generated AI decisions, simulated portfolio-level curves, and hypothetical positions; confirm provider-derived-data licensing separately before any further public feed.
+The public read-only pages use the server-rendered Supabase data projection, but the API/secret key remains server-side. Public live responses **redact** NH PLUG and Nasdaq per-symbol OHLCV, original opening/fill prices and trade cash amounts. They may display independently generated AI decisions, simulated portfolio-level curves, and hypothetical positions; confirm provider-derived-data licensing separately before any further public feed.
 - Health endpoints, dashboard database operations and unlisted paths remain behind Basic authentication.
 - `SITE_ACCESS=public` is **not necessary**. The route allowlist in `web/proxy.ts` opens only named read-only localized routes and public SEO files.
 - The private secret must never be put in a `NEXT_PUBLIC_` variable.

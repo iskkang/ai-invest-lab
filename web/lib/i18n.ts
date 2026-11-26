@@ -188,6 +188,8 @@ const rows: [string,string,string,string][] = [
 ["작음","Small","较小","小"],
 ["큼","Large","较大","大"],
 ["거래량","Volume","成交量","出来高"],
+["제공사 단위 (미확인)","provider units (unspecified)","提供商单位（未明确）","提供元の単位（未確認）"],
+["출처 확인 필요","Provider not verified","来源尚未核实","提供元は未確認"],
 ["AI 매매","AI trades","AI 交易","AI売買"],
 ["기간","Period","期间","期間"],
 ["누적 수익률 차트","Cumulative return chart","累计收益率图","累積リターンチャート"],

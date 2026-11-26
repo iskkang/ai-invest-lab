@@ -21,7 +21,7 @@ from datetime import date, datetime, timezone
 
 from . import admin, export, market_calendar as mc
 from .common import to_jsonable
-from .config import Settings
+from .config import LIVE_PRICE_SOURCE, Settings, price_source_for_mode
 from .db import apply_migrations, connect
 from .decision_receipt import decision_receipt
 from .market_data import IngestionBlocked
@@ -34,8 +34,8 @@ def _source_provider(settings: Settings):
         from .sources import DemoSource
         return DemoSource(), DemoProvider()
     from .llm import OpenRouterProvider
-    from .sources import NHQuoteSource
-    return NHQuoteSource(), OpenRouterProvider()
+    from .reconciled_source import ReconciledQuoteSource
+    return ReconciledQuoteSource(), OpenRouterProvider()
 
 
 def _print(obj):
@@ -67,7 +67,7 @@ def main(argv=None) -> int:
     ca.add_argument("symbol"); ca.add_argument("kind", choices=["split", "cash_dividend", "delisting"])
     ca.add_argument("ex_date"); ca.add_argument("--ratio"); ca.add_argument("--amount")
     ca.add_argument("--source", required=True); ca.add_argument("--note", default="")
-    ca.add_argument("--price-source", choices=["nh_plug", "demo"], default="nh_plug")
+    ca.add_argument("--price-source", choices=[LIVE_PRICE_SOURCE, "nh_plug", "demo"], default=LIVE_PRICE_SOURCE)
     args = ap.parse_args(argv)
 
     settings = Settings()
@@ -81,7 +81,7 @@ def main(argv=None) -> int:
         _print({"status": "skipped", "reason": "dispatch session does not match New York date",
                 "session": session.isoformat(), "official_round": {"verified": False}})
         return 1
-    source_name = "demo" if settings.is_demo else "nh_plug"
+    source_name = price_source_for_mode(settings.mode)
 
     if args.cmd == "migrate":
         _print({"applied": apply_migrations(conn)})

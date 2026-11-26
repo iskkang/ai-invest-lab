@@ -21,7 +21,7 @@ from psycopg.errors import UniqueViolation
 from . import market_calendar as mc
 from . import portfolio, stats, universe
 from .common import D, DataIntegrityError, LabError, canonical, sha256, to_jsonable
-from .config import BENCHMARK_SYMBOL, DEFAULT_UNIVERSE, Settings
+from .config import BENCHMARK_SYMBOL, DEFAULT_UNIVERSE, Settings, price_source_for_mode
 from .db import advisory_lock, audit, jsonb
 from .decision import PROMPT_HASH, SYSTEM_PROMPT, InvalidDecision, validate
 from .llm import estimate_cost, user_message
@@ -77,7 +77,7 @@ def bootstrap(conn, settings: Settings, actor: str = "system") -> dict:
             " join portfolio_accounts a on a.id=l.account_id"
             " join corporate_actions c on l.ref_type='corporate_action' and l.ref_id=c.id::text"
             " where a.experiment_id=%s and c.price_source<>%s limit 1",
-            (exp["id"], "demo" if exp["mode"] == "demo" else "nh_plug"),
+            (exp["id"], price_source_for_mode(exp["mode"])),
         ).fetchone()
         if wrong:
             raise LabError(f"experiment {exp['name']} has a pre-migration cross-source corporate-action "
@@ -94,8 +94,8 @@ def bootstrap(conn, settings: Settings, actor: str = "system") -> dict:
             " and not exists (select 1 from corporate_actions good"
             " where good.symbol=o.symbol and good.ex_date=o.session_date and good.price_source=%s"
             " and good.kind in ('split', 'delisting')) limit 1",
-            (exp["id"], "demo" if exp["mode"] == "demo" else "nh_plug",
-             "demo" if exp["mode"] == "demo" else "nh_plug"),
+            (exp["id"], price_source_for_mode(exp["mode"]),
+             price_source_for_mode(exp["mode"])),
         ).fetchone()
         if bad_expiry:
             raise LabError(f"experiment {exp['name']} has a pre-migration cross-source corporate-action "
@@ -131,7 +131,7 @@ def _ensure_account(conn, exp, kind, ai_id, bench, name):
 # ─────────────────────────────── 체결·평가 (through 까지)
 def settle_through(conn, exp: dict, source, through: date, now: datetime, settings: Settings) -> dict:
     """through(확정 거래일)까지: 시세 수집 → 기업행동 → 체결 → 평가 → 통계. 재실행해도 중복 없음."""
-    expected_source = "demo" if exp["mode"] == "demo" else "nh_plug"
+    expected_source = price_source_for_mode(exp["mode"])
     if source.name != expected_source:
         raise LabError(f"{exp['name']}: {exp['mode']} experiment cannot use {source.name} prices")
     symbols = settlement_symbols(conn, exp["id"])
@@ -238,7 +238,7 @@ def run_decision_round(conn, exp: dict, session: date, now: datetime, source_nam
     """session 시가 체결을 위한 판단 회차. 동일 세션 회차는 한 번만 만들어진다(UNIQUE)."""
     round_started = time.monotonic()
     cutoff_at = mc.ny_time(session, settings.decision_latest)
-    expected_source = "demo" if exp["mode"] == "demo" else "nh_plug"
+    expected_source = price_source_for_mode(exp["mode"])
     if source_name != expected_source:
         raise LabError(f"{exp['name']}: {exp['mode']} experiment cannot use {source_name} prices")
     data_as_of = mc.previous_session(session)

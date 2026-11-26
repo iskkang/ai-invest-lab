@@ -157,6 +157,7 @@ export interface Dataset {
   decisions: Decision[];
   universe: { symbol: string; name: string; sector: string | null; role: string }[];
   prices: Record<string, Bar[]>;
+  priceProvenance?: Record<string, { provider: string; basis: string; volumeUnit: string }>;
   generatedAt: string;
   dailyJobs?: { sessionDate: string; status: string; priceError: boolean }[];
   universeChanges?: UniverseChange[];

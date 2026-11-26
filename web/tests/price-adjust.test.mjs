@@ -32,3 +32,23 @@ test('chart covers untraded symbols and sorts by trade date', () => {
   assert.deepEqual(bars.NVDA.map((b) => b[0]), ['2026-09-11', '2026-09-14']);
   assert.ok('KO' in bars);
 });
+
+test('reconciled NH history retains native volume and provider-reported prices', () => {
+  const observed = rows.map(row => ({...row, source:'reconciled_live_v1', provider:'nh_plug',
+    basis:'nh_reported_regular_session_ohlcv_adjustment_unspecified', volume_unit:'provider_native_unspecified'}));
+  const bars = makeAdjustedPriceMap(observed, actions, '2026-09-14');
+  assert.deepEqual(bars.NVDA.map(b => b[4]), [100,25]);
+  assert.deepEqual(bars.NVDA.map(b => b[5]), [1000,4000]);
+});
+
+test('Nasdaq published history is not split-adjusted a second time', () => {
+  const observed = [
+    {...rows[0], open:25, high:25.75, low:24.25, close:25, volume:4000}, rows[1],
+  ].map(row => ({...row, source:'reconciled_live_v1', provider:'nasdaq_historical',
+    basis:'nasdaq_reported_historical_ohlcv', volume_unit:'shares'}));
+  const bars = makeAdjustedPriceMap(observed, actions, '2026-09-14');
+  assert.deepEqual(bars.NVDA.map(b => b[4]), [25,25]);
+  assert.deepEqual(bars.NVDA.map(b => b[5]), [4000,4000]);
+  assert.throws(() => makeAdjustedPriceMap([{...observed[0],basis:''}], [], '2026-09-14'),
+    /Missing provider provenance/);
+});

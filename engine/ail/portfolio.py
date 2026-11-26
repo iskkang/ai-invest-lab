@@ -18,6 +18,7 @@ from decimal import ROUND_FLOOR, Decimal
 
 from . import market_calendar as mc
 from .common import D, LabError, cents, fee_amount, slipped_price
+from .config import price_source_for_mode
 from .db import jsonb
 from .market_data import bar_on, has_later_bar
 
@@ -81,7 +82,7 @@ def verify_account(conn, account_id) -> list[str]:
 
 # ─────────────────────────────── 기업행동
 def apply_corporate_actions(conn, exp: dict, session: date, source_name: str) -> int:
-    expected_source = "demo" if exp["mode"] == "demo" else "nh_plug"
+    expected_source = price_source_for_mode(exp["mode"])
     if source_name != expected_source:
         raise LabError(f"{exp['name']}: {exp['mode']} experiment cannot apply {source_name} actions")
     actions = conn.execute("select * from corporate_actions where ex_date=%s and price_source=%s order by id",

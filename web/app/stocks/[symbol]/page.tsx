@@ -60,6 +60,10 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
   const trades = d.trades.filter((t) => t.symbol === symbol && accounts.get(t.accountId)?.kind === "ai");
   const markers = trades.map((t) => { const a = accounts.get(t.accountId)!; return { time: t.tradeDate, side: t.side, color: a.color, ai: a.name }; });
   const up = s.change >= 0;
+  const provenance = d.priceProvenance?.[symbol];
+  const priceProvider = provenance?.provider === "nh_plug" ? "NH PLUG"
+    : provenance?.provider === "nasdaq_historical" ? "Nasdaq historical" : t(d.locale,"출처 확인 필요");
+  const volumeUnit = provenance?.volumeUnit === "shares" ? t(d.locale,"주") : t(d.locale,"제공사 단위 (미확인)");
 
   const stats: { icon: React.ElementType; label: string; value: string }[] = [
     { icon: TrendingUp, label: t(d.locale,"전일 종가"), value: fmtNum(s.prevClose) },
@@ -67,7 +71,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
     { icon: ArrowUpDown, label: t(d.locale,"일중 범위"), value: `${fmtNum(s.low)} – ${fmtNum(s.high)}` },
     { icon: CalendarArrowUp, label: t(d.locale,"52주 최고"), value: fmtNum(s.hi52) },
     { icon: CalendarArrowDown, label: t(d.locale,"52주 최저"), value: fmtNum(s.lo52) },
-    { icon: Activity, label: t(d.locale,"거래량 (20일 평균 대비)"), value: `${(s.volume / 1e6).toFixed(1)}M · ${fmtPct(s.volumeVsAvg, 0)}` },
+    { icon: Activity, label: t(d.locale,"거래량 (20일 평균 대비)"), value: `${(s.volume / 1e6).toFixed(1)}M ${volumeUnit} · ${fmtPct(s.volumeVsAvg, 0)}` },
   ];
   const indicators: { icon: React.ElementType; label: string; value: string; sub?: string; state: [string, Tone] }[] = [
     { icon: Waves, label: "RSI (14)", value: s.rsi === null ? "—" : s.rsi.toFixed(1), state: st.rsi },
@@ -98,7 +102,7 @@ export default async function StockPage({ params }: { params: Promise<{ symbol: 
                 {up ? <TrendingUp size={15} /> : <TrendingDown size={15} />}{up ? "+" : ""}{fmtNum(s.change)} ({fmtPct(s.changePct)})
               </span>
             </div>
-            <p className="mt-1 text-xs text-muted">{s.date} {t(d.locale,"정규장 종가 기준")} (NY 16:00) · {t(d.locale,"출처")} NH PLUG</p>
+            <p className="mt-1 text-xs text-muted">{s.date} {t(d.locale,"정규장 종가 기준")} (NY 16:00) · {t(d.locale,"출처")} {priceProvider}</p>
           </div>
           <dl className="flex gap-6 text-sm lg:ml-auto lg:border-l lg:border-line lg:pl-6">
             <div><dt className="text-xs text-muted">{t(d.locale,"52주 범위")}</dt><dd className="font-semibold tabular">{fmtNum(s.lo52)} – {fmtNum(s.hi52)}</dd></div>

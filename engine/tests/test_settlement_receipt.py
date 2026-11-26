@@ -9,7 +9,7 @@ from psycopg import OperationalError
 from psycopg.errors import UniqueViolation
 
 from ail import market_calendar as mc, pipeline
-from ail.config import BENCHMARK_SYMBOL, DEFAULT_PARTICIPANTS, DEFAULT_UNIVERSE
+from ail.config import BENCHMARK_SYMBOL, DEFAULT_PARTICIPANTS, DEFAULT_UNIVERSE, LIVE_PRICE_SOURCE
 from ail.settlement_receipt import EXPECTED_ACCOUNTS, settlement_receipt
 
 SESSION = date(2026, 11, 25)
@@ -53,7 +53,7 @@ class EvidenceDB:
             assert params == (SESSION, 42, SESSION, 42)
             return SimpleNamespace(fetchall=lambda: deepcopy(self.rows))
         if "from stock_prices" in sql:
-            assert params == ("nh_plug", SESSION, SYMBOLS)
+            assert params == (LIVE_PRICE_SOURCE, SESSION, SYMBOLS)
             return SimpleNamespace(fetchall=lambda: [{"symbol": symbol, "close": close}
                                                      for symbol, close in self.prices.items()])
         if "from orders o" in sql:

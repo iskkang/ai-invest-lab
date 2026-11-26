@@ -5,8 +5,9 @@ import { loadPrivateAdjustedBars } from "./insight-server";
 import { runPatternStudy, type PatternStudy, type InternalPatternStudy } from "./pattern-lab";
 import { comparePatternModels, type PatternOverlap } from "./pattern-compare";
 import type { Dataset } from "./types";
+import { LIVE_PRICE_SOURCE } from "./market-data-disclosure";
 
-/** Fixed study, computed with server-side NH PLUG adjusted bars.
+/** Fixed study, computed from complete provider histories on the server.
  * Cached internal events stay on the server. Public React props receive
  * ONLY aggregate PatternStudy + aggregated AI comparison.
  */
@@ -21,7 +22,7 @@ const cachedPatternStudy=unstable_cache(async ():Promise<InternalPatternStudy>=>
   const symbols=[...new Set(["SPY",...candidates])].sort();
   const bars=await loadPrivateAdjustedBars(symbols,"2000-01-01");
   return runPatternStudy(bars);
-},["ail-pattern-lab-v1-nh-plug"],{revalidate:14400});
+},["ail-pattern-lab-v2",LIVE_PRICE_SOURCE],{revalidate:14400});
 
 export type PublicPatternLab={study:PatternStudy;aiOverlap:PatternOverlap[]|null};
 export async function patternResearch(d?:Dataset):Promise<PublicPatternLab>{

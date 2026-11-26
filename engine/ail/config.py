@@ -4,6 +4,19 @@ from __future__ import annotations
 import os
 from dataclasses import dataclass, field
 
+# This is the canonical dataset namespace, not an upstream provider name.
+# NH PLUG and Nasdaq provenance is stored separately for every accepted bar.
+LIVE_PRICE_SOURCE = "reconciled_live_v1"
+
+
+def price_source_for_mode(mode: str) -> str:
+    if mode == "demo":
+        return "demo"
+    if mode == "live":
+        return LIVE_PRICE_SOURCE
+    raise ValueError("price source requires mode 'demo' or 'live'")
+
+
 # 초기 투자 대상 30종목 (관리자 CLI로 변경 가능, 변경 이력은 stock_universe 행으로 보존)
 DEFAULT_UNIVERSE: list[tuple[str, str, str]] = [
     ("AAPL", "Apple", "Information Technology"),
@@ -77,6 +90,10 @@ class Settings:
     @property
     def is_demo(self) -> bool:
         return self.mode == "demo"
+
+    @property
+    def price_source(self) -> str:
+        return price_source_for_mode(self.mode)
 
     def participants(self) -> list[dict]:
         out = []

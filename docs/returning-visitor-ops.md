@@ -27,7 +27,7 @@
 ## Truthfulness and license constraints
 
 - Outcomes are per-ticker *direction checks*, not trade profitability, CAGR or model skill proof.
-- Charts and public pages must not redistribute original NH PLUG prices or quote-level returns.
+- Charts and public pages must not redistribute original NH PLUG or Nasdaq prices or quote-level returns.
 - HOLD and silence are excluded from outcomes. An omitted ticker is **not** a HOLD.
 - If no verified AI decisions exist, show the scheduled start and empty state.
 - Do not send daily engagement emails/alerts unless explicit user consent, delivery source and consent handling are designed.

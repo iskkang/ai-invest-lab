@@ -13,7 +13,7 @@ from ail.sources import NHQuoteSource, _NHRefetchError, _NHRequestError
 @pytest.mark.parametrize("command,receipt", [("run-daily", "official_round"),
                                             ("run-settle", "settlement_receipt")])
 def test_cli_reports_all_blockers_and_never_claims_success(monkeypatch, capsys, command, receipt):
-    settings = SimpleNamespace(database_url="unused", validate=lambda: None, is_demo=False)
+    settings = SimpleNamespace(database_url="unused", validate=lambda: None, is_demo=False, mode="live")
     monkeypatch.setattr(cli, "Settings", lambda: settings)
     monkeypatch.setattr(cli, "connect", lambda _: object())
     monkeypatch.setattr(cli, "datetime", SimpleNamespace(

@@ -64,6 +64,14 @@ ai-invest-lab/
 | 08:30 | `ail run-daily` | 직전 거래일 P까지 시세 수집·검사 → P까지 체결·평가 → P 기준 스냅샷 → 4개 AI 동시 호출 → 검증 → 오늘 시가 체결 대기 주문 |
 | 폐장 후 | `ail run-settle` | 오늘 시가로 체결, 종가로 평가, 통계 갱신 |
 
+`ail verify`는 **이미 저장된 기록**을 검사하며 새 시세 수집·정산의 성공 증거는 아닙니다.
+`run-settle`은 대상 거래일의 시세와 AI 4개·벤치마크 3개 계좌의 실제 평가 자료를
+`settlement_receipt`로 확인하고, 검증되지 않으면 실패합니다. 뉴욕 자정이 지난 뒤의 복구는
+`AIL_EXPECTED_SESSION=YYYY-MM-DD ail run-settle`로 이미 폐장한 거래일을 명시합니다.
+수집 시각은 실제 현재 시각으로 기록하며, 과거 AI 판단을 생성하지 않습니다.
+시세 문제는 수집 전체를 되돌리고 모든 실패 종목을 함께 보고합니다. 읽기 전용 전체 종목 대조는
+Actions의 `market-data-audit` 또는 `python engine/scripts/market_data_audit.py --through YYYY-MM-DD`를 사용합니다.
+
 ## 공정성·무결성 규칙 (코드와 테스트로 강제)
 
 - 네 AI는 같은 시각, **같은 시장 스냅샷**(SHA-256 해시 저장)을 받음. 다른 AI 정보는 패킷에 없음.

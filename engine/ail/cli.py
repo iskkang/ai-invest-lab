@@ -24,7 +24,8 @@ from .common import to_jsonable
 from .config import Settings
 from .db import apply_migrations, connect
 from .decision_receipt import decision_receipt
-from .pipeline import run_daily, run_settle
+from .market_data import IngestionBlocked
+from .pipeline import InvalidSettlementSession, run_daily, run_settle
 
 
 def _source_provider(settings: Settings):
@@ -86,7 +87,12 @@ def main(argv=None) -> int:
         _print({"applied": apply_migrations(conn)})
     elif args.cmd == "run-daily":
         src, prov = _source_provider(settings)
-        result = run_daily(conn, settings, src, prov, now)
+        try:
+            result = run_daily(conn, settings, src, prov, now)
+        except IngestionBlocked as exc:
+            _print({"status": "blocked", "reason": "market data integrity checks failed",
+                    "market_data": exc.detail, "official_round": {"verified": False}})
+            return 1
         if not mc.is_session(session):
             _print({**result, "official_round": {"session": session.isoformat(),
                                                "verified": False, "round_status": "market_closed"}})
@@ -96,7 +102,19 @@ def main(argv=None) -> int:
         return 0 if receipt["verified"] else 1
     elif args.cmd == "run-settle":
         src, _ = _source_provider(settings)
-        _print(run_settle(conn, settings, src, now))
+        try:
+            result = run_settle(conn, settings, src, now, expected_session=expected or None)
+        except IngestionBlocked as exc:
+            _print({"status": "blocked", "reason": "market data integrity checks failed",
+                    "market_data": exc.detail, "settlement_receipt": {"verified": False}})
+            return 1
+        except InvalidSettlementSession as exc:
+            _print({"status": "rejected", "reason": str(exc), "settlement_receipt": {"verified": False}})
+            return 1
+        _print(result)
+        if result["status"] == "skipped" and not expected:
+            return 0
+        return 0 if result.get("settlement_receipt", {}).get("verified") else 1
     elif args.cmd == "verify":
         problems = admin.verify(conn, settings.experiment_name, source_name)
         _print({"problems": problems})

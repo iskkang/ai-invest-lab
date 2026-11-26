@@ -59,6 +59,8 @@ class _NHInconsistentOHLC(DataIntegrityError):
     def __init__(self, symbol: str, trade_date: date, raw_prices: tuple[Decimal, ...],
                  parsed_prices: tuple[Decimal, ...]):
         self.trade_date = trade_date
+        self.ohlc = {"raw": dict(zip(_NH_OHLC_FIELDS, raw_prices)),
+                     "normalized": dict(zip(_NH_OHLC_FIELDS, parsed_prices))}
         # Public market prices only, not the response, request, headers, or tokens.
         def values(prices):
             return ",".join(f"{key}={str(value)[:48]}" for key, value in zip(_NH_OHLC_FIELDS, prices))

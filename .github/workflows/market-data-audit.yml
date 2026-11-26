@@ -8,11 +8,6 @@ on:
         description: "Completed NYSE session (YYYY-MM-DD); blank selects the latest completed session"
         required: false
         type: string
-  push:
-    branches: [fix/settlement-bar-revisions]
-    paths:
-      - .github/workflows/market-data-audit.yml
-      - engine/scripts/market_data_audit.py
 permissions:
   contents: read
 concurrency:
@@ -42,12 +37,9 @@ jobs:
       - name: Compare immutable history with current quote observations
         env:
           THROUGH: ${{ inputs.through }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
           set -euo pipefail
-          if [[ "$EVENT_NAME" == "push" ]]; then
-            python engine/scripts/market_data_audit.py --probe-basis --through 2026-11-25
-          elif [[ -n "${THROUGH:-}" ]]; then
+          if [[ -n "${THROUGH:-}" ]]; then
             python engine/scripts/market_data_audit.py --through "$THROUGH"
           else
             python engine/scripts/market_data_audit.py

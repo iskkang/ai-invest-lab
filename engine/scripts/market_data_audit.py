@@ -224,73 +224,9 @@ def audit(conn, through, history_bars):
     return 1 if total_errors or price_diffs or volume_diffs or unstable_rows else 0
 
 
-def probe_basis(conn, through):
-    """Compare documented query variants; diagnostic results never enter prices."""
-    source = NHQuoteSource(max_retries=0)
-    variants = [
-        ("COST", date(2026, 11, 16), 1, "0", "1"),
-        ("COST", date(2026, 11, 19), 10, "0", "1"),
-        ("COST", date(2026, 11, 23), 10, "0", "1"),
-        ("COST", date(2026, 11, 24), 10, "0", "1"),
-        ("COST", through, 1, "0", "1"),
-        ("COST", through, 300, "0", "1"),
-        ("MRK", through, 1, "0", "1"),
-        ("MRK", through, 300, "0", "1"),
-        ("MRK", through, 10, "1", "1"),
-        ("MRK", through, 10, "0", "0"),
-    ]
-    for symbol, end, count, today_cls, market_cls in variants:
-        query = {"iem_cd": symbol, "end_dt": end.strftime("%Y%m%d"), "count": str(count),
-                 "maxavg": "0", "gubun": NH_GUBUN_DAY, "xtick": "0001",
-                 "today_cls": today_cls, "market_cls": market_cls}
-        label = f"basis_{symbol}_{end}_{count}_{today_cls}_{market_cls}"
-        emit("quote_query", symbol=symbol, query_kind=label, parameters=query)
-        a, ea = read_observation(source, symbol, query, 1, label)
-        b, eb = read_observation(source, symbol, query, 2, label)
-        stored = {r["trade_date"]: r for r in conn.execute(
-            "select trade_date,open,high,low,close,volume from stock_prices "
-            "where symbol=%s and source='nh_plug' and trade_date<=%s order by trade_date", (symbol, end)
-        ).fetchall()}
-        changed = [d for d in sorted(set(a) & set(stored)) if values(a[d]) != values(stored[d])]
-        stable = set(a) == set(b) and all(values(a[d]) == values(b[d]) for d in a)
-        emit("basis_summary", symbol=symbol, query_kind=label, request_or_row_errors=ea+eb,
-             stable=stable, rows=len(a), changed_stored_dates=changed,
-             missing_requested_session=end not in a or end not in b)
-        for day in sorted(set(a) | set(b)):
-            if day < date(2026, 11, 12):
-                continue
-            emit("basis_quote", symbol=symbol, query_kind=label, trade_date=day,
-                 stored=values(stored.get(day)), observation_1=values(a.get(day)), observation_2=values(b.get(day)),
-                 raw_1=raw_quote(a[day].raw) if day in a else None,
-                 raw_2=raw_quote(b[day].raw) if day in b else None)
-    # A separate, documented quote endpoint provides explicitly named regular
-    # session fields. Diagnostic only: it cannot enter engine stock_prices.
-    # Contract: https://www.nhplug.com/openapi-docs/gbstock/openapi.json
-    from nhplug import call as quote_call
-    allowed = ("trade_date", "bsop_date", "normal_open_prc", "normal_high", "normal_low",
-               "normal_trdprc", "normal_acvol", "open_prc", "high", "low", "trdprc", "hst_trdprc")
-    for symbol in ("COST", "MRK"):
-        for number in (1, 2):
-            try:
-                response = quote_call("/gbstock/quote/v1/current", {"iem_cd": symbol})
-                rows = response.get("Output_0")
-                rows = rows if isinstance(rows, list) else [rows]
-                for row in rows[:1]:
-                    if not isinstance(row, dict):
-                        raise ValueError("current quote missing")
-                    safe = {k: str(row[k]) for k in allowed if k in row
-                            and re.fullmatch(r"[0-9+.,:/ -]{1,48}", str(row[k]))}
-                    emit("current_regular_quote", symbol=symbol, observation=number, values=safe)
-            except Exception as exc:
-                emit("current_quote_error", symbol=symbol, observation=number, **safe_error(exc))
-    emit("basis_probe_complete", database_writes=0, ai_calls=0)
-    return 0
-
-
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--through", type=date.fromisoformat)
-    parser.add_argument("--probe-basis", action="store_true", help="Read-only incident query comparison; never ingests")
     args = parser.parse_args(argv)
     now = datetime.now(timezone.utc)
     try:
@@ -315,7 +251,7 @@ def main(argv=None):
                 if conn.execute("show transaction_read_only").fetchone()["transaction_read_only"] != "on":
                     emit("audit_error", category="read_only_guard_not_active")
                     return 2
-                return probe_basis(conn, through) if args.probe_basis else audit(conn, through, history_bars)
+                return audit(conn, through, history_bars)
     except Exception as exc:
         emit("audit_error", **safe_error(exc))
         return 1

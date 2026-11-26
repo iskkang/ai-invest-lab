@@ -1,4 +1,4 @@
-name: reconciled-settlement-recovery
+name: reconciled-settlement-readback
 on:
   push:
     branches: [ops/reconciled-recovery-20261126]
@@ -9,7 +9,7 @@ jobs:
     if: >-
       github.repository == 'iskkang/ai-invest-lab' &&
       github.event_name == 'push' &&
-      github.event.before == '914b02ac3f6a5df83ac8a0f63181a7f99cadfc50' &&
+      github.event.before == '4279fcda2d697ae068bf0abefb13ab47903e9d84' &&
       github.run_attempt == 1
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -40,5 +40,5 @@ jobs:
         with: { python-version: '3.12' }
       - name: Install exact tested engine
         run: pip install -e ./tested-source/engine
-      - name: Migrate and verify the already closed session
-        run: python helper-source/engine/scripts/reconciled_recovery_helper.py
+      - name: Verify committed results in a read-only transaction
+        run: python helper-source/engine/scripts/reconciled_readback_helper.py

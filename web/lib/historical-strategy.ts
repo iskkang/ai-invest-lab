@@ -1,8 +1,9 @@
 import type { Bar } from "./types";
+import { LIVE_PRICE_SOURCE } from "./market-data-disclosure.ts";
 
 /**
  * Retrospective, fixed-rule research (NOT historical AI decisions).
- * Input is genuine NH PLUG OHLCV, split-adjusted on the server.
+ * Input is a complete provider OHLCV history per symbol, prepared on the server.
  * Every rank uses data ending at index t-1. Positions are opened on t's
  * regular-session open, which is unavailable at selection time.
  *
@@ -36,7 +37,7 @@ export type HistoricalStrategyResult = {
 export type HistoricalStudy = {
   start:string;end:string;dataFrom:string;dataTo:string;
   inputSessions:number;analysisSessions:number;eligibleSymbols:number;
-  excludedSymbols:number;priceSource:"nh_plug";lastDataAsOf:string;
+  excludedSymbols:number;priceSource:typeof LIVE_PRICE_SOURCE;lastDataAsOf:string;
   costBps:number;warmup:number;rebalanceEvery:number;holdings:number;
   results:HistoricalStrategyResult[];
 };
@@ -198,7 +199,7 @@ export function runHistoricalStudy(priceMap:Record<string,Bar[]>,costBps=HISTORY
     dataFrom:spy[0][0],dataTo:spy.at(-1)![0],
     inputSessions:spy.length,analysisSessions:spy.length-HISTORY_WARMUP,
     eligibleSymbols:symbols.length,excludedSymbols:candidates.length-symbols.length,
-    priceSource:"nh_plug",lastDataAsOf:spy.at(-1)![0],
+    priceSource:LIVE_PRICE_SOURCE,lastDataAsOf:spy.at(-1)![0],
     costBps,warmup:HISTORY_WARMUP,rebalanceEvery:HISTORY_STEP,holdings:HISTORY_TOP,
     results:[...books,spyBook,equalBook].map(result),
   };

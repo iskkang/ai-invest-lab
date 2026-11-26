@@ -24,7 +24,7 @@ After saving Production env vars, redeploy in Vercel and open /api/health/db aft
 
 The private `season-1` experiment is initialized with four AI portfolios, three benchmark portfolios, and a first NYSE session of **2026-11-23**. Initial balances are $100,000 per virtual portfolio, but no return, AI decision, order, or trade is reported until it truly exists.
 
-1. Actions > `live-price-warmup` > Run workflow: manually fetch verified NH PLUG historical US stock prices for 30 stocks plus SPY, without invoking AI or placing orders. This only works before the first experiment session.
+1. Apply `20261126000007_reconciled_price_history.sql` before deploying the matching engine and web code. The LIVE namespace is `reconciled_live_v1`; existing NH records remain intact. Confirm the experiment has no official decisions, trades or valuations before its initial namespace switch. Validate all 30 stocks plus SPY with `daily-engine`, `job=run-settle`, and an already closed `scheduled_session`. The older `live-price-warmup` and direct NH preflight are primary-provider diagnostics; they do not establish that the reconciled dataset or Nasdaq fallback is ready.
 2. Actions > `model-smoke-test` > Run workflow: explicitly test real model inference with a conservative estimated-cost guard, without writing trades.
 3. Vercel > AI Invest Lab project > Settings > Environment Variables > change `DATA_MODE` from `demo` to `live` for Production, then **Redeploy**. Keep `SITE_ACCESS=private` and `SUPABASE_SECRET_KEY` server-only. The dashboard truthfully shows **first round pending**, not a fabricated leaderboard, until valuations exist.
 4. GitHub repository Settings > Secrets and variables > Actions > Variables: set `AIL_ENGINE_ENABLED=true` **only after both checks pass and model usage/budget are reviewed**. The daily-engine schedule then creates decisions only on eligible NYSE sessions; the first is Nov 23 if activated before premarket. Post-close settlement creates performance snapshots.
@@ -33,3 +33,5 @@ The private `season-1` experiment is initialized with four AI portfolios, three 
 Do not turn on `DATA_MODE=live` expecting historical demo-like results. A newly created real experiment has no historical performance; only accumulate it from genuine dated decisions and daily valuations.
 
 Keep SITE_ACCESS=private until implementing least-privilege data read APIs, robust access control, and confirming market-data redistribution permissions. The current privileged server key setup is for internal testing only.
+
+Analytical web queries use `price_history_current`, which returns the latest complete provider batch per symbol. Do not fall back to a mixture of canonical NH and Nasdaq rows for historical volume indicators. Preserve `provider`, `basis` and `volume_unit`; NH native volume units must not be treated as shares. The public projection continues to redact raw prices from both providers.

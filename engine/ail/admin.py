@@ -7,6 +7,7 @@ from decimal import Decimal
 from . import market_calendar as mc
 from . import portfolio, stats
 from .common import D, LabError, sha256
+from .config import LIVE_PRICE_SOURCE, price_source_for_mode
 from .db import audit
 from .market_data import build_market_payload
 
@@ -51,11 +52,11 @@ def universe_remove(conn, symbol, actor, reason, experiment_name="season-1", now
 
 
 def add_corporate_action(conn, symbol, kind, ex_date: date, ratio, amount, source, note, actor,
-                         price_source: str = "nh_plug"):
+                         price_source: str = LIVE_PRICE_SOURCE):
     if not mc.is_session(ex_date):
         raise LabError("ex_date must be an NYSE session")
-    if price_source not in ("nh_plug", "demo"):
-        raise LabError("price_source must be nh_plug or demo")
+    if price_source not in (LIVE_PRICE_SOURCE, "nh_plug", "demo"):
+        raise LabError(f"price_source must be {LIVE_PRICE_SOURCE}, nh_plug, or demo")
     with conn.transaction():
         conn.execute("insert into corporate_actions(symbol, kind, ex_date, ratio, amount, source, note, created_by, price_source)"
                      " values (%s,%s,%s,%s,%s,%s,%s,%s,%s)",
@@ -69,6 +70,9 @@ def verify(conn, experiment: str, source_name: str) -> list[str]:
     exp = conn.execute("select * from experiments where name=%s", (experiment,)).fetchone()
     if not exp:
         raise LabError("no such experiment")
+    expected_source = price_source_for_mode(exp["mode"])
+    if source_name != expected_source:
+        return [f"{exp['name']}: {exp['mode']} verification requires {expected_source}, got {source_name}"]
     problems: list[str] = []
     accounts = conn.execute("select * from portfolio_accounts where experiment_id=%s", (exp["id"],)).fetchall()
     for a in accounts:

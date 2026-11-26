@@ -7,10 +7,11 @@ import { t } from "./i18n";
 import type { Dataset, Stats } from "./types";
 import { nyClock } from "./decision-coverage";
 import { makeAdjustedPriceMap, type PriceRow, type SplitRow } from "./price-adjust";
+import { LIVE_PRICE_SOURCE } from "./market-data-disclosure";
 
 /**
  * 데이터 공급원
- *  - LIVE ONLY: verified NH PLUG prices and real AI decisions from Supabase.
+ *  - LIVE ONLY: reconciled provider prices and real AI decisions from Supabase.
  *  - Missing database data must fail visibly; never serve synthetic results.
  *  - Supabase secret key is server-only and raw quotes remain access-restricted.
  *    The anon/authenticated API roles have NO read privileges on experiment data.
@@ -27,7 +28,7 @@ export const getData = cache(async (): Promise<Dataset> => {
   const publicPage = req.get("x-ail-public") === "1";
   const raw = await (publicPage ? loadCachedPublicRaw() : loadSupabase(false));
   const dataset = { ...normalize(raw, locale), locale, publicQuotesRedacted: publicPage };
-  // Do not redistribute the licensed NH PLUG per-ticker OHLCV bars or fill
+  // Do not redistribute provider per-ticker OHLCV bars or fill
   // prices on anonymous public pages. Keep only model-generated results,
   // simulated account-level returns, and portfolio composition at this stage.
   // The private back office continues to have its full data internally.
@@ -35,6 +36,7 @@ export const getData = cache(async (): Promise<Dataset> => {
     return {
       ...dataset,
       prices: {},
+      priceProvenance: {},
       trades: dataset.trades.map(trade => ({
         ...trade,
         refOpenPrice: 0, price: 0, gross: 0, fee: 0, netCash: 0, realizedPnl: null,
@@ -53,7 +55,7 @@ export const getData = cache(async (): Promise<Dataset> => {
 // The cached projection is quote-free and never contains API credentials.
 const loadCachedPublicRaw = unstable_cache(
   () => loadSupabase(true),
-  ["ail-public-results-v3"],
+  ["ail-public-results-v4", LIVE_PRICE_SOURCE],
   { revalidate: 300 }
 );
 
@@ -123,15 +125,20 @@ async function loadSupabase(publicView = false): Promise<Raw> {
   // Anonymous visitors never fetch licensed per-ticker OHLCV, splits or raw
   // brokerage transaction amounts from Supabase. The private console can.
   let priceMap: Record<string, unknown> = {};
+  let priceProvenance: NonNullable<Dataset["priceProvenance"]> = {};
   if (!publicView) {
     // Multiple price sources may contain identical ticker/date pairs: filter at DB level.
-      const prices = await all<PriceRow>("stock_prices", "symbol,trade_date,open,high,low,close,volume", (q) =>
-        q.in("symbol", symbols).eq("source", "nh_plug").gte("trade_date", since)
+      const prices = await all<PriceRow>("price_history_current", "symbol,source,trade_date,open,high,low,close,volume,provider,basis,volume_unit", (q) =>
+        q.in("symbol", symbols).eq("source", LIVE_PRICE_SOURCE).gte("trade_date", since)
          .lte("trade_date", through).order("trade_date").order("symbol"));
       const actions = await all<SplitRow>("corporate_actions", "symbol,kind,ex_date,ratio", (q) =>
-        q.in("symbol", symbols).eq("price_source", "nh_plug").eq("kind", "split")
+        q.in("symbol", symbols).eq("price_source", LIVE_PRICE_SOURCE).eq("kind", "split")
          .lte("ex_date", through).lte("created_at", now).order("ex_date").order("symbol"));
       priceMap = makeAdjustedPriceMap(prices, actions, through);
+      priceProvenance = Object.fromEntries(prices.map(row => [row.symbol, {
+        provider: row.provider ?? "unknown", basis: row.basis ?? "unknown",
+        volumeUnit: row.volume_unit ?? "unknown",
+      }]));
   }
   const latest = new Map<number, Raw>();
   for (const s of stats) if (!latest.has(s.account_id)) latest.set(s.account_id, s);
@@ -164,6 +171,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     results_read_at: resultReadAt,
     daily_jobs: dailyJobs,
     prices: priceMap,
+    price_provenance: priceProvenance,
   };
 }
 
@@ -181,6 +189,7 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
     }));
   return {
     mode: "live",
+    priceProvenance: raw.price_provenance ?? {},
     experiment: {
       name: e.name, startSession: e.start_session, initialCash: n(e.initial_cash),
       maxPositionWeight: n(e.max_position_weight), feeBps: n(e.fee_bps), slippageBps: n(e.slippage_bps), status: e.status,

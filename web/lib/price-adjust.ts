@@ -1,13 +1,14 @@
 /**
- * Chart bars use the same convention as engine/ail/market_data.py:
- *  - raw daily bars from ONE price source
- *  - historical OHLC divided by subsequent (as-of) split ratios
- *  - historical volume multiplied by the same factor
- *  - action ex_date must not exceed the dataset's last trade date
+ * Reconciled charts use one complete provider history per symbol, unchanged.
+ * The provider's adjustment basis and native volume unit are not inferred.
+ * Legacy raw datasets retain the previous explicit split adjustment:
+ * historical OHLC divided by elapsed split ratios, volume multiplied by them.
  *
  * The server loader is responsible for filtering actions by price_source and
  * created_at <= request cutoff. This pure function is easily regression-tested.
  */
+import { LIVE_PRICE_SOURCE } from "./market-data-disclosure.ts";
+
 export type PriceRow = {
   symbol: string;
   trade_date: string;
@@ -16,6 +17,10 @@ export type PriceRow = {
   low: number | string;
   close: number | string;
   volume: number | string;
+  source?: string;
+  provider?: string;
+  basis?: string;
+  volume_unit?: string;
 };
 
 export type SplitRow = {
@@ -51,8 +56,16 @@ export function makeAdjustedPriceMap(
   for (const p of prices) {
     if (p.trade_date > asOf) continue;
     let factor = 1;
-    for (const a of splits.get(p.symbol) ?? []) {
-      if (p.trade_date < a.ex_date) factor *= Number(a.ratio);
+    if (p.source === LIVE_PRICE_SOURCE) {
+      if (!p.provider || !p.basis || !p.volume_unit) {
+        throw new Error(`Missing provider provenance: ${p.symbol} ${p.trade_date}`);
+      }
+      // The complete published history may already be adjusted. Do not apply
+      // a second inferred adjustment or turn unspecified volume units into shares.
+    } else {
+      for (const a of splits.get(p.symbol) ?? []) {
+        if (p.trade_date < a.ex_date) factor *= Number(a.ratio);
+      }
     }
     const values = [p.open, p.high, p.low, p.close].map((v) => round4(Number(v) / factor));
     const volume = Math.trunc(Number(p.volume) * factor);

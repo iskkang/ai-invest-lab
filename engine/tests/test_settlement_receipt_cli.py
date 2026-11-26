@@ -9,7 +9,7 @@ NOW = datetime(2026, 11, 26, 5, 5, tzinfo=timezone.utc)
 
 
 def setup_cli(monkeypatch):
-    settings = SimpleNamespace(database_url="unused", validate=lambda: None, is_demo=False)
+    settings = SimpleNamespace(database_url="unused", validate=lambda: None, is_demo=False, mode="live")
     monkeypatch.setattr(cli, "Settings", lambda: settings)
     monkeypatch.setattr(cli, "connect", lambda _: object())
     monkeypatch.setattr(cli, "datetime", SimpleNamespace(now=lambda _: NOW))

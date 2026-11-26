@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from .config import price_source_for_mode
 from .common import LabError, to_jsonable
 
 
@@ -11,7 +12,7 @@ def export(conn, experiment: str, source_name: str) -> dict:
     exp = conn.execute("select * from experiments where name=%s", (experiment,)).fetchone()
     if not exp:
         raise LabError(f"experiment not found: {experiment}")
-    expected_source = "demo" if exp["mode"] == "demo" else "nh_plug"
+    expected_source = price_source_for_mode(exp["mode"])
     if source_name != expected_source:
         raise LabError(f"{experiment}: {exp['mode']} experiment cannot export {source_name} prices")
     accounts = conn.execute(

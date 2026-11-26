@@ -22,7 +22,7 @@ const fixture=(sessions=220)=>{
 test("Historical metrics are from separate fixed-weight rule strategies, not AI records",()=>{
   const d=fixture();
   const result=runHistoricalStudy(d);
-  assert.equal(result.priceSource,"nh_plug");
+  assert.equal(result.priceSource,"reconciled_live_v1");
   assert.equal(result.eligibleSymbols,30);
   assert.equal(result.inputSessions,220);
   assert.equal(result.analysisSessions,140);

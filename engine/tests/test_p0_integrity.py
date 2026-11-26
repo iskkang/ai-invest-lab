@@ -9,6 +9,7 @@ import pytest
 
 from ail import admin, portfolio
 from ail.common import LabError
+from ail.config import LIVE_PRICE_SOURCE
 from ail.market_data import adjusted_history, recorded_splits
 from ail.pipeline import bootstrap, run_decision_round, settle_through
 from conftest import ScriptedProvider, START, at
@@ -20,12 +21,12 @@ def test_corporate_action_sources_are_independent_in_same_database(db, settings)
     live_exp = bootstrap(db, live_settings)
     synthetic_date = date(2026, 9, 14)
     assert recorded_splits(db, "NVDA", "demo", synthetic_date)[synthetic_date] == Decimal(4)
-    assert recorded_splits(db, "NVDA", "nh_plug", synthetic_date) == {}
+    assert recorded_splits(db, "NVDA", LIVE_PRICE_SOURCE, synthetic_date) == {}
 
     # Previously impossible because of the global (symbol, kind, ex_date) key:
     # a real action on a DEMO event's date can now coexist independently.
-    admin.add_corporate_action(db, "NVDA", "split", synthetic_date, 2, None, "official filing", "", "test", "nh_plug")
-    assert recorded_splits(db, "NVDA", "nh_plug", synthetic_date)[synthetic_date] == Decimal(2)
+    admin.add_corporate_action(db, "NVDA", "split", synthetic_date, 2, None, "official filing", "", "test", LIVE_PRICE_SOURCE)
+    assert recorded_splits(db, "NVDA", LIVE_PRICE_SOURCE, synthetic_date)[synthetic_date] == Decimal(2)
     assert recorded_splits(db, "NVDA", "demo", synthetic_date)[synthetic_date] == Decimal(4)
 
     demo_aid = db.execute("select id from portfolio_accounts where experiment_id=%s and ai_model_id='gpt'",
@@ -37,7 +38,7 @@ def test_corporate_action_sources_are_independent_in_same_database(db, settings)
     portfolio.apply_corporate_actions(db, demo_exp, synthetic_date, "demo")
     assert portfolio.holdings_of(db, demo_aid)["NVDA"]["qty"] == 12
     assert portfolio.holdings_of(db, live_aid)["NVDA"]["qty"] == 3
-    portfolio.apply_corporate_actions(db, live_exp, synthetic_date, "nh_plug")
+    portfolio.apply_corporate_actions(db, live_exp, synthetic_date, LIVE_PRICE_SOURCE)
     assert portfolio.holdings_of(db, live_aid)["NVDA"]["qty"] == 6
 
 

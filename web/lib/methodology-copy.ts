@@ -36,8 +36,8 @@ export const methodDetailsCopy={
     sample:"성과 통계 최소 표본 수",sharpe:"샤프 지수",win:"매매 승률",volSample:"연율화 변동성",
     sharpeValue:"수익률 관측치",winValue:"실현손익이 기록된 매도 거래",volValue:"수익률 관측치",
     sampleNote:"표본이 부족하면 수치를 추정하지 않고 빈 값으로 표시합니다. 샤프 지수는 표본이 충분해도 수익률 표준편차가 0이면 표시하지 않습니다. 샤프 지수를 계산할 때 무위험수익률은 0으로 가정합니다.",
-    source:"시세 출처와 재배포 제한",provider:"시장 데이터 제공업체 (비공개)",
-    sourceNote:"지수 띠는 TradingView 위젯이며 실험 데이터와 무관합니다. 원시 주가 OHLCV 및 재배포 권한이 확인되지 않은 시세는 공개하지 않습니다. 같은 날짜의 확정 일봉을 기준으로 서버에서 계산한 연구용 파생 정보와 가상 성과만 취급합니다.",
+    source:"시세 출처와 재배포 제한",provider:"NH PLUG 기본 시세 · 검증된 Nasdaq 과거 시세 대체",
+    sourceNote:"지수 띠는 TradingView 위젯이며 실험 데이터와 무관합니다. 원시 주가 OHLCV 및 재배포 권한이 확인되지 않은 시세는 공개하지 않습니다. 종목별 분석은 한 제공사의 전체 기간 자료를 사용합니다. 거래량은 제공사가 표기한 단위를 유지하며 NH PLUG 값을 주식 수로 추정 변환하지 않습니다. 연구용 파생 정보와 가상 성과만 공개합니다.",
     disclaimer:"실제 주식 주문 또는 투자 자문이 아닌 교육용 모의투자 실험입니다.",
   },
   en:{
@@ -72,8 +72,8 @@ export const methodDetailsCopy={
     sample:"Minimum samples for published performance statistics",sharpe:"Sharpe ratio",win:"Trade win rate",volSample:"Annualized volatility",
     sharpeValue:"return observations",winValue:"realized-P&L SELL trades",volValue:"return observations",
     sampleNote:"Insufficient observations produce a missing value, never an invented estimate. Sharpe is also suppressed when return volatility is zero; the risk-free rate is assumed to be zero.",
-    source:"Market-data source and redistribution limits",provider:"Market data provider (not publicly disclosed)",
-    sourceNote:"The index ticker is a TradingView widget and is independent of the experiment data. Raw OHLCV prices and quotes without confirmed redistribution rights are not republished. Server-derived research aggregates and paper-trading results are handled separately from licensed quote feeds.",
+    source:"Market-data source and redistribution limits",provider:"NH PLUG primary quotes · validated Nasdaq historical fallback",
+    sourceNote:"The index ticker is a TradingView widget and is independent of the experiment data. Raw OHLCV prices and quotes without confirmed redistribution rights are not republished. Each symbol uses one provider's complete history. Volume keeps its reported unit; NH PLUG units are not assumed to be shares. Only derived research aggregates and paper-trading results are public.",
     disclaimer:"Educational paper-trading research only; no real brokerage orders or personal investment advice.",
   },
   zh:{
@@ -108,8 +108,8 @@ export const methodDetailsCopy={
     sample:"业绩指标的最少样本量",sharpe:"夏普比率",win:"交易胜率",volSample:"年化波动率",
     sharpeValue:"收益率观测值",winValue:"含已实现盈亏的卖出成交",volValue:"收益率观测值",
     sampleNote:"样本不足不会编造数值，直接留空。收益率标准差为零时夏普值也不展示；无风险收益率设为零。",
-    source:"行情来源与再分发限制",provider:"Market data provider (not publicly disclosed)",
-    sourceNote:"指数行情条由 TradingView 小组件提供，与实验数据无关。不公开原始OHLCV及未获得再分发许可的报价。服务器派生的研究汇总与模拟交易结果与授权行情数据分开处理。",
+    source:"行情来源与再分发限制",provider:"NH PLUG 主要行情 · 通过校验的 Nasdaq 历史行情备用来源",
+    sourceNote:"指数行情条由 TradingView 小组件提供，与实验数据无关。不公开原始OHLCV及未获得再分发许可的报价。每只股票使用同一提供商的完整历史数据，成交量保留提供商原始单位，不把 NH PLUG 数值推定换算为股数。仅公开衍生研究汇总与模拟投资结果。",
     disclaimer:"仅供教育性模拟投资研究，不执行真实证券交易或提供个人投资建议。",
   },
   ja:{
@@ -144,8 +144,8 @@ export const methodDetailsCopy={
     sample:"実績指標の最低サンプル数",sharpe:"シャープレシオ",win:"取引勝率",volSample:"年率換算ボラティリティ",
     sharpeValue:"リターンの観測値",winValue:"実現損益のある売却取引",volValue:"リターンの観測値",
     sampleNote:"標本が不足する場合は推定せず空欄表示。シャープは十分な標本でもリターン標準偏差が0なら非表示です。無リスク金利は0と仮定します。",
-    source:"価格データの提供元と再配布制限",provider:"Market data provider (not publicly disclosed)",
-    sourceNote:"指数帯はTradingViewウィジェットであり、実験データとは無関係です。原始OHLCVと再配布許可を確認できない価格情報は公開しません。サーバー側の派生分析集計と模擬投資実績は原始データと分けて取り扱います。",
+    source:"価格データの提供元と再配布制限",provider:"NH PLUGを優先 · 検証済みNasdaq過去データで代替",
+    sourceNote:"指数帯はTradingViewウィジェットであり、実験データとは無関係です。原始OHLCVと再配布許可を確認できない価格情報は公開しません。銘柄ごとに一つの提供元の全期間データを使い、出来高は提供元の単位を維持します。NH PLUGの値を推測で株数に換算しません。派生した研究集計と模擬投資実績のみを公開します。",
     disclaimer:"教育目的の模擬投資研究であり、実際の証券注文や個別投資助言は行いません。",
   },
 } as const;

@@ -38,7 +38,9 @@ test("pattern hit rates are unsigned and source attribution is shared",()=>{
  assert.match(card,/hitRateText\(row\.hitRate,locale\)/);
  assert.match(card,/row\.up.*row\.observations/);
  assert.match(copy,/Historical observations \(not controlled\)/);
- assert.match(attribution,/NH Investment & Securities NH PLUG API \(price data; raw prices are not republished\)/);
+ assert.match(attribution,/NH Investment & Securities NH PLUG API \(primary\)/);
+ assert.match(attribution,/Nasdaq historical data \(verified fallback\)/);
+ assert.match(attribution,/Raw prices are not republished/);
  assert.match(card,/MARKET_DATA_ATTRIBUTION/);
  assert.match(about,/MARKET_DATA_ATTRIBUTION/);
 });

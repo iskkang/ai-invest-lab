@@ -10,7 +10,7 @@
 - 4개 언어: `/ko`, `/en`, `/zh`, `/ja`. 상단에서 언어 선택 시 현재 페이지의 종류를 유지합니다.
 - AI 비교·수익률 차트·포트폴리오·거래·성과·AI 4개별 상세·종목별 판단 페이지와 실험 방법·FAQ·개인정보 페이지를 언어별로 제공합니다. 공개 광고 계획 페이지는 제거했습니다.
 - `/robots.txt`, `/sitemap.xml` (48개 핵심 다국어 URL), `/llms.txt`와 `/ads.txt`를 구성했습니다.
-- API/관리자 경로는 비밀번호 보호 상태를 유지합니다. NH 시세 원본·모의 체결 단가는 제공사의 재배포 권리가 확인될 때까지 공개 뷰에서 숨깁니다. AI가 생성한 판단 설명 원문은 현재 한국어이며, 4개 언어 자동 번역 별도 작업이 필요합니다.
+- API/관리자 경로는 비밀번호 보호 상태를 유지합니다. NH PLUG·Nasdaq 시세 원본과 모의 체결 단가는 제공사의 재배포 권리가 확인될 때까지 공개 뷰에서 숨깁니다. AI가 생성한 판단 설명 원문은 현재 한국어이며, 4개 언어 자동 번역 별도 작업이 필요합니다.
 - 애드센스는 사이트·계정 승인, 정책 검토, 인증된 동의관리(CMP) 연결 후에만 광고 코드가 작동하도록 비활성화된 광고 슬롯을 준비했습니다. 현재 광고/추적 스크립트는 로드되지 않습니다.
 - [공개 웹사이트·SEO·광고 운영 가이드](docs/PUBLIC_LAUNCH.md).
 
@@ -21,6 +21,7 @@ ai-invest-lab/
 ├─ engine/                 Python 3.11+ 자동 투자 엔진 (웹과 분리)
 │  ├─ ail/
 │  │  ├─ sources.py        NH PLUG 시세 어댑터(공식 nhplug SDK, 해외 일봉 gubun=3) + DEMO 합성 시세
+│  │  ├─ reconciled_source.py NH PLUG 기본 조회 + 검증된 Nasdaq 전체 기간 이력 대체
 │  │  ├─ market_data.py    수집·정합성 검사(누락/사후수정/분할 의심 중단)·분할조정·스냅샷(해시)
 │  │  ├─ indicators.py     SMA20/50/200, EMA12/26, RSI14, MACD, 변동성, MDD, 모멘텀, 거래량 변화
 │  │  ├─ decision.py       시스템 프롬프트 · JSON Schema · 응답 검증
@@ -38,13 +39,21 @@ ai-invest-lab/
 
 ## 개발 및 실행 (LIVE 전용)
 
-실제 NH PLUG 시세와 OpenRouter 실제 AI 응답만 서비스합니다. 웹 합성 JSON과 공개 DEMO 화면, `ail demo` CLI는 제거되었습니다.
+NH PLUG 기본 시세, 검증을 통과한 Nasdaq 과거 시세 대체 자료, OpenRouter 실제 AI 응답을 서비스합니다. 웹 합성 JSON과 공개 DEMO 화면, `ail demo` CLI는 제거되었습니다.
 시세·판단·모의 체결이 없으면 **실제 데이터 대기** 또는 연결 오류를 표시합니다. 수익률을 만들어내지 않습니다.
+
+### 시세 데이터 계약
+
+- LIVE 데이터셋은 `reconciled_live_v1`, 테스트용 합성 데이터는 `demo`입니다. 데이터셋 이름과 실제 제공자(`nh_plug` / `nasdaq_historical`)는 별도로 기록합니다. 이전 `nh_plug` 원본 행은 변경하거나 삭제하지 않습니다.
+- NH PLUG 응답에 잘못된 OHLC나 과거 이력 변경이 있으면 동일 종목의 전체 기간 자료를 Nasdaq에서 조회하고 검증합니다. 서로 다른 제공자의 시가·고가·저가·종가·거래량을 한 봉으로 조합하거나 고가를 임의로 늘리지 않습니다. 대체 자료도 검증에 실패하면 해당 작업은 실패합니다.
+- 이미 확정한 `stock_prices`·AI 입력 스냅샷·거래·원장은 보존합니다. 새 분석은 관측 시각이 기록된 전체 제공자 배치를 사용하며, `price_history_current`는 종목별 최신 배치만 보여 줍니다. 이 분석 이력은 확정된 과거 체결가를 바꾸지 않습니다.
+- 거래량은 제공자 원래 단위를 유지합니다. NH PLUG 단위를 주식 수로 추정 변환하지 않으며, Nasdaq의 `shares`와 한 종목의 기간 내에서 섞지 않습니다. 공급자의 과거 가격 조정 기준은 별도로 기록하며, 가격 차이만으로 분할·배당을 만들어내지 않습니다.
+- `20261126000007_reconciled_price_history.sql` 마이그레이션을 먼저 적용하고 엔진·웹을 함께 배포합니다. 기존 실험에 이미 공식 판단·거래·평가가 있으면 운영 중인 데이터셋을 임의로 전환하지 않습니다. 전환 전에 해당 기록이 없는지 확인하고 완료 거래일 정산으로 검증합니다.
 
 - 웹: `cd web && npm ci && npm run build` (운영 서버는 Supabase 비밀 환경변수가 필요)
 - 엔진: `pip install ./engine` (GitHub Actions 서버 측)
 - 매 방문 시 AI 호출 없음. 저장된 진짜 AI 판단 및 거래 기록만 읽습니다.
-- 원본 NH 시세 및 가상 체결 단가는 공급자 재배포 허가 확인 전 공개하지 않습니다.
+- 원본 제공사 시세 및 가상 체결 단가는 공급자 재배포 허가 확인 전 공개하지 않습니다.
 
 ## 실제 운영 (live)
 
@@ -96,7 +105,7 @@ ail pause --reason "점검"           # 실험 일시중단 (resume 으로 재�
 ail set-model claude anthropic/claude-sonnet-5.5 --reason "..."   # 변경 이력·감사로그 기록
 ail universe-add ADBE "Adobe" "Information Technology" --reason "..."
 ail universe-remove CSCO --reason "..."
-ail corporate-action NVDA split 2027-06-10 --ratio 10 --source "<IR 공시 URL>" # --price-source nh_plug 기본
+ail corporate-action NVDA split 2027-06-10 --ratio 10 --source "<IR 공시 URL>" # --price-source reconciled_live_v1 기본
 # DEMO 전용 이벤트는 --price-source demo (실제 시세와 절대 혼합 불가)
 ail corporate-action KO cash_dividend 2027-03-14 --amount 0.51 --source "<공시 URL>"
 ```
@@ -119,13 +128,13 @@ python web/tests/mobile_check.py    # next start 후 모바일 화면 점검(Pla
 |---|---|
 | 원본 엔진·DB·RLS·체결·기업행동·벤치마크 | 원본 README: 로컬 PostgreSQL 16 테스트 35개 통과 (이번 수정에서 재실행 필요) |
 | P0 수정(가격공급원 분리·미래분할 차단·live 차트) | 회귀 테스트 추가. 실제 PostgreSQL·Supabase·빌드 검증은 환경에 맞춰 재실행 필요 |
-| NH PLUG 시세 연동 | ✅ provider-preflight에서 AAPL 일봉 5개 실제 조회 성공. 31종목 전체 데이터 적재와 이후 정기 안정성 검증은 별도. |
-| NH 시세 수정주가 여부 | ⚠️ 명세에 표시 없음 → 분할 감지·중단 + 수동 기업행동 입력으로 대응 |
+| 시세 연동 | NH PLUG 기본 조회와 검증된 Nasdaq 과거 이력 대체. 직접 NH 진단 성공만으로 전체 데이터셋 정산 성공을 주장하지 않으며, 31종목 수집과 정산 영수증을 별도로 확인합니다. |
+| 제공사 가격 기준 | NH PLUG의 수정주가 여부는 명세에 표시되지 않습니다. 제공자·조회 조건·관측 시각·가격 기준을 보존하고, 차이를 근거 없이 기업행동으로 해석하지 않습니다. |
 | OpenRouter 호출·비용 필드 | ✅ provider-preflight에서 인증·4모델 카탈로그 조회 성공. 4모델 실제 추론·JSON 성공은 model-smoke-test 수동 실행이 필요. |
 | 각 모델의 structured output(json_schema) 지원 | ⚠️ 모델마다 다를 수 있음. 지원하지 않아도 엔진이 스키마로 다시 검증 |
 | Supabase 웹 조회(DATA_MODE=live) | ✅ 비공개 Vercel health check에서 DB 연결 확인. LIVE 실험 계좌 생성 완료, 초기 AI 판단·성과 데이터는 아직 없음. |
 | GitHub Actions | ✅ CI 및 provider-preflight 실행 성공. 이후 daily-engine을 자동 활성화하지 않음. |
-| NH 시세 공개 재배포 권한 | ❌ 미확인 → 공개 편집형 사이트와 비공개 /lab을 분리. 원본 시세·투자 거래 상세 공개 금지. |
+| 시세 공개 재배포 권한 | ❌ 미확인 → 공개 편집형 사이트와 비공개 /lab을 분리. 제공자 원본 시세·투자 거래 상세 공개 금지. |
 
 ## P0 마이그레이션 및 기존 기록 주의
 
@@ -133,7 +142,7 @@ python web/tests/mobile_check.py    # next start 후 모바일 화면 점검(Pla
 - 이전 버전의 `DEMO (synthetic)` 기업행동만 기존 레코드에서 `price_source='demo'`로 분류합니다. 기존 원장과 거래 내역은 수정하지 않습니다.
 - 과거에 실험 간 기업행동이 잘못 적용되어 기록이 오염된 경우 엔진이 해당 실험을 차단합니다. 과거 결과를 덮어쓰지 말고 새 실험을 시작해야 합니다.
 - 판단용 시계열은 NH 기업행동의 DB 등록 시각도 검사합니다. 과거 시점에 나중에 등록된 이벤트는 당시 판단에 반영하지 않습니다.
-- 웹의 live 차트는 `nh_plug` 가격만 불러와 엔진과 같은 분할조정 규칙을 적용합니다. 기존 데이터가 누락된 경우 보정하거나 만들어내지 않습니다.
+- 웹의 live 분석은 `reconciled_live_v1`의 `price_history_current`만 읽고 실제 제공자와 거래량 단위를 표시합니다. 기존 데이터가 누락된 경우 보정하거나 만들어내지 않습니다.
 - 번들된 `web/data/demo.json`은 **수정 전의 예시 생성물**입니다. 정확한 P0 규칙으로 데모 실험을 새로 만든 뒤 `python -m ail demo --sessions 60 --export ../web/data/demo.json`으로 다시 생성하십시오(동일 실험을 기존 DB에 재실행해도 과거 회차는 재계산하지 않습니다).
 
 ## 남은 일

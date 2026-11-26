@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal
 
 from .common import D, LabError, cents
-from .config import DEFAULT_PARTICIPANTS
+from .config import DEFAULT_PARTICIPANTS, price_source_for_mode
 from .market_data import active_universe
 
 EXPECTED_ACCOUNTS = frozenset(
@@ -25,7 +25,7 @@ def settlement_symbols(conn, experiment_id: int) -> list[str]:
 
 
 def settlement_receipt(conn, settings, session: date) -> dict:
-    source = "demo" if settings.mode == "demo" else "nh_plug"
+    source = price_source_for_mode(settings.mode)
     detail = {"session": session.isoformat(), "source": source, "verified": False,
               "phase": "settlement", "expected_price_count": 0, "price_count": 0,
               "missing_price_symbols": [], "expected_valuation_count": len(EXPECTED_ACCOUNTS),

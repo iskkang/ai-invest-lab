@@ -1,4 +1,5 @@
 import type { Bar } from "./types";
+import { LIVE_PRICE_SOURCE } from "./market-data-disclosure.ts";
 
 /**
  * Pattern Lab: fixed, reproducible research rules, not AI trades or financial advice.
@@ -41,7 +42,7 @@ export type PatternSummary = {
 };
 export type PatternStudy = {
   dataFrom:string;dataTo:string;inputSessions:number;analysisSessions:number;
-  eligibleSymbols:number;excludedSymbols:number;priceSource:"nh_plug";
+  eligibleSymbols:number;excludedSymbols:number;priceSource:typeof LIVE_PRICE_SOURCE;
   warmup:number;cooldown:number;minimumSamples:number;
   patterns:PatternSummary[];
 };
@@ -241,7 +242,7 @@ export function runPatternStudy(priceMap:Record<string,Bar[]>):InternalPatternSt
       dataFrom:spy[0][0],dataTo:spy.at(-1)![0],
       inputSessions:spy.length,analysisSessions:spy.length-PATTERN_WARMUP,
       eligibleSymbols:symbols.length,excludedSymbols:candidates.length-symbols.length,
-      priceSource:"nh_plug",warmup:PATTERN_WARMUP,
+      priceSource:LIVE_PRICE_SOURCE,warmup:PATTERN_WARMUP,
       cooldown:PATTERN_COOLDOWN,minimumSamples:PATTERN_MIN_SAMPLES,patterns:summaries,
     },
     // NEVER pass this array through React Server Components or an API route.

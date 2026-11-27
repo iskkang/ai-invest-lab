@@ -1,5 +1,45 @@
 [
   {
+    "date": "2026-11-27",
+    "publishedAt": "2026-11-27T22:11:43.467Z",
+    "title": "All 11 sectors rise as the S&P 500 caps a 5.6% week",
+    "summary": "The Nasdaq Composite gained 2.3% as chip stocks rebounded after Thanksgiving. Small caps also beat the S&P 500, and every S&P sector finished higher at Friday’s early close.",
+    "close": "At the 1 p.m. New York close, the S&P 500 stood at 7,297.49, up 1.60%, and the Nasdaq Composite reached 24,129.50, up 2.3%. The Dow added 591.99 points to 50,774.94. The Russell 2000 gained 1.71% to 2,750.30, extending its weekly advance to 6.5%. The Cboe VIX spot index ended at 23.81, below Wednesday’s 28.29.",
+    "drivers": "Technology led all eleven sectors with a 2.8% gain. Broadcom rose 3.8% and Micron gained 7.6%, while Amazon’s roughly 4% rise contributed an estimated 11 points to the S&P 500. The start of holiday shopping gave investors a first look at demand. Adobe Analytics put Thanksgiving Day online spending at about $7.1 billion, up 10.4% from a year earlier. Retail shares still diverged, with Macy’s rising and Target edging lower.",
+    "review": "Wednesday’s outlook called for the rebound to survive if small caps held 2,684.94. Friday met that test and both conditions for a broader recovery. The Russell cleared 2,704.06 and the S&P 500 cleared 7,237.17, finishing well above the 7,073.78 downside threshold.",
+    "outlook": "For Monday, November 30, the question is whether Friday’s broad buying survives a full trading day. If the S&P 500 holds 7,237.17, the base case is that large caps retain their breakout. A close above Friday’s 7,297.49 alongside a Russell 2000 close above 2,750.30 would confirm that both groups are extending the advance. An S&P 500 close below 7,237.17 would invalidate the breakout call even if small caps continue to rise.",
+    "sources": [
+      {
+        "name": "Associated Press · Friday closing levels and weekly changes",
+        "url": "https://apnews.com/article/04dab6079cf7f3dfe7285a3cc1f240a2"
+      },
+      {
+        "name": "Associated Press · chipmakers and retailers",
+        "url": "https://apnews.com/article/c7ef10c1dbc5fa09668bd4fe0729c613"
+      },
+      {
+        "name": "Portfolio Terminal · closing sector returns and contributions",
+        "url": "https://portfolio-terminal.com/markets/stock-market-close/november-27-2026"
+      },
+      {
+        "name": "Cboe · official VIX spot index",
+        "url": "https://www.cboe.com/tradable-products/vix"
+      },
+      {
+        "name": "Yahoo Finance · daily history of the Cboe VIX index",
+        "url": "https://finance.yahoo.com/quote/%5EVIX/history/?frequency=1d"
+      },
+      {
+        "name": "Reuters · Adobe Analytics Thanksgiving spending data",
+        "url": "https://www.reuters.com/business/retail-consumer/cautious-consumers-gear-up-black-friday-inflation-woes-bite-2026-11-27/"
+      },
+      {
+        "name": "NYSE · holiday calendar and early close",
+        "url": "https://www.nyse.com/trade/hours-calendars"
+      }
+    ]
+  },
+  {
     "date": "2026-11-25",
     "publishedAt": "2026-11-25T22:16:24.685Z",
     "title": "Eight sectors rise as the S&P 500 nearly erases a 3.2% slide",

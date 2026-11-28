@@ -220,3 +220,19 @@ def test_primary_receipt_time_is_after_the_response_not_the_job_start():
     query = source.last_batch["queries"][0]
     assert query["requested_at"] == NOW
     assert query["received_at"] == source.last_batch["observed_at"] == NOW + timedelta(seconds=4)
+
+
+def test_spy_requests_etf_history_on_broad_and_tail_queries():
+    requests = Requests(response([row("11/24/2026")], "SPY"),
+                        response([row(), row("11/24/2026")], "SPY"))
+    bars = secondary(requests).daily_bars("SPY", END, 2)
+    assert bars[-1].trade_date == END
+    assert [parse_qs(urlparse(url).query)["assetclass"] for url in requests.urls] == [["etf"], ["etf"]]
+
+
+def test_missing_nasdaq_session_has_specific_safe_ingestion_diagnostic():
+    from ail.market_data import _integrity_issue
+
+    exc = DataIntegrityError("Nasdaq historical missing requested session 2026-11-27")
+    issue = _integrity_issue("AAPL", RECONCILED_SOURCE, exc)
+    assert issue["code"] == "nasdaq_session_missing"

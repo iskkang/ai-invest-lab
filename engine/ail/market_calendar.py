@@ -74,3 +74,11 @@ def after_close(d: date, now: datetime, buffer_minutes: int = 60) -> bool:
     """폐장 후 데이터가 확정되었다고 보는 시각(폐장+버퍼)이 지났는지."""
     _, close, _ = session_times(d)
     return now >= close + timedelta(minutes=buffer_minutes)
+
+
+def latest_settleable_session(now: datetime) -> date:
+    """Latest actual NYSE session past the engine's closing-data buffer."""
+    today = ny_today(now)
+    if is_session(today) and after_close(today, now):
+        return today
+    return previous_session(today)

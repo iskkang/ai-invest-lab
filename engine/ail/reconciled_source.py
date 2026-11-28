@@ -21,6 +21,7 @@ import httpx
 
 from . import market_calendar as mc
 from .common import D, PRICE_Q, DataIntegrityError, LabError, sha256, to_jsonable
+from .config import BENCHMARK_SYMBOL
 from .sources import Bar, NHQuoteSource, NH_PERIOD_PATH, _NHInconsistentOHLC, _NHRefetchError, _NHRequestError
 
 
@@ -103,7 +104,8 @@ class NasdaqHistoricalSource:
         self.last_batch: dict = {}
 
     def _request(self, symbol: str, start: date, end: date, limit: int) -> tuple[dict, dict]:
-        query = {"assetclass": "stocks", "fromdate": start.isoformat(),
+        asset_class = "etf" if symbol == BENCHMARK_SYMBOL[0] else "stocks"
+        query = {"assetclass": asset_class, "fromdate": start.isoformat(),
                  "todate": end.isoformat(), "limit": str(limit)}
         url = f"{NASDAQ_ORIGIN}/api/quote/{symbol}/historical?{urlencode(query)}"
         started = _observed(self._clock)

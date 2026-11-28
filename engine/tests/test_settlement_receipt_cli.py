@@ -62,3 +62,14 @@ def test_cli_pre_start_ingestion_succeeds_with_its_explicit_phase(monkeypatch, c
             "verified": True, "phase": "pre_start_ingestion", "expected_valuation_count": 0}})
     assert cli.main(["run-settle"]) == 0
     assert '"phase": "pre_start_ingestion"' in capsys.readouterr().out
+
+
+def test_scheduled_settlement_targets_latest_closed_session_across_midnight():
+    from ail import market_calendar as mc
+    from datetime import date
+
+    friday = date(2026, 11, 27)
+    assert mc.latest_settleable_session(mc.ny_time(friday, "13:40")) == date(2026, 11, 25)
+    assert mc.latest_settleable_session(mc.ny_time(friday, "17:30")) == friday
+    assert mc.latest_settleable_session(mc.ny_time(date(2026, 11, 28), "06:20")) == friday
+    assert mc.latest_settleable_session(mc.ny_time(date(2026, 11, 30), "08:00")) == friday

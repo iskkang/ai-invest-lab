@@ -48,6 +48,12 @@ def _integrity_issue(symbol: str, source: str, exc: DataIntegrityError) -> dict:
     message = str(exc)
     code, reason = "source_integrity_error", "source data failed integrity validation"
     for marker, candidate, description in (
+        ("Nasdaq historical missing requested session", "nasdaq_session_missing", "Nasdaq history does not include the requested session"),
+        ("Nasdaq historical response status or symbol mismatch", "nasdaq_invalid_response", "Nasdaq returned an unsuccessful status or an unexpected symbol"),
+        ("Nasdaq historical numeric field is malformed", "nasdaq_invalid_number", "Nasdaq history contains a missing or malformed numeric value"),
+        ("Nasdaq historical queries conflict", "nasdaq_overlap_conflict", "Nasdaq histories disagree on an overlapping session"),
+        ("incomplete full-provider history", "history_incomplete", "provider history is too short or lacks the requested session"),
+        ("unique, contiguous NYSE sessions", "history_gap", "provider history has missing or duplicate NYSE sessions"),
         ("inconsistent OHLC", "invalid_ohlc", "inconsistent OHLC"),
         ("non-positive price", "non_positive_price", "non-positive price"),
         ("negative volume", "negative_volume", "negative volume"),

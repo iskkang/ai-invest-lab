@@ -5,7 +5,8 @@ import { ReturnChart } from "@/components/charts";
 import { ChartLegend } from "@/components/chart-legend";
 import { DashboardAdSlot } from "@/components/dashboard-ad-slot";
 import { InsightTeasers } from "@/components/insight-panels";
-import { DashboardHero } from "@/components/dashboard-hero";
+import { PortfolioBoard } from "@/components/portfolio-board";
+import { portfolioOverview } from "@/lib/portfolio-overview";
 import { DailyBriefing, TopConflicts, FollowupsPreview } from "@/components/retention-panels";
 import { ReturnVisitPulse, DecisionRevisionPanel, PortfolioMovement, RoundJournalPanel } from "@/components/returning-panels";
 import { publicationPulse } from "@/lib/returning-analytics";
@@ -13,7 +14,7 @@ import { DecisionCoverage } from "@/components/decision-coverage";
 import { FirstRoundHome } from "@/components/first-round-home";
 import { verifiedDecisions } from "@/lib/insight-analytics";
 import { PatternLabTeaser } from "@/components/pattern-dashboard";
-import { AiCards, DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
+import { DecisionCard, Dot, Leaderboard, RoundBadge, Section, TradeList } from "@/components/blocks";
 import { UniverseRail } from "@/components/universe-rail";
 import { Badge } from "@/components/ui/badge";
 import { aiAccounts, benchmarkAccounts, getData, lastSessionDate } from "@/lib/data";
@@ -71,13 +72,14 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const experimentIntro = experimentIntroText(d.locale,d.experiment.initialCash,d.experiment.startSession);
 
   return (
+    <div className="space-y-6">
+    <PortfolioBoard rows={portfolioOverview(d)} decisionDate={pulse.latestPublishedDate}/>
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
     <div className="min-w-0 space-y-5">
       <DecisionCoverage d={d} />
       <ReturnVisitPulse d={d} />
       <DailyBriefing d={d} compact />
       <PatternLabTeaser locale={d.locale}/>
-      <DashboardHero d={d} />
       {hasValuation && <>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
@@ -93,8 +95,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
         </div>
       </div>
 
-      <AiCards d={d} sortKey={sortKey} />
-      <Section title={t(d.locale,"순위 상세")} className="hidden md:block">
+      <Section title={t(d.locale,"순위 상세")} className="overflow-x-auto">
         <Leaderboard d={d} sortKey={sortKey} />
       </Section>
       <Section title={t(d.locale,"누적 수익률 추이")} action={<span className="text-[11px] text-muted">{t(d.locale, "점선 = 벤치마크")}</span>}>
@@ -143,6 +144,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       </div>}
     </div>
     <div className="hidden xl:block"><div className="sticky top-20"><UniverseRail d={d} /></div></div>
+    </div>
     </div>
   );
 }

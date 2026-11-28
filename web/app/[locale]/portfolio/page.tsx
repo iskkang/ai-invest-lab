@@ -1,5 +1,8 @@
 import { notFound } from "next/navigation";
-import PortfolioPage from "@/app/portfolio/page";
+import { PortfolioBoard } from "@/components/portfolio-board";
+import { portfolioOverview } from "@/lib/portfolio-overview";
+import { getData } from "@/lib/data";
+import { publicationPulse } from "@/lib/returning-analytics";
 import { isLocale } from "@/lib/public-content";
 import { dashboardMetadata } from "@/lib/seo";
 import { t } from "@/lib/i18n";
@@ -14,5 +17,6 @@ export default async function LocalizedPage({params}:{
 }) {
   const {locale} = await params;
   if(!isLocale(locale)) notFound();
-  return <PortfolioPage/>;
+  const d = await getData();
+  return <PortfolioBoard rows={portfolioOverview(d)} decisionDate={publicationPulse(d).latestPublishedDate}/>;
 }

@@ -55,7 +55,7 @@ export const getData = cache(async (): Promise<Dataset> => {
 // The cached projection is quote-free and never contains API credentials.
 const loadCachedPublicRaw = unstable_cache(
   () => loadSupabase(true),
-  ["ail-public-results-v4", LIVE_PRICE_SOURCE],
+  ["ail-public-results-v5", LIVE_PRICE_SOURCE],
   { revalidate: 300 }
 );
 
@@ -88,7 +88,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
   // Timestamp the start of the result reads, including on cached public requests.
   const resultReadAt = new Date().toISOString();
   const [ps, bs, stats, trades, orders, rounds, decisions, universe, universeChanges, dailyJobs] = await Promise.all([
-    all("portfolio_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
+    all("portfolio_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings,stale_marks", (q) => q.in("account_id", ids).order("session_date")),
     all("benchmark_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("performance_stats", "*", (q) => q.in("account_id", ids).order("as_of", { ascending: false })),
     all("trades", publicView ? "id,order_id,account_id,symbol,side,quantity,trade_date,executed_at" : "*", (q) => q.in("account_id", ids).order("trade_date", { ascending: false })),
@@ -204,7 +204,7 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
     })),
     snapshots: (raw.snapshots ?? []).map((s: Raw) => ({
       accountId: s.account_id, date: s.session_date, equity: n(s.equity), cash: n(s.cash),
-      cumReturn: n(s.cum_return), dailyReturn: nn(s.daily_return), holdings: parseHoldings(s.holdings),
+      cumReturn: n(s.cum_return), dailyReturn: nn(s.daily_return), holdings: parseHoldings(s.holdings), staleMarks: s.stale_marks ?? [],
     })),
     stats,
     trades: (raw.trades ?? []).map((t: Raw) => ({

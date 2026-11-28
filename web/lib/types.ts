@@ -19,6 +19,7 @@ export interface Snapshot {
   cumReturn: number;
   dailyReturn: number | null;
   holdings: HoldingDetail[];
+  staleMarks?: string[];
 }
 
 export interface HoldingDetail {

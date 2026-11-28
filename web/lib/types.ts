@@ -65,6 +65,7 @@ export interface Trade {
   gross: number;
   fee: number;
   netCash: number;
+  saleResult?: { cost: number; pnl: number };
   realizedPnl: number | null;
   tradeDate: string;
   executedAt: string;
@@ -154,6 +155,7 @@ export interface Dataset {
   stats: Record<number, Stats>;
   trades: Trade[];
   rejected: RejectedOrder[];
+  pendingOrders?: {id:number; accountId:number; symbol:string; side:"BUY"|"SELL"; quantity:number; date:string}[];
   rounds: Round[];
   decisions: Decision[];
   universe: { symbol: string; name: string; sector: string | null; role: string }[];

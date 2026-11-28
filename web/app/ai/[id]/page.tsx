@@ -1,11 +1,12 @@
 import { notFound } from "next/navigation";
 import { ReturnChart } from "@/components/charts";
-import { AllocationBar, DecisionCard, Dot, HoldingsTable, Section, StatGrid, TradeList } from "@/components/blocks";
+import { AllocationBar, DecisionCard, HoldingsTable, Section, StatGrid, TradeList } from "@/components/blocks";
+import { AgentPositions } from "@/components/agent-positions";
 import { Badge } from "@/components/ui/badge";
 import { accountByAi, getData } from "@/lib/data";
 import { returnLines } from "@/lib/series";
-import { cn, fmtPct, toneClass } from "@/lib/utils";
-import { localizedHref,t,localizedDecisionText } from "@/lib/i18n";
+import { fmtPct, toneClass } from "@/lib/utils";
+import { t,localizedDecisionText } from "@/lib/i18n";
 
 export const revalidate = 300;
 
@@ -33,12 +34,7 @@ export default async function AiPage({ params }: { params: Promise<{ id: string 
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-center gap-3">
-        <Dot color={a.color} />
-        <h1 className="text-xl font-semibold">{a.name}</h1>
-        <Badge variant="outline">{a.model}</Badge>
-        <span className={cn("ml-auto text-2xl font-semibold tabular", toneClass(s?.cum_return))}>{fmtPct(s?.cum_return)}</span>
-      </div>
+      <AgentPositions d={d} account={a} trades={trades}/>
       {spyRet !== null && s && (
         <p className="text-sm text-muted">{t(d.locale,"SPY 단순 보유 대비")} <b className={toneClass(s.cum_return - spyRet)}>{fmtPct(s.cum_return - spyRet)}</b></p>
       )}
@@ -52,7 +48,7 @@ export default async function AiPage({ params }: { params: Promise<{ id: string 
       <div className="grid gap-4 lg:grid-cols-2">
         <Section title={t(d.locale,"보유 종목")}>
           <AllocationBar d={d} account={a} />
-          <div className="mt-3"><HoldingsTable d={d} account={a} /></div>
+          {!d.publicQuotesRedacted && <div className="mt-3"><HoldingsTable d={d} account={a} /></div>}
         </Section>
         <Section title={t(d.locale,"거래 이력")}>
           <TradeList d={d} trades={trades.slice(0, 15)} />

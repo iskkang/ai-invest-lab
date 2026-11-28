@@ -2,9 +2,10 @@
 
 import { useState, type CSSProperties } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, Wallet } from "lucide-react";
+import { ArrowUpRight, Wallet } from "lucide-react";
 import type { PortfolioRow } from "@/lib/portfolio-overview";
 import { fmtPct, fmtUsd, toneClass } from "@/lib/utils";
+import { ModelMark } from "./model-mark";
 import styles from "./portfolio-board.module.css";
 
 export function PortfolioBoard({ rows, decisionDate }: { rows: PortfolioRow[]; decisionDate: string | null }) {
@@ -18,18 +19,18 @@ export function PortfolioBoard({ rows, decisionDate }: { rows: PortfolioRow[]; d
       <div><h1>AI portfolios</h1><p>Total return since inception, including cash and open positions.</p></div>
       <Link href="/en/consensus">Compare AI decisions <ArrowUpRight size={16}/></Link>
     </header>
-    <div className={styles.cards} role="group" aria-label="Select a portfolio to view its holdings">
-      {rows.map(row => <button key={row.id} type="button" aria-pressed={row.id === account.id}
-        aria-controls="portfolio-holdings" onClick={() => setSelected(row.id)} className={styles.card}
+    <div className={styles.cards} role="group" aria-label="Agent detail pages">
+      {rows.map(row => <Link key={row.id} href={"/en/ai/" + row.aiId} className={styles.card}
         style={{ "--model": row.color } as CSSProperties}>
-        <span className={styles.name}><i aria-hidden/>{row.name}{row.id === account.id && <Check size={16} aria-hidden/>}</span>
+        <span className={styles.name}><ModelMark id={row.aiId ?? ""}/>{row.name}<ArrowUpRight size={16} aria-hidden/></span>
         <strong className={toneClass(row.gain)}>{fmtPct(row.gain)}</strong>
         <span className={styles.asof}>{row.date ? <>US close · <time dateTime={row.date}>{row.date}</time></> : "Awaiting valuation"}</span>
-      </button>)}
+      </Link>)}
     </div>
     <div id="portfolio-holdings" className={styles.panel} aria-label={account.name + " open positions"}>
       <div className={styles.panelHead}>
-        <div><h2>{account.name} holdings</h2><p>{account.date ? "Valued at the " + account.date + " US close" : "Awaiting the first closing valuation"}</p></div>
+        <div><h2><label>Holdings <select className={styles.selector} value={account.id} onChange={e => setSelected(Number(e.target.value))}>
+          {rows.map(row => <option key={row.id} value={row.id}>{row.name}</option>)}</select></label></h2><p>{account.date ? "Valued at the " + account.date + " US close" : "Awaiting the first closing valuation"}</p></div>
         <dl className={styles.metrics}>
           <div><dt>Account value</dt><dd>{account.equity === null ? "—" : fmtUsd(account.equity,2)}</dd></div>
           <div><dt>Cash</dt><dd>{account.cash === null ? "—" : fmtUsd(account.cash,2)}</dd></div>

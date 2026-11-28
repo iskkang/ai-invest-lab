@@ -21,7 +21,7 @@ export function portfolioOverview(d: Dataset) {
     const pnl = positions.reduce((sum, p) => sum + p.pnl, 0);
     const cost = positions.reduce((sum, p) => sum + p.value - p.pnl, 0);
     return {
-      id: a.id, name: a.name, color: a.color, date: s?.date ?? null,
+      id: a.id, aiId: a.aiId, name: a.name, color: a.color, date: s?.date ?? null,
       equity: s?.equity ?? null, cash: s?.cash ?? null, gain: s?.cumReturn ?? null,
       positions, openGain: cost > 0 ? pnl / cost : null,
     };

@@ -6,8 +6,8 @@
 .header a { display:inline-flex; align-items:center; gap:.4rem; color:var(--accent); font-size:.85rem; font-weight:650; min-height:44px; }
 .cards { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.7rem; }
 .card { display:flex; flex-direction:column; align-items:flex-start; min-width:0; cursor:pointer; padding:clamp(.85rem,1.5vw,1.5rem); text-align:left; background:var(--panel); border:1px solid var(--line); border-radius:14px; }
-.card:hover,.card[aria-pressed=true] { border-color:var(--model); background:color-mix(in srgb,var(--model) 7%,var(--panel)); }
-.card[aria-pressed=true] { box-shadow:inset 0 2px var(--model); }
+.card:hover,.card:focus-visible { border-color:var(--model); background:color-mix(in srgb,var(--model) 7%,var(--panel)); }
+.selector { color:var(--fg); background:var(--panel-2); border:1px solid var(--line); border-radius:.4rem; padding:.15rem .4rem; font-size:.95rem; }
 .name { display:flex; align-items:center; width:100%; gap:.5rem; font-weight:700; }
 .name i { width:.7rem; height:.7rem; border-radius:50%; background:var(--model); }
 .name svg { margin-left:auto; }

@@ -55,7 +55,7 @@ export const getData = cache(async (): Promise<Dataset> => {
 // The cached projection is quote-free and never contains API credentials.
 const loadCachedPublicRaw = unstable_cache(
   () => loadSupabase(true),
-  ["ail-public-results-v5", LIVE_PRICE_SOURCE],
+  ["ail-public-results-v6", LIVE_PRICE_SOURCE],
   { revalidate: 300 }
 );
 
@@ -91,7 +91,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     all("portfolio_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings,stale_marks", (q) => q.in("account_id", ids).order("session_date")),
     all("benchmark_snapshots", "account_id,session_date,equity,cash,cum_return,daily_return,holdings", (q) => q.in("account_id", ids).order("session_date")),
     all("performance_stats", "*", (q) => q.in("account_id", ids).order("as_of", { ascending: false })),
-    all("trades", publicView ? "id,order_id,account_id,symbol,side,quantity,trade_date,executed_at" : "*", (q) => q.in("account_id", ids).order("trade_date", { ascending: false })),
+    all("trades", publicView ? "id,order_id,account_id,symbol,side,quantity,trade_date,executed_at,net_cash,realized_pnl" : "*", (q) => q.in("account_id", ids).order("trade_date", { ascending: false })),
     all("orders", "*", (q) => q.in("account_id", ids)),
     all("experiment_rounds", "*", (q) => q.eq("experiment_id", exp.id).order("session_date", { ascending: false })),
     all("ai_decisions", "id,round_id,ai_model_id,requested_model,status,error,parsed,market_hash,completed_at"),
@@ -123,7 +123,7 @@ async function loadSupabase(publicView = false): Promise<Raw> {
   const through = coveredDates.sort().at(-1) ?? new Date().toISOString().slice(0, 10);
   const now = new Date().toISOString();
   // Anonymous visitors never fetch licensed per-ticker OHLCV, splits or raw
-  // brokerage transaction amounts from Supabase. The private console can.
+  // unit prices from Supabase. The private console can.
   let priceMap: Record<string, unknown> = {};
   let priceProvenance: NonNullable<Dataset["priceProvenance"]> = {};
   if (!publicView) {
@@ -157,9 +157,16 @@ async function loadSupabase(publicView = false): Promise<Raw> {
     trades: trades.map((t: Raw) => {
       const o = orderById.get(t.order_id) as Raw | undefined;
       const r = o?.round_id ? (roundById.get(o.round_id) as Raw) : undefined;
-      return { ...t, round_id: o?.round_id ?? null, decision_id: o?.decision_id ?? null,
+      const pnl = nn(t.realized_pnl);
+      const proceeds = nn(t.net_cash);
+      const saleResult = t.side === "SELL" && pnl !== null && proceeds !== null
+        ? { cost: Math.round((proceeds - pnl) * 100) / 100, pnl } : undefined;
+      return { ...t, ...(publicView ? {net_cash: null, realized_pnl: null} : {}), saleResult, round_id: o?.round_id ?? null, decision_id: o?.decision_id ?? null,
                decision_at: r?.decision_at ?? null, data_as_of: r?.data_as_of ?? null };
     }),
+    pending_orders: orders.filter(o => o.status === "PENDING").map(o => ({
+      id: o.id, accountId: o.account_id, symbol: o.symbol, side: o.side, quantity: n(o.quantity), date: o.session_date,
+    })),
     rejected_orders: orders.filter((o: Raw) => o.status === "REJECTED" || o.status === "EXPIRED"),
     rounds: rounds.map((r: Raw) => ({ ...r, snapshot_hash: hashByRound.get(r.id) ?? null })),
     decisions: myDecisions.map((d: Raw) => ({
@@ -210,9 +217,10 @@ function normalize(raw: Raw, locale: Locale): Omit<Dataset, "locale" | "publicQu
     trades: (raw.trades ?? []).map((t: Raw) => ({
       id: t.id, accountId: t.account_id, symbol: t.symbol, side: t.side, quantity: n(t.quantity),
       refOpenPrice: n(t.ref_open_price), price: n(t.price), gross: n(t.gross), fee: n(t.fee),
-      netCash: n(t.net_cash), realizedPnl: nn(t.realized_pnl), tradeDate: t.trade_date, executedAt: t.executed_at,
+      netCash: n(t.net_cash), saleResult: t.saleResult, realizedPnl: nn(t.realized_pnl), tradeDate: t.trade_date, executedAt: t.executed_at,
       decisionId: t.decision_id ?? null, decisionAt: t.decision_at ?? null, dataAsOf: t.data_as_of ?? null,
     })),
+    pendingOrders: raw.pending_orders ?? [],
     rejected: (raw.rejected_orders ?? []).map((o: Raw) => ({
       id: o.id, accountId: o.account_id, symbol: o.symbol, side: o.side, quantity: n(o.quantity),
       status: o.status, reason: o.reject_reason, sessionDate: o.session_date, decisionId: o.decision_id ?? null,

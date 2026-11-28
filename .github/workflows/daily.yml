@@ -83,10 +83,7 @@ jobs:
               export AIL_EXPECTED_SESSION
               ;;
             schedule:'12 8 * * 1-5'|schedule:'32 8 * * 1-5'|schedule:'52 8 * * 1-5') job=run-daily ;;
-              # Recheck the last closed session after late provider publication, including Fridays.
-    - cron: "20 6 * * 2-6"
-      timezone: "America/New_York"
-  workflow_dispatch:*)
+            workflow_dispatch:*)
               case "$MANUAL_JOB" in verify|run-daily|run-settle|costs) job="$MANUAL_JOB" ;; *) exit 1 ;; esac ;;
             *) echo "::error::Unexpected daily-engine trigger"; exit 1 ;;
           esac
